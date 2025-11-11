@@ -1,62 +1,20 @@
-name: Compile Examples
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
+- name: Compile examples
+  uses: arduino/compile-sketches@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    platforms: |
+      - source-url: https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/main/package_Inkplate_Boards_index.json
+        name: soldered-inkplate-boards:esp32
+    fqbn: ${{ matrix.board.fqbn }}
+    libraries: |
+      - source-path: ./
+      - name: ArduinoJson
+      - name: Time
+      - source-url: https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
+      - source-url: https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
+      - source-url: https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
+    sketch-paths: |
+      ${{ matrix.additional-sketch-paths }}
+    cli-compile-flags: |
+      - --warnings="default"
 
-    strategy:
-      matrix:
-        include:
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate5V2
-            additional-sketch-paths: |
-              - examples/Inkplate5V2
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate6V2
-            additional-sketch-paths: |
-              - examples/Inkplate6
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate10V2
-            additional-sketch-paths: |
-              - examples/Inkplate10
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate6Flick
-            additional-sketch-paths: |
-              - examples/Inkplate6FLICK
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate6COLOR
-            additional-sketch-paths: |
-              - examples/Inkplate6COLOR
-          - board:
-              fqbn: soldered-inkplate-boards:esp32:Inkplate2
-            additional-sketch-paths: |
-              - examples/Inkplate2
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install ESP32 platform dependencies
-        run: pip3 install pyserial
-      - name: Debug toolchain path
-        run: |
-          find ~/.arduino15/packages -type f -name "xtensa-esp32-elf-g++" || true
-          grep "compiler.path" ~/.arduino15/packages/soldered-inkplate-boards/hardware/esp32/2.0.0/platform.txt || true
-      - name: Compile examples
-        uses: arduino/compile-sketches@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          platforms: |
-            - source-url: https://github.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/raw/refs/heads/main/package_Inkplate_Boards_index.json
-              name: soldered-inkplate-boards:esp32
-
-          fqbn: ${{ matrix.board.fqbn }}
-          libraries: |
-            - source-path: ./
-            - name: ArduinoJson
-            - name: Time
-            - source-url: https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
-            - source-url: https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
-            - source-url: https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
-          sketch-paths: |
-            ${{ matrix.additional-sketch-paths }}
-          cli-compile-flags: |
-            - --warnings="default"
