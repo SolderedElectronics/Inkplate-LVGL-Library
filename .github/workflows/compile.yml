@@ -36,8 +36,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Install ESP32 platform dependencies
         run: pip3 install pyserial
+      - name: Debug toolchain path
+        run: |
+          find ~/.arduino15/packages -type f -name "xtensa-esp32-elf-g++" || true
+          grep "compiler.path" ~/.arduino15/packages/soldered-inkplate-boards/hardware/esp32/**/platform.txt || true
       - name: Compile examples
-        uses: arduino/compile-sketches
+        uses: arduino/compile-sketches@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           platforms: |
