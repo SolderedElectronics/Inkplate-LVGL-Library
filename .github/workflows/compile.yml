@@ -1,7 +1,5 @@
 name: Compile Examples
-
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,48 +9,50 @@ jobs:
         include:
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate5V2
-            additional-sketch-paths: examples/Inkplate5V2
+            additional-sketch-paths: |
+              - examples/Inkplate5V2
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6V2
-            additional-sketch-paths: examples/Inkplate6
+            additional-sketch-paths: |
+              - examples/Inkplate6
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate10V2
-            additional-sketch-paths: examples/Inkplate10
+            additional-sketch-paths: |
+              - examples/Inkplate10
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6Flick
-            additional-sketch-paths: examples/Inkplate6FLICK
+            additional-sketch-paths: |
+              - examples/Inkplate6FLICK
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6COLOR
-            additional-sketch-paths: examples/Inkplate6COLOR
+            additional-sketch-paths: |
+              - examples/Inkplate6COLOR
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate2
-            additional-sketch-paths: examples/Inkplate2
-
+            additional-sketch-paths: |
+              - examples/Inkplate2
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Arduino CLI
-        uses: arduino/setup-arduino-cli@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install ESP32 platform dependencies
+        run: pip3 install pyserial
+      - name: Compile examples
+        uses: arduino/compile-sketches@v1
         with:
-          version: 0.35.3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          platforms: |
+            - source-url: https://github.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/raw/refs/heads/main/package_Inkplate_Boards_index.json
+              name: soldered-inkplate-boards:esp32
 
-      - name: Install ESP32 and Inkplate platforms
-        run: |
-          arduino-cli config init
-          arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/main/package_Inkplate_Boards_index.json
-          arduino-cli core update-index
-          arduino-cli core install soldered-inkplate-boards:esp32
-
-      - name: Compile all sketches
-        run: |
-          echo "Searching for all .ino sketches..."
-          find examples -type f -name "*.ino"
-
-          echo
-          echo "Starting compilation for ${{ matrix.board.fqbn }}..."
-          find examples -type f -name "*.ino" | while read sketch; do
-            sketch_dir=$(dirname "$sketch")
-            echo "Compiling sketch: $sketch_dir"
-            arduino-cli compile --fqbn ${{ matrix.board.fqbn }} "$sketch_dir" --warnings default || exit 1
-          done
+          fqbn: ${{ matrix.board.fqbn }}
+          libraries: |
+            - source-path: ./
+            - name: ArduinoJson
+            - name: Time
+            - source-url: https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
+            - source-url: https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
+            - source-url: https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
+          sketch-paths: |
+            ${{ matrix.additional-sketch-paths }}
+          cli-compile-flags: |
+            - --warnings="default"
