@@ -2,7 +2,7 @@ name: Compile Examples
 on: [push]
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: windows-latest
 
     strategy:
       matrix:
