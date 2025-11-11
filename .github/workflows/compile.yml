@@ -44,11 +44,15 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install soldered-inkplate-boards:esp32
 
-      - name: Compile examples
+      - name: Compile all sketches
         run: |
-          sketches="${{ matrix.additional-sketch-paths }}"
-          for sketch in $sketches; do
-            echo "Compiling $sketch for ${{ matrix.board.fqbn }}"
-            arduino-cli compile --fqbn ${{ matrix.board.fqbn }} "$sketch" --warnings default
-          done
+          echo "Searching for all .ino sketches..."
+          find examples -type f -name "*.ino"
 
+          echo
+          echo "Starting compilation for ${{ matrix.board.fqbn }}..."
+          find examples -type f -name "*.ino" | while read sketch; do
+            sketch_dir=$(dirname "$sketch")
+            echo "Compiling sketch: $sketch_dir"
+            arduino-cli compile --fqbn ${{ matrix.board.fqbn }} "$sketch_dir" --warnings default || exit 1
+          done
