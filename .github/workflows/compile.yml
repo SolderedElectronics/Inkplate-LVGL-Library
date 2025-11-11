@@ -50,11 +50,6 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install soldered-inkplate-boards:esp32
 
-      - name: Install dependencies
-        run: |
-          arduino-cli lib install ArduinoJson
-          arduino-cli lib install Time
-
       - name: Compile examples
         run: |
           for sketch in ${{ matrix.additional-sketch-paths }}; do
