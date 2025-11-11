@@ -41,7 +41,7 @@ jobs:
       - name: Install Arduino CLI
         uses: arduino/setup-arduino-cli@v2
         with:
-          version: latest
+          version: 0.35.3
 
       - name: Install ESP32 and Inkplate platforms
         run: |
