@@ -11,28 +11,22 @@ jobs:
         include:
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate5V2
-            additional-sketch-paths: |
-              - examples/Inkplate5V2
+            additional-sketch-paths: examples/Inkplate5V2
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6V2
-            additional-sketch-paths: |
-              - examples/Inkplate6
+            additional-sketch-paths: examples/Inkplate6
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate10V2
-            additional-sketch-paths: |
-              - examples/Inkplate10
+            additional-sketch-paths: examples/Inkplate10
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6Flick
-            additional-sketch-paths: |
-              - examples/Inkplate6FLICK
+            additional-sketch-paths: examples/Inkplate6FLICK
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate6COLOR
-            additional-sketch-paths: |
-              - examples/Inkplate6COLOR
+            additional-sketch-paths: examples/Inkplate6COLOR
           - board:
               fqbn: soldered-inkplate-boards:esp32:Inkplate2
-            additional-sketch-paths: |
-              - examples/Inkplate2
+            additional-sketch-paths: examples/Inkplate2
 
     steps:
       - name: Checkout repository
