@@ -63,7 +63,7 @@ const uint8_t UNGETC_BUF_SIZE = 2;
 #undef getchar
 #undef gets
 #undef perror
-//#undef printf  // NOLINT
+// #undef printf  // NOLINT
 #undef putc
 #undef putchar
 #undef puts
@@ -73,7 +73,7 @@ const uint8_t UNGETC_BUF_SIZE = 2;
 #undef scanf
 #undef setbuf
 #undef setvbuf
-//#undef sprintf  // NOLINT
+// #undef sprintf  // NOLINT
 #undef sscanf
 #undef tmpfile
 #undef tmpnam

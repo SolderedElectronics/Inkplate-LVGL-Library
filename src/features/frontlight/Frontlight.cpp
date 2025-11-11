@@ -63,7 +63,7 @@ void Frontlight::setState(bool _e)
  * @param       Inkplate* inkplatePtr
  *              pointer to the instance of the current Inkplate display object
  */
-void Frontlight::begin(Inkplate* inkplatePtr)
+void Frontlight::begin(Inkplate *inkplatePtr)
 {
     _inkplate = inkplatePtr;
 }

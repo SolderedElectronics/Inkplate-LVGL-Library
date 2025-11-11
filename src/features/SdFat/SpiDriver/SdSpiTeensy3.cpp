@@ -60,7 +60,7 @@ void SdSpiAltDriver::deactivate()
 #define SPI_PUSHR_CONT 0X80000000
 #endif // SPI_PUSHR_CONT
 #ifndef SPI_PUSHR_CTAS
-#define SPI_PUSHR_CTAS(n) (((n)&7) << 28)
+#define SPI_PUSHR_CTAS(n) (((n) & 7) << 28)
 #endif // SPI_PUSHR_CTAS
 //------------------------------------------------------------------------------
 /** SPI receive a byte */

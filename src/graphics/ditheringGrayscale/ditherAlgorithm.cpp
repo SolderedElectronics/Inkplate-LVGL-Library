@@ -4,22 +4,23 @@
 #if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2)
 
 
-void DitherAlgorithm::begin(Inkplate* inkplatePtr)
+void DitherAlgorithm::begin(Inkplate *inkplatePtr)
 {
     _inkplate = inkplatePtr;
 }
 
 
-void DitherAlgorithm::ditherFramebuffer(uint8_t* frameBuffer, int width, int height, uint8_t mode)
+void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int height, uint8_t mode)
 {
     // mode = 0 → 1-bit (2 levels)
     // mode = 1 → 3-bit (8 levels)
     const int maxLevel = (mode == 0) ? 1 : 7;
     const float scale = 255.0f / maxLevel;
 
-    int16_t *errCurr = (int16_t*)ps_malloc(width * sizeof(int16_t));
-    int16_t *errNext = (int16_t*)ps_malloc(width * sizeof(int16_t));
-    if (!errCurr || !errNext) return;
+    int16_t *errCurr = (int16_t *)ps_malloc(width * sizeof(int16_t));
+    int16_t *errNext = (int16_t *)ps_malloc(width * sizeof(int16_t));
+    if (!errCurr || !errNext)
+        return;
 
     memset(errCurr, 0, width * sizeof(int16_t));
 
@@ -27,9 +28,9 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t* frameBuffer, int width, int hei
     {
         memset(errNext, 0, width * sizeof(int16_t));
 
-        int direction = (y & 1) ? -1 : 1;  // serpentine pattern
+        int direction = (y & 1) ? -1 : 1; // serpentine pattern
         int xStart = (direction == 1) ? 0 : (width - 1);
-        int xEnd   = (direction == 1) ? width : -1;
+        int xEnd = (direction == 1) ? width : -1;
 
         for (int x = xStart; x != xEnd; x += direction)
         {
@@ -37,8 +38,10 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t* frameBuffer, int width, int hei
 
             // Apply accumulated error
             int gray = frameBuffer[idx] + errCurr[x];
-            if (gray < 0) gray = 0;
-            if (gray > 255) gray = 255;
+            if (gray < 0)
+                gray = 0;
+            if (gray > 255)
+                gray = 255;
 
             // Quantize depending on mode
             int quantLevel;
@@ -52,13 +55,14 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t* frameBuffer, int width, int hei
             {
                 // --- 3-bit mode (8 grayscale levels) ---
                 quantLevel = (int)roundf(gray / scale);
-                if (quantLevel < 0) quantLevel = 0;
-                if (quantLevel > maxLevel) quantLevel = maxLevel;
+                if (quantLevel < 0)
+                    quantLevel = 0;
+                if (quantLevel > maxLevel)
+                    quantLevel = maxLevel;
                 // Write quantized level (0–1 or 0–7)
                 _inkplate->writePixelInternal(x, y, quantLevel);
             }
 
-            
 
             // Reconstruct quantized brightness for error calculation
             int quantGray = (int)(quantLevel * scale);
@@ -71,7 +75,8 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t* frameBuffer, int width, int hei
             if (xNext >= 0 && xNext < width)
                 errCurr[xNext] += (error * 7) / 16;
 
-            if (y + 1 < height) {
+            if (y + 1 < height)
+            {
                 int xBehind = x - direction;
                 int xAhead = x + direction;
 

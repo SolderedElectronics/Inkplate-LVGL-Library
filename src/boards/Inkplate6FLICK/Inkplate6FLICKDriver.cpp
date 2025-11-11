@@ -79,19 +79,19 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 }
 
 /**
- * @brief       display_flush_callback function is called whenever there is a change made on the current 
+ * @brief       display_flush_callback function is called whenever there is a change made on the current
  *              LVGL screen. The data is downscaled to 3 bit or 1 bit grayscale depending on the current display mode
  *              and stored in the EPD buffer for rendering
  *
  * @param       lv_display_t *disp
  *              A pointer to the created LVGL display instance
- * 
+ *
  * @param       lv_area_t *area
  *              A pointer to the area of the display which has changed
- * 
+ *
  * @param       uint8_t px_map
  *              An array of pixel values in L8 format
- * 
+ *
  */
 void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
@@ -100,9 +100,8 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
-    if (w <= 0 || h <= 0 || px_map == nullptr ||
-        area->x1 < 0 || area->y1 < 0 ||
-        area->x2 >= E_INK_WIDTH || area->y2 >= E_INK_HEIGHT)
+    if (w <= 0 || h <= 0 || px_map == nullptr || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_WIDTH ||
+        area->y2 >= E_INK_HEIGHT)
     {
         lv_display_flush_ready(disp);
         return;
@@ -110,7 +109,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     bool is3bit = (self->getDisplayMode() == INKPLATE_3BIT);
 
-    if(self->ditherEnabled)
+    if (self->ditherEnabled)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT, is3bit);
     }
@@ -123,7 +122,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
         const int width_bytes_3b = E_INK_WIDTH / 2;
 
         // Preload LUTs to local for faster access
-        const uint8_t *maskLUT  = pixelMaskLUT;
+        const uint8_t *maskLUT = pixelMaskLUT;
         const uint8_t *maskGLUT = pixelMaskGLUT;
 
         for (int32_t y = 0; y < h; y++)
@@ -138,15 +137,15 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 for (int32_t x = 0; x < w; x++)
                 {
                     int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH) break;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
 
                     uint8_t gray3 = src_row[x] >> 5;
                     int x_byte = screen_x / 2;
-                    int x_sub  = screen_x % 2;
+                    int x_sub = screen_x % 2;
 
                     uint8_t temp = dst_row[x_byte];
-                    uint8_t newv = (maskGLUT[x_sub] & temp) |
-                                (x_sub ? gray3 : (gray3 << 4));
+                    uint8_t newv = (maskGLUT[x_sub] & temp) | (x_sub ? gray3 : (gray3 << 4));
 
                     dst_row[x_byte] = newv;
                 }
@@ -158,18 +157,18 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 for (int32_t x = 0; x < w; x++)
                 {
                     int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH) break;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
 
                     uint8_t gray = src_row[x];
                     uint8_t bit = (gray < 128) ? 1 : 0;
 
                     int x_byte = screen_x / 8;
-                    int x_sub  = screen_x % 8;
+                    int x_sub = screen_x % 8;
 
                     uint8_t temp = dst_row[x_byte];
                     // Preserve other bits using original mask logic
-                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) |
-                                    (bit ? maskLUT[x_sub] : 0);
+                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
                 }
             }
         }
@@ -179,22 +178,24 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 }
 
 
-
 // Touchscreen read callback
-void touchscreen_read(lv_indev_t * indev, lv_indev_data_t * data) {
-lv_display_t *disp = (lv_display_t*) lv_indev_get_display(indev);
-Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
-  if (self->touchscreen.available()) {
-    uint16_t x, y;
-    self->touchscreen.getData(&x, &y);
-    data->state = LV_INDEV_STATE_PRESSED;
-    data->point.x = x;
-    data->point.y = y;
-  } else {
-    data->state = LV_INDEV_STATE_RELEASED;
-  }
+void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
+{
+    lv_display_t *disp = (lv_display_t *)lv_indev_get_display(indev);
+    Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
+    if (self->touchscreen.available())
+    {
+        uint16_t x, y;
+        self->touchscreen.getData(&x, &y);
+        data->state = LV_INDEV_STATE_PRESSED;
+        data->point.x = x;
+        data->point.y = y;
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
 }
-
 
 
 /**
@@ -227,7 +228,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 
     frontlight.begin(_inkplatePtr);
 
-    lv_indev_t * indev = lv_indev_create();
+    lv_indev_t *indev = lv_indev_create();
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev, touchscreen_read);
 
@@ -433,7 +434,7 @@ void EPDDriver::display3b(bool leaveOn)
  */
 void EPDDriver::display1b(bool leaveOn)
 {
-   // Copy everything from partial buffer into main buffer.
+    // Copy everything from partial buffer into main buffer.
     memcpy(DMemoryNew, _partial, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
     // Helper variables.
@@ -645,7 +646,6 @@ uint32_t EPDDriver::partialUpdate(bool _forced, bool leaveOn)
         _partialUpdateCounter++;
 
     return changeCount;
-
 }
 
 
@@ -920,7 +920,6 @@ void EPDDriver::clean(uint8_t c, uint8_t rep)
  */
 void EPDDriver::hscan_start(uint32_t _d)
 {
-
 }
 
 uint8_t EPDDriver::getDisplayMode()
@@ -972,7 +971,7 @@ void EPDDriver::gpioInit()
     internalIO.pinMode(FRONTLIGHT_EN, OUTPUT);
 
     // For same reason, unused pins of first I/O expander have to be also set as
-// outputs, low.
+    // outputs, low.
     internalIO.pinMode(14, OUTPUT);
     internalIO.pinMode(15, OUTPUT);
     internalIO.digitalWrite(14, LOW);
@@ -993,10 +992,6 @@ void EPDDriver::gpioInit()
     internalIO.pinMode(OE, OUTPUT);
     internalIO.pinMode(GMOD, OUTPUT);
     internalIO.pinMode(SPV, OUTPUT);
-
-
-
-
 }
 
 /**

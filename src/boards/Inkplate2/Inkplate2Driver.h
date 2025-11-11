@@ -46,8 +46,7 @@ class EPDDriver
 
 
   private:
-
-      // Color palette of the Inkplate 2 screen
+    // Color palette of the Inkplate 2 screen
     uint16_t _paletteIdeal[3] = {0xFFFF, 0x0000, 0xF800};
 
     uint8_t _paletteIndex[3] = {0, 1, 2};

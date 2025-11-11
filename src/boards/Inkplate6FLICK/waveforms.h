@@ -9,8 +9,7 @@
      {1, 2, 1, 1, 2, 2, 1, 2, 0}, {0, 0, 0, 0, 0, 0, 0, 2, 0}};
 
 
-
-#define E_INK_WIDTH 1024
+#define E_INK_WIDTH  1024
 #define E_INK_HEIGHT 758
 #endif
 #endif

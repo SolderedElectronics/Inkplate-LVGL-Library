@@ -11,8 +11,8 @@
 
 // Touchscreen defines
 #define TOUCHSCREEN_EN          IO_PIN_B4
-#define TOUCHSCREEN_RST                  IO_PIN_B2
-#define TOUCHSCREEN_INT                  36
+#define TOUCHSCREEN_RST         IO_PIN_B2
+#define TOUCHSCREEN_INT         36
 #define TOUCHSCREEN_IO_EXPANDER IO_INT_ADDR
 #define TOUCHSCREEN_IO_REGS     ioRegsInt
 

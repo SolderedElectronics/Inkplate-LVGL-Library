@@ -81,19 +81,19 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 }
 
 /**
- * @brief       display_flush_callback function is called whenever there is a change made on the current 
+ * @brief       display_flush_callback function is called whenever there is a change made on the current
  *              LVGL screen. The data is downscaled to 3 bit or 1 bit grayscale depending on the current display mode
  *              and stored in the EPD buffer for rendering
  *
  * @param       lv_display_t *disp
  *              A pointer to the created LVGL display instance
- * 
+ *
  * @param       lv_area_t *area
  *              A pointer to the area of the display which has changed
- * 
+ *
  * @param       uint8_t px_map
  *              An array of pixel values in L8 format
- * 
+ *
  */
 void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
@@ -102,9 +102,8 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
-    if (w <= 0 || h <= 0 || px_map == nullptr ||
-        area->x1 < 0 || area->y1 < 0 ||
-        area->x2 >= E_INK_WIDTH || area->y2 >= E_INK_HEIGHT)
+    if (w <= 0 || h <= 0 || px_map == nullptr || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_WIDTH ||
+        area->y2 >= E_INK_HEIGHT)
     {
         lv_display_flush_ready(disp);
         return;
@@ -112,7 +111,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     bool is3bit = (self->getDisplayMode() == INKPLATE_3BIT);
 
-    if(self->ditherEnabled)
+    if (self->ditherEnabled)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT, is3bit);
     }
@@ -125,7 +124,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
         const int width_bytes_3b = E_INK_WIDTH / 2;
 
         // Preload LUTs to local for faster access
-        const uint8_t *maskLUT  = pixelMaskLUT;
+        const uint8_t *maskLUT = pixelMaskLUT;
         const uint8_t *maskGLUT = pixelMaskGLUT;
 
         for (int32_t y = 0; y < h; y++)
@@ -140,15 +139,15 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 for (int32_t x = 0; x < w; x++)
                 {
                     int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH) break;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
 
                     uint8_t gray3 = src_row[x] >> 5;
                     int x_byte = screen_x / 2;
-                    int x_sub  = screen_x % 2;
+                    int x_sub = screen_x % 2;
 
                     uint8_t temp = dst_row[x_byte];
-                    uint8_t newv = (maskGLUT[x_sub] & temp) |
-                                (x_sub ? gray3 : (gray3 << 4));
+                    uint8_t newv = (maskGLUT[x_sub] & temp) | (x_sub ? gray3 : (gray3 << 4));
 
                     dst_row[x_byte] = newv;
                 }
@@ -160,28 +159,26 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 for (int32_t x = 0; x < w; x++)
                 {
                     int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH) break;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
 
                     uint8_t gray = src_row[x];
                     uint8_t bit = (gray < 128) ? 1 : 0;
 
                     int x_byte = screen_x / 8;
-                    int x_sub  = screen_x % 8;
+                    int x_sub = screen_x % 8;
 
                     uint8_t temp = dst_row[x_byte];
                     // Preserve other bits using original mask logic
-                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) |
-                                    (bit ? maskLUT[x_sub] : 0);
+                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
                 }
             }
         }
-
     }
 
-    
+
     lv_display_flush_ready(disp);
 }
-
 
 
 /**
@@ -246,7 +243,6 @@ void EPDDriver::calculateLUTs()
         }
     }
 }
-
 
 
 /**
@@ -316,7 +312,7 @@ void EPDDriver::clearDisplay()
     }
     // Clear 3 bit per pixel display buffer
     else if (_inkplate->getDisplayMode() == 1)
-    memset(DMemory4Bit, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+        memset(DMemory4Bit, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
 }
 
 /**
@@ -351,14 +347,14 @@ void IRAM_ATTR EPDDriver::display3b(bool leaveOn)
 {
     if (!einkOn())
         return;
-        clean(1, 1);
-        clean(0, 10);
-        clean(2, 1);
-        clean(1, 10);
-        clean(2, 1);
-        clean(0, 10);
-        clean(2, 1);
-        clean(1, 10);
+    clean(1, 1);
+    clean(0, 10);
+    clean(2, 1);
+    clean(1, 10);
+    clean(2, 1);
+    clean(0, 10);
+    clean(2, 1);
+    clean(1, 10);
 
     for (int k = 0; k < 9; k++)
     {
@@ -960,7 +956,7 @@ uint8_t EPDDriver::initializeFramebuffers()
     if (DMemoryNew == NULL || _partial == NULL || _pBuffer == NULL || DMemory4Bit == NULL || GLUT == NULL ||
         GLUT2 == NULL)
     {
-       return 0;
+        return 0;
     }
     // Set all the framebuffers to White at start
     memset(DMemoryNew, 0, E_INK_WIDTH * E_INK_HEIGHT / 8);
@@ -1187,6 +1183,5 @@ void EPDDriver::checkWaveformID()
     {
         memcpy(waveform3Bit, waveformEEPROM.waveform, sizeof(waveform3Bit));
     }
-
 }
 #endif

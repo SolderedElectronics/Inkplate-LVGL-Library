@@ -46,7 +46,7 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
         _swap_int16_t(x0, y0);
         y0 = E_INK_WIDTH - y0 - 1;
         break;
-    } 
+    }
 
     int _x = x0 / 2;
     int _x_sub = x0 % 2;
@@ -57,23 +57,21 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 
 
 /**
- * @brief       display_flush_callback function is called whenever there is a change made on the current 
+ * @brief       display_flush_callback function is called whenever there is a change made on the current
  *              LVGL screen. The data is downscaled to a 3-bit color palette from RGB565
  *              and stored in the EPD buffer for rendering
  *
  * @param       lv_display_t *disp
  *              A pointer to the created LVGL display instance
- * 
+ *
  * @param       lv_area_t *area
  *              A pointer to the area of the display which has changed
- * 
+ *
  * @param       uint8_t px_map
  *              An array of pixel values in L8 format
- * 
+ *
  */
-void IRAM_ATTR display_flush_callback(lv_display_t *disp,
-                                      const lv_area_t *area,
-                                      uint8_t *px_map)
+void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     Inkplate *self = (Inkplate *)lv_display_get_user_data(disp);
 
@@ -81,14 +79,13 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp,
     int32_t h = lv_area_get_height(area);
 
     // Validate input and boundaries
-    if (w <= 0 || h <= 0 || px_map == NULL ||
-        area->x1 < 0 || area->y1 < 0 ||
-        area->x2 >= E_INK_WIDTH || area->y2 >= E_INK_HEIGHT)
+    if (w <= 0 || h <= 0 || px_map == NULL || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_WIDTH ||
+        area->y2 >= E_INK_HEIGHT)
     {
         lv_display_flush_ready(disp);
         return;
     }
-    if(self->ditherEnabled)
+    if (self->ditherEnabled)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT);
     }
@@ -116,7 +113,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp,
                 // Extract 5-6-5 bits and scale to 0–255 range
                 uint8_t r5 = (pixel >> 11) & 0x1F;
                 uint8_t g6 = (pixel >> 5) & 0x3F;
-                uint8_t b5 =  pixel        & 0x1F;
+                uint8_t b5 = pixel & 0x1F;
 
                 R = (r5 * 527 + 23) >> 6;
                 G = (g6 * 259 + 33) >> 6;
@@ -167,17 +164,16 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp,
                 // Apply 180° flip (Inkplate coordinate convention)
                 int32_t sx = area->x1 + x;
                 int32_t sy = area->y1 + y;
-                int32_t fx = E_INK_WIDTH  - sx - 1;
+                int32_t fx = E_INK_WIDTH - sx - 1;
                 int32_t fy = E_INK_HEIGHT - sy - 1;
 
                 // Write pixel to 3-bit framebuffer (4-bit packed)
                 int x_byte = fx / 2;
-                int x_sub  = fx % 2;
+                int x_sub = fx % 2;
                 uint8_t *dst_row = buffer3b + (width_bytes_3b * fy);
 
                 uint8_t prev = dst_row[x_byte];
-                uint8_t newv = (maskGLUT[x_sub] & prev) |
-                            (x_sub ? color : (color << 4));
+                uint8_t newv = (maskGLUT[x_sub] & prev) | (x_sub ? color : (color << 4));
 
                 dst_row[x_byte] = newv;
             }
@@ -239,7 +235,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 }
 
 
-
 /**
  * @brief       clearDisplay function clears memory buffer for display
  *
@@ -294,7 +289,6 @@ void EPDDriver::display(bool _leaveOn)
 }
 
 
-
 uint8_t EPDDriver::getPanelState()
 {
     return _panelState;
@@ -321,7 +315,7 @@ void EPDDriver::setPanelState(uint8_t state)
  */
 void EPDDriver::clean()
 {
-    
+
     // Set resolution setting
     uint8_t res_set_data[] = {0x02, 0x58, 0x01, 0xc0};
     sendCommand(0x61);
@@ -525,7 +519,7 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
 void EPDDriver::setIOExpanderForLowPower()
 {
     Wire.begin();
-   internalIO.begin(IO_INT_ADDR);
+    internalIO.begin(IO_INT_ADDR);
 
     // TOUCHPAD PINS
     internalIO.pinMode(IO_PIN_B2, OUTPUT);
@@ -568,7 +562,6 @@ void EPDDriver::setIOExpanderForLowPower()
     internalIO.digitalWrite(IO_PIN_B6, LOW);
     internalIO.digitalWrite(IO_PIN_B7, LOW);
 }
-
 
 
 /**

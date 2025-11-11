@@ -63,9 +63,9 @@
 #define READ16(c)     (uint16_t)(*(c) | (*((c) + 1) << 8))
 #define ROWSIZE(w, c) (((int16_t)c * w + 31) >> 5) << 2
 
-#define _RED(a)   ((((a)&0xf800) >> 11) << 3)
-#define _GREEN(a) ((((a)&0x07e0) >> 5) << 2)
-#define _BLUE(a)  (((a)&0x001f) << 3)
+#define _RED(a)   ((((a) & 0xf800) >> 11) << 3)
+#define _GREEN(a) ((((a) & 0x07e0) >> 5) << 2)
+#define _BLUE(a)  (((a) & 0x001f) << 3)
 
 
 #define RED8(a)   (((a) >> 16) & 0xff)

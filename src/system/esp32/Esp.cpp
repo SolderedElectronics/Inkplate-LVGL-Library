@@ -128,7 +128,7 @@ void IRAM_ATTR sendDataI2S(i2s_dev_t *_i2sDev, volatile lldesc_s *_dmaDecs)
 
     // Setup a DMA descriptor.
     _i2sDev->lc_conf.val = I2S_OUT_DATA_BURST_EN | I2S_OUTDSCR_BURST_EN;
-    _i2sDev->out_link.addr = (uint32_t)(_dmaDecs)&0x000FFFFF;
+    _i2sDev->out_link.addr = (uint32_t)(_dmaDecs) & 0x000FFFFF;
 
     // Start sending the data
     _i2sDev->out_link.start = 1;

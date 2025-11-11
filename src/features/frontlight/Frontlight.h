@@ -38,7 +38,7 @@ class Frontlight
     void begin(Inkplate *inkplatePtr);
 
   private:
-    Inkplate* _inkplate;
+    Inkplate *_inkplate;
 };
 
 #endif

@@ -29,7 +29,6 @@
 class Inkplate;
 
 
-
 class EPDDriver
 {
   public:
@@ -83,7 +82,7 @@ class EPDDriver
 
     // Color palette of the Specta screen.
     uint16_t _paletteIdeal[7] = {0x0000, 0xFFFF, 0x07E0, 0x001F, 0xF800, 0xFFE0, 0xFBE0};
-    //uint16_t _palleteMeasured[6] = {0x4A4A, 0xA554, 0xB549, 0x7249, 0x4B32, 0x536C};
+    // uint16_t _palleteMeasured[6] = {0x4A4A, 0xA554, 0xB549, 0x7249, 0x4B32, 0x536C};
     uint8_t _paletteIndex[7] = {0, 1, 2, 3, 4, 5, 6};
 
     int8_t paletteSize = 7;

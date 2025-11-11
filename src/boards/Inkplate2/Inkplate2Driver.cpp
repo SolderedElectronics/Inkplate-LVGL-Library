@@ -9,7 +9,7 @@ SPISettings epdSpiSettings(1000000UL, MSBFIRST, SPI_MODE0);
 
 void EPDDriver::writePixelInternal(int16_t x0, int16_t y0, uint16_t color)
 {
-    if (x0 > E_INK_HEIGHT - 1 || y0 > E_INK_WIDTH  - 1 || x0 < 0 || y0 < 0)
+    if (x0 > E_INK_HEIGHT - 1 || y0 > E_INK_WIDTH - 1 || x0 < 0 || y0 < 0)
         return;
     if (color > 2)
         return;
@@ -21,7 +21,7 @@ void EPDDriver::writePixelInternal(int16_t x0, int16_t y0, uint16_t color)
     int _x = x0 / 8;
     int _xSub = x0 % 8;
 
-    int _position = E_INK_WIDTH/ 8 * y0 + _x;
+    int _position = E_INK_WIDTH / 8 * y0 + _x;
 
     // Clear both black and red frame buffer.
     *(DMemory4Bit + _position) |= (pixelMaskLUT[7 - _xSub]);
@@ -40,22 +40,20 @@ void EPDDriver::writePixelInternal(int16_t x0, int16_t y0, uint16_t color)
 }
 
 
-
-
 /**
- * @brief       display_flush_callback function is called whenever there is a change made on the current 
+ * @brief       display_flush_callback function is called whenever there is a change made on the current
  *              LVGL screen. The data is downscaled to a White-Black-Red color palette from RGB565
  *              and stored in the EPD buffer for rendering
  *
  * @param       lv_display_t *disp
  *              A pointer to the created LVGL display instance
- * 
+ *
  * @param       lv_area_t *area
  *              A pointer to the area of the display which has changed
- * 
+ *
  * @param       uint8_t px_map
  *              An array of pixel values in L8 format
- * 
+ *
  */
 void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
@@ -64,7 +62,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
-    if(self->ditherEnabled)
+    if (self->ditherEnabled)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
     }
@@ -158,7 +156,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 }
 
 
-
 /**
  * @brief       clearDisplay function clears memory buffer for display
  *
@@ -180,7 +177,7 @@ void EPDDriver::clearDisplay()
  */
 void EPDDriver::display(bool _leaveOn)
 {
-       // Wake the panel and wait a bit
+    // Wake the panel and wait a bit
     // The refresh time is long anyway so this delay doesn't make much impact
     setPanelDeepSleep(false);
     delay(20);
@@ -205,7 +202,6 @@ void EPDDriver::display(bool _leaveOn)
     // Go back to sleep
     setPanelDeepSleep(true);
 }
-
 
 
 uint8_t EPDDriver::getPanelState()
@@ -237,7 +233,7 @@ void EPDDriver::resetPanel()
  */
 void EPDDriver::sendCommand(uint8_t _command)
 {
-     digitalWrite(EPAPER_CS_PIN, LOW);
+    digitalWrite(EPAPER_CS_PIN, LOW);
     digitalWrite(EPAPER_DC_PIN, LOW);
     delayMicroseconds(10);
     epdSPI.beginTransaction(epdSpiSettings);

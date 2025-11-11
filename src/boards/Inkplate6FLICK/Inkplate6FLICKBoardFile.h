@@ -24,7 +24,7 @@
 class InkplateBoardClass : public EPDDriver
 {
   public:
-    InkplateBoardClass(){};
+    InkplateBoardClass() {};
 };
 
 #endif

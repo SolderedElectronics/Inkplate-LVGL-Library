@@ -22,13 +22,13 @@
 #ifdef ARDUINO_INKPLATE6FLICK
 
 // Macro helpers.
-#define TS_GET_BOOTLOADERMODE(reg) (((reg)&0x10) >> 4)
+#define TS_GET_BOOTLOADERMODE(reg) (((reg) & 0x10) >> 4)
 
 // Interrupt function callback for Touch Interruput event.
 static volatile bool _tsFlag = false;
 static void IRAM_ATTR tsInt()
 {
-    
+
     // On interrupt event set flag to true.
     _tsFlag = true;
 }
@@ -364,7 +364,7 @@ bool Touch::getTouchData(struct cypressTouchData *_touchData)
  *              Swap X and Y cooridinates.
  */
 void Touch::scale(struct cypressTouchData *_touchData, uint16_t _xSize, uint16_t _ySize, bool _flipX, bool _flipY,
-                    bool _swapXY)
+                  bool _swapXY)
 {
     // Temp. variables for the mapped value.
     uint16_t _mappedX = 0;

@@ -44,10 +44,7 @@ struct GpioPinMap_t
 };
 
 /** Initializer macro. */
-#define GPIO_PIN(reg, bit)                                                                                             \
-    {                                                                                                                  \
-        &PIN##reg, &DDR##reg, &PORT##reg, 1 << bit                                                                     \
-    }
+#define GPIO_PIN(reg, bit) {&PIN##reg, &DDR##reg, &PORT##reg, 1 << bit}
 
 // Include pin map for current board.
 #include "boards/GpioPinMap.h"

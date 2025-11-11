@@ -40,8 +40,8 @@
 #define CYPRESS_TOUCH_I2C_ADDR 0x24
 
 // GPIOs for touchscreen controller.
-//#define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
-//#define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
+// #define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
+// #define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
 
 // Cypress touchscreen controller I2C regs.
 #define CYPRESS_TOUCH_BASE_ADDR       0x00
@@ -102,7 +102,7 @@ class Touch
 
     // Scale touch data report to fit screen (and also rotation).
     void scale(struct cypressTouchData *_touchData, uint16_t _xSize, uint16_t _ySize, bool _flipX, bool _flipY,
-                 bool _swapXY);
+               bool _swapXY);
 
     // Disable touchscreen.
     void end();

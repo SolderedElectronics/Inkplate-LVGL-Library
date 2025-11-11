@@ -39,12 +39,12 @@ void display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *
 class Inkplate : public InkplateBoardClass, public NetworkController
 {
   public:
-    #ifndef USE_COLOR_IMAGE
+#ifndef USE_COLOR_IMAGE
     Inkplate(uint8_t mode);
-    #else
+#else
     Inkplate();
-    #endif
-    void begin(lv_display_render_mode_t renderMode=LV_DISP_RENDER_MODE_FULL);
+#endif
+    void begin(lv_display_render_mode_t renderMode = LV_DISP_RENDER_MODE_FULL);
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void setRotation(uint8_t r);
     void enableDithering(bool state);
