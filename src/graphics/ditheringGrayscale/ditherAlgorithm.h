@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef USE_COLOR_IMAGE
+#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2)
 
 #include <stdio.h>
 #include <stdlib.h>

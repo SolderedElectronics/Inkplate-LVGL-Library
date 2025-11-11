@@ -1,7 +1,7 @@
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
-#ifdef USE_COLOR_IMAGE
+#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2)
 
 // RGB565 to RGBTRIPLE
 void DitherAlgorithm::RGB565_to_RGBtriple(uint16_t c, uint8_t *r, uint8_t *g, uint8_t *b)

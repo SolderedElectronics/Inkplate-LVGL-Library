@@ -1,7 +1,7 @@
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
-#ifndef USE_COLOR_IMAGE
+#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2)
 
 
 void DitherAlgorithm::begin(Inkplate* inkplatePtr)
