@@ -1,5 +1,7 @@
 name: Compile Examples
+
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,32 +33,42 @@ jobs:
               fqbn: soldered-inkplate-boards:esp32:Inkplate2
             additional-sketch-paths: |
               - examples/Inkplate2
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install ESP32 platform dependencies
-        run: pip3 install pyserial
-      - name: Debug toolchain path
-        run: |
-          find ~/.arduino15/packages -type f -name "xtensa-esp32-elf-g++" || true
-          grep "compiler.path" ~/.arduino15/packages/soldered-inkplate-boards/hardware/esp32/2.0.0/platform.txt || true
-      - name: Compile examples
-        uses: arduino/compile-sketches@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          platforms: |
-            - source-url: https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/main/package_Inkplate_Boards_index.json
-              name: soldered-inkplate-boards:esp32
 
-          fqbn: ${{ matrix.board.fqbn }}
-          libraries: |
-            - source-path: ./
-            - name: ArduinoJson
-            - name: Time
-            - source-url: https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
-            - source-url: https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
-            - source-url: https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
-          sketch-paths: |
-            ${{ matrix.additional-sketch-paths }}
-          cli-compile-flags: |
-            - --warnings="default"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+        with:
+          version: latest
+
+      - name: Install ESP32 and Inkplate platforms
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Board-Definitions-for-Arduino-IDE/main/package_Inkplate_Boards_index.json
+          arduino-cli core update-index
+          arduino-cli core install soldered-inkplate-boards:esp32
+
+      - name: Install dependencies
+        run: |
+          arduino-cli lib install ArduinoJson
+          arduino-cli lib install Time
+          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
+          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
+          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
+
+      - name: Verify platform installation
+        run: |
+          echo "Installed platforms:"
+          arduino-cli core list
+          echo
+          echo "Installed libraries:"
+          arduino-cli lib list
+
+      - name: Compile examples
+        run: |
+          for sketch in ${{ matrix.additional-sketch-paths }}; do
+            echo "Compiling $sketch for ${{ matrix.board.fqbn }}"
+            arduino-cli compile --fqbn ${{ matrix.board.fqbn }} $sketch --warnings default
+          done
