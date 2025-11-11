@@ -39,7 +39,7 @@ jobs:
       - name: Debug toolchain path
         run: |
           find ~/.arduino15/packages -type f -name "xtensa-esp32-elf-g++" || true
-          grep "compiler.path" ~/.arduino15/packages/soldered-inkplate-boards/hardware/esp32/**/platform.txt || true
+          grep "compiler.path" ~/.arduino15/packages/soldered-inkplate-boards/hardware/esp32/2.0.0/platform.txt || true
       - name: Compile examples
         uses: arduino/compile-sketches@v1
         with:
