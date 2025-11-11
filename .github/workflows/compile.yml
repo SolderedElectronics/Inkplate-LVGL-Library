@@ -37,7 +37,7 @@ jobs:
       - name: Install ESP32 platform dependencies
         run: pip3 install pyserial
       - name: Compile examples
-        uses: arduino/compile-sketches@v1
+        uses: arduino/compile-sketches
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           platforms: |
