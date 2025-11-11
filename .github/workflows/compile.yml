@@ -60,4 +60,3 @@ jobs:
             ${{ matrix.additional-sketch-paths }}
           cli-compile-flags: |
             - --warnings="default"
-            - --build-property compiler.path={runtime.tools.xtensa-esp32-elf-gcc.path}/bin/
