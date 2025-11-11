@@ -54,17 +54,6 @@ jobs:
         run: |
           arduino-cli lib install ArduinoJson
           arduino-cli lib install Time
-          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-MFRC522-RFID-Reader-Arduino-Library.git
-          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-WS2812-Smart-Leds-Arduino-Library.git
-          arduino-cli lib install --git-url https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library.git
-
-      - name: Verify platform installation
-        run: |
-          echo "Installed platforms:"
-          arduino-cli core list
-          echo
-          echo "Installed libraries:"
-          arduino-cli lib list
 
       - name: Compile examples
         run: |
