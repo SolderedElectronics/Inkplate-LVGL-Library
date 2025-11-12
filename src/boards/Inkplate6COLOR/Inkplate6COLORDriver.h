@@ -72,7 +72,7 @@ class EPDDriver
     void gpioInit();
     uint8_t getPanelState();
     void setPanelState(uint8_t state);
-    
+
     void resetPanel();
     void sendCommand(uint8_t _command);
     void sendData(uint8_t *_data, int _n);
