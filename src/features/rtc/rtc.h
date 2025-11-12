@@ -80,41 +80,41 @@ class RTC
         TIMER_CLOCK_1PER60HZ = 3
     };
 
-    void SetTime(uint8_t hour, uint8_t minute, uint8_t sec);
-    void SetDate(uint8_t weekday, uint8_t day, uint8_t month, uint16_t yr);
-    void SetEpoch(uint32_t _epoch);
-    uint32_t GetEpoch();
-    void GetRtcData();
-    void EnableAlarm(); // called on setAlarm()
-    void SetAlarm(uint8_t alarm_second, uint8_t alarm_minute, uint8_t alarm_hour, uint8_t alarm_day,
+    void setTime(uint8_t hour, uint8_t minute, uint8_t sec);
+    void setDate(uint8_t weekday, uint8_t day, uint8_t month, uint16_t yr);
+    void setEpoch(uint32_t _epoch);
+    uint32_t getEpoch();
+    void getRtcData();
+    void enableAlarm(); // called on setAlarm()
+    void setAlarm(uint8_t alarm_second, uint8_t alarm_minute, uint8_t alarm_hour, uint8_t alarm_day,
                   uint8_t alarm_weekday);
-    void SetAlarmEpoch(uint32_t _epoch, uint8_t _match);
-    void ReadAlarm();
-    bool ChangeTimeFormat(); // returns false for 24H format & true for 12H format
-    void TimerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_enable, bool int_pulse);
-    bool CheckTimerFlag();
-    bool CheckAlarmFlag();
-    void ClearAlarmFlag();
-    void ClearTimerFlag();
-    void DisableTimer();
-    bool IsSet();
-    void Reset();
-    void SetInternalCapacitor(bool);
-    void SetClockOffset(bool mode, int offsetValue);
+    void setAlarmEpoch(uint32_t _epoch, uint8_t _match);
+    void readAlarm();
+    bool changeTimeFormat(); // returns false for 24H format & true for 12H format
+    void timerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_enable, bool int_pulse);
+    bool checkTimerFlag();
+    bool checkAlarmFlag();
+    void clearAlarmFlag();
+    void clearTimerFlag();
+    void disableTimer();
+    bool isSet();
+    void reset();
+    void setInternalCapacitor(bool);
+    void setClockOffset(bool mode, int offsetValue);
     /* read RTC times */
-    uint8_t GetSecond();
-    uint8_t GetMinute();
-    uint8_t GetHour();
-    uint8_t GetDay();
-    uint8_t GetWeekday();
-    uint8_t GetMonth();
-    uint16_t GetYear();
+    uint8_t getSecond();
+    uint8_t getMinute();
+    uint8_t getHour();
+    uint8_t getDay();
+    uint8_t getWeekday();
+    uint8_t getMonth();
+    uint16_t getYear();
     /* read alarm times */ // if return = 99, no alarm
-    uint8_t GetAlarmSecond();
-    uint8_t GetAlarmMinute();
-    uint8_t GetAlarmHour();
-    uint8_t GetAlarmDay();
-    uint8_t GetAlarmWeekday();
+    uint8_t getAlarmSecond();
+    uint8_t getAlarmMinute();
+    uint8_t getAlarmHour();
+    uint8_t getAlarmDay();
+    uint8_t getAlarmWeekday();
 
 
   private:
