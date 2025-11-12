@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        HelloWorld.ino
+ * @brief       Example showing how to display a simple LVGL label on the Inkplate10
+ *
+ * For info on how to quickly get started with Inkplate 10 visit https://soldered.com/documentation/inkplate/10/overview/
+ *
+ * @authors     Soldered
+ * @date        November 2025
+ ***************************************************/
 // Include the Inkplate LVGL Library
 #include <Inkplate-LVGL.h>
 
