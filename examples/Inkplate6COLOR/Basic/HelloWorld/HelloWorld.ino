@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        HelloWorld.ino
+ * @brief       Example showing how to display a simple LVGL label on the Inkplate6COLOR
+ *
+ * For info on how to quickly get started with Inkplate 6COLOR visit https://soldered.com/documentation/inkplate/6color/overview/
+ *
+ * @authors     Soldered
+ * @date        November 2025
+ ***************************************************/
 // Include the Inkplate LVGL Library
 #include <Inkplate-LVGL.h>
 
