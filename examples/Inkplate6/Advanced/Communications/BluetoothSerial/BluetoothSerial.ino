@@ -12,13 +12,9 @@
  *  - Anything you type in the app will be shown on the Inkplate screen.
  *  - Anything you type in the Arduino Serial Monitor will be sent to the phone.
  *
- * NOTES
- *  - Runs in 1-bit mode for fast partial updates.
- *  - A dedicated opaque "log panel" prevents ghosting/overlap with the header.
- *  - Uses LV_FONT_DEFAULT to work out-of-the-box without extra fonts.
  *
- * Learn more about Inkplate: https://www.inkplate.io
- * Support forum: https://forum.soldered.com/
+ * For info on how to quickly get started with Inkplate 6 visit
+ * https://soldered.com/documentation/inkplate/6/overview/
  *
  * @authors     Soldered
  * @date        November 2025
