@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        HTTP_POST_Request.ino
+ * @file        HttpPostRequest.ino
  * @brief       Example showing how to make an HTTP POST request
  *              and display the response on Inkplate10 using LVGL.
  *

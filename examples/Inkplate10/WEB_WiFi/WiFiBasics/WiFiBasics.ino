@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        WiFiBasics.ino
+ * @file        WifiBasics.ino
  * @brief       Example showing how to connect to WiFi on the Inkplate10
  *
  * For info on how to quickly get started with Inkplate 10 visit https://soldered.com/documentation/inkplate/10/overview/

@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        HTTP_GET_Request.ino
+ * @file        HttpGetRequest.ino
  * @brief       Example showing how to make an HTTP GET request and display the response on Inkplate10
  *
  * For info on how to quickly get started with Inkplate 10 visit https://soldered.com/documentation/inkplate/10/overview/

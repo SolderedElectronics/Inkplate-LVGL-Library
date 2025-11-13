@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        Black_And_White.ino
+ * @file        BlackAndWhite.ino
  * @brief       Example demonstrating 1-bit (black & white) LVGL drawing on Inkplate10
  *
  * For info on how to quickly get started with Inkplate 10 visit:
