@@ -79,7 +79,7 @@ void loop() {
   lv_obj_get_coords(square, &old_area);
 
   int newX = (step * 20)%(1200-50);
-  int newY = (step * 20)%(825-50)
+  int newY = (step * 20)%(825-50);
 
   //Move the square
   lv_obj_set_pos(square, newX, newY);
