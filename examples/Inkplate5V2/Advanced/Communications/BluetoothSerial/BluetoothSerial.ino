@@ -21,8 +21,9 @@
  **************************************************
  */
 
-#if !defined(ARDUINO_ESP32_DEV) && !defined(ARDUINO_INKPLATE6V2)
-#error "Wrong board selection for this example, please select e-radionica Inkplate6 or Soldered Inkplate6 in the boards menu."
+// Next 3 lines are a precaution, you can ignore those, and the example would also work without them
+#ifndef ARDUINO_INKPLATE5V2
+#error "Wrong board selection for this example, please select Soldered Inkplate5 V2 in the boards menu."
 #endif
 
 #include <Inkplate-LVGL.h>
