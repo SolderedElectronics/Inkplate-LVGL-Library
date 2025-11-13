@@ -21,8 +21,8 @@
 Inkplate inkplate(INKPLATE_1BIT);
 
 // WiFi credentials (replace with your own)
-const char *ssid = "Soldered";
-const char *pass = "dasduino";
+const char *ssid = "your ssid";
+const char *pass = "your password";
 
 // LVGL tick timer handle for periodic updates
 esp_timer_handle_t lvgl_tick_timer;
