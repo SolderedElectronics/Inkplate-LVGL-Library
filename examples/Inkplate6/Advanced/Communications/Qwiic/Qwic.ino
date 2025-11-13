@@ -1,8 +1,8 @@
 /**
  **************************************************
  *
- * @file        easyC.ino
- * @brief       Example demonstrating easyC (I2C) communication between Inkplate 6 and 
+ * @file        Qwiic.ino
+ * @brief       Example demonstrating easyC/Qwiic (I2C) communication between Inkplate 6 and 
  *              a Soldered BME280 or BME680 environmental sensor, using the LVGL library 
  *              for display rendering. 
  *
