@@ -26,7 +26,7 @@
  * @param uint8_t rtcMinute    Set the minutes
  * @param uint8_t rtcSecond    Set the seconds
  */
-void RTC::SetTime(uint8_t rtcHour, uint8_t rtcMinute, uint8_t rtcSecond)
+void RTC::setTime(uint8_t rtcHour, uint8_t rtcMinute, uint8_t rtcSecond)
 {
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_RAM_by);
@@ -45,7 +45,7 @@ void RTC::SetTime(uint8_t rtcHour, uint8_t rtcMinute, uint8_t rtcSecond)
  * @param uint8_t rtcMonth     Set the rtcMonth
  * @param uint8_t yr        Set the rtcYear
  */
-void RTC::SetDate(uint8_t rtcWeekday, uint8_t rtcDay, uint8_t rtcMonth, uint16_t yr)
+void RTC::setDate(uint8_t rtcWeekday, uint8_t rtcDay, uint8_t rtcMonth, uint16_t yr)
 {
     Year = yr - 2000; // convert to RTC rtcYear format 0-99
 
@@ -68,7 +68,7 @@ void RTC::SetDate(uint8_t rtcWeekday, uint8_t rtcDay, uint8_t rtcMonth, uint16_t
  *
  * @param uint32_t _epoch   Set RTC epoch
  */
-void RTC::SetEpoch(uint32_t _epoch)
+void RTC::setEpoch(uint32_t _epoch)
 {
     struct tm _t;
     time_t _e = _epoch;
@@ -92,7 +92,7 @@ void RTC::SetEpoch(uint32_t _epoch)
  *
  * @returns uint32_t        Returns the current epoch
  */
-uint32_t RTC::GetEpoch()
+uint32_t RTC::getEpoch()
 {
     struct tm _t;
 
@@ -116,7 +116,7 @@ uint32_t RTC::GetEpoch()
 /**
  * @brief                   Reads time and date from the RTC
  */
-void RTC::GetRtcData()
+void RTC::getRtcData()
 {
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ADDR); // datasheet 8.4.
@@ -141,7 +141,7 @@ void RTC::GetRtcData()
  *
  * @returns uint8_t         Returns the current seconds
  */
-uint8_t RTC::GetSecond()
+uint8_t RTC::getSecond()
 {
     return Second;
 }
@@ -151,7 +151,7 @@ uint8_t RTC::GetSecond()
  *
  * @returns uint8_t         Returns the current minutes
  */
-uint8_t RTC::GetMinute()
+uint8_t RTC::getMinute()
 {
     return Minute;
 }
@@ -161,7 +161,7 @@ uint8_t RTC::GetMinute()
  *
  * @returns uint8_t         Returns the current hours
  */
-uint8_t RTC::GetHour()
+uint8_t RTC::getHour()
 {
     return Hour;
 }
@@ -171,7 +171,7 @@ uint8_t RTC::GetHour()
  *
  * @returns uint8_t         Returns the current rtcDay
  */
-uint8_t RTC::GetDay()
+uint8_t RTC::getDay()
 {
     return Day;
 }
@@ -181,7 +181,7 @@ uint8_t RTC::GetDay()
  *
  * @returns uint8_t         Returns the current rtcWeekday
  */
-uint8_t RTC::GetWeekday()
+uint8_t RTC::getWeekday()
 {
     return Weekday;
 }
@@ -191,7 +191,7 @@ uint8_t RTC::GetWeekday()
  *
  * @returns uint8_t         Returns the current rtcMonth
  */
-uint8_t RTC::GetMonth()
+uint8_t RTC::getMonth()
 {
     return Month;
 }
@@ -201,7 +201,7 @@ uint8_t RTC::GetMonth()
  *
  * @returns uint8_t         Returns the current rtcYear
  */
-uint16_t RTC::GetYear()
+uint16_t RTC::getYear()
 {
     return Year;
 }
@@ -209,7 +209,7 @@ uint16_t RTC::GetYear()
 /**
  * @brief                   Enables the alarm of the RTC
  */
-void RTC::EnableAlarm() // datasheet 8.5.6.
+void RTC::enableAlarm() // datasheet 8.5.6.
 {
     // check Table 2. Control_2
     Control2 = RTC_CTRL_2_DEFAULT | RTC_ALARM_AIE; // enable interrupt
@@ -230,7 +230,7 @@ void RTC::EnableAlarm() // datasheet 8.5.6.
  * @param uint8_t AlarmDay     Set the alarm rtcDay
  * @param uint8_t AlarmWeekday Set the alarm rtcWeekday
  */
-void RTC::SetAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, uint8_t AlarmDay, uint8_t AlarmWeekday)
+void RTC::setAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, uint8_t AlarmDay, uint8_t AlarmWeekday)
 {
     if (AlarmSecond < 99)
     { // rtcSecond
@@ -292,7 +292,7 @@ void RTC::SetAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, 
         AlarmWeekday |= RTC_ALARM;
     }
 
-    EnableAlarm();
+    enableAlarm();
 
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ALARM);
@@ -310,7 +310,7 @@ void RTC::SetAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, 
  * @param uint32_t _epoch   RTC Epoch alarm
  * @param uint8_t _match    RTC Match
  */
-void RTC::SetAlarmEpoch(uint32_t _epoch, uint8_t _match)
+void RTC::setAlarmEpoch(uint32_t _epoch, uint8_t _match)
 {
     struct tm _t;
     time_t _e = _epoch;
@@ -326,14 +326,14 @@ void RTC::SetAlarmEpoch(uint32_t _epoch, uint8_t _match)
     Wire.write(DecToBcd(_t.tm_wday) & (~(((_match >> 4) & 1) << 7)));
     Wire.endTransmission();
 
-    EnableAlarm();
+    enableAlarm();
 }
 
 
 /**
  * @brief                   Reads the alarm of the RTC
  */
-void RTC::ReadAlarm()
+void RTC::readAlarm()
 {
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ALARM); // datasheet 8.4.
@@ -400,9 +400,9 @@ void RTC::ReadAlarm()
  *
  * @returns uint8_t         Returns the current alarm seconds
  */
-uint8_t RTC::GetAlarmSecond()
+uint8_t RTC::getAlarmSecond()
 {
-    ReadAlarm();
+    readAlarm();
     return AlarmSecond;
 }
 
@@ -411,9 +411,9 @@ uint8_t RTC::GetAlarmSecond()
  *
  * @returns uint8_t         Returns the current alarm minutes
  */
-uint8_t RTC::GetAlarmMinute()
+uint8_t RTC::getAlarmMinute()
 {
-    ReadAlarm();
+    readAlarm();
     return AlarmMinute;
 }
 
@@ -422,9 +422,9 @@ uint8_t RTC::GetAlarmMinute()
  *
  * @returns uint8_t         Returns the current alarm hours
  */
-uint8_t RTC::GetAlarmHour()
+uint8_t RTC::getAlarmHour()
 {
-    ReadAlarm();
+    readAlarm();
     return AlarmHour;
 }
 
@@ -433,9 +433,9 @@ uint8_t RTC::GetAlarmHour()
  *
  * @returns uint8_t         Returns the current alarm rtcDay
  */
-uint8_t RTC::GetAlarmDay()
+uint8_t RTC::getAlarmDay()
 {
-    ReadAlarm();
+    readAlarm();
     return AlarmDay;
 }
 
@@ -444,9 +444,9 @@ uint8_t RTC::GetAlarmDay()
  *
  * @returns uint8_t         Returns the current alarm rtcWeekday
  */
-uint8_t RTC::GetAlarmWeekday()
+uint8_t RTC::getAlarmWeekday()
 {
-    ReadAlarm();
+    readAlarm();
     return AlarmWeekday;
 }
 
@@ -467,7 +467,7 @@ uint8_t RTC::GetAlarmWeekday()
  *                          timer interrupt mode, 0 means interrupt follows timer flag
  *                          , 1 means interrupt generates a pulse
  */
-void RTC::TimerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_enable, bool int_pulse)
+void RTC::timerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_enable, bool int_pulse)
 {
     uint8_t timer_reg[2] = {0};
 
@@ -507,7 +507,7 @@ void RTC::TimerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_en
  *
  * @returns bool            Returns true if the timer flag is on
  */
-bool RTC::CheckTimerFlag()
+bool RTC::checkTimerFlag()
 {
     uint8_t _crtl_2 = RTC_TIMER_FLAG;
 
@@ -525,7 +525,7 @@ bool RTC::CheckTimerFlag()
  *
  * @returns bool            Returns true if the alarm flag is on
  */
-bool RTC::CheckAlarmFlag()
+bool RTC::checkAlarmFlag()
 {
     uint8_t _crtl_2 = RTC_ALARM_AF;
 
@@ -541,7 +541,7 @@ bool RTC::CheckAlarmFlag()
 /**
  * @brief                   Clears alarm flag
  */
-void RTC::ClearAlarmFlag()
+void RTC::clearAlarmFlag()
 {
     uint8_t _crtl_2;
 
@@ -561,7 +561,7 @@ void RTC::ClearAlarmFlag()
 /**
  * @brief                   Clears timer flag
  */
-void RTC::ClearTimerFlag()
+void RTC::clearTimerFlag()
 {
     uint8_t _crtl_2;
 
@@ -581,7 +581,7 @@ void RTC::ClearTimerFlag()
 /**
  * @brief                   Disables the timer
  */
-void RTC::DisableTimer()
+void RTC::disableTimer()
 {
     uint8_t _timerMode;
 
@@ -603,7 +603,7 @@ void RTC::DisableTimer()
  *
  * @returns bool            Returns true if RTC is set, false if it's not
  */
-bool RTC::IsSet()
+bool RTC::isSet()
 {
     uint8_t _ramByte;
     Wire.beginTransmission(I2C_ADDR);
@@ -618,7 +618,7 @@ bool RTC::IsSet()
 /**
  * @brief                   Resets the timer
  */
-void RTC::Reset() // datasheet 8.2.1.3.
+void RTC::reset() // datasheet 8.2.1.3.
 {
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_1);
@@ -631,7 +631,7 @@ void RTC::Reset() // datasheet 8.2.1.3.
  *
  * @param bool val          0 or 1 which represents 7pF or 12.5 pF.
  */
-void RTC::SetInternalCapacitor(bool val)
+void RTC::setInternalCapacitor(bool val)
 {
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_1);
@@ -672,7 +672,7 @@ void RTC::SetInternalCapacitor(bool val)
  * @param byte offsetValue  The offset value is coded in two’s complement giving a
  *                          range of +63 LSB to -64 LSB.
  */
-void RTC::SetClockOffset(bool mode, int offsetValue)
+void RTC::setClockOffset(bool mode, int offsetValue)
 {
     // Byte for writting in the register
     uint8_t regValue;
