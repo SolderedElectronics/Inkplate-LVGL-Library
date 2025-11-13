@@ -53,7 +53,7 @@ class EPDDriver
     double readBattery();
 
 
-    IOExpander internalIO;
+    IOExpander externalIO;
 
     uint8_t _beginDone = 0;
     uint8_t _displayMode;
