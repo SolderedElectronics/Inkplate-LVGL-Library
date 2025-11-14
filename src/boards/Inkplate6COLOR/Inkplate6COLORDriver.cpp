@@ -119,47 +119,43 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 G = (g6 * 259 + 33) >> 6;
                 B = (b5 * 527 + 23) >> 6;
 
-                // Convert to luminance (Y)
-                // Similar to grayscale "L" mode in LVGL: weighted brightness
-                uint16_t lum = (uint16_t)R * 54 + (uint16_t)G * 183 + (uint16_t)B * 19;
-                lum >>= 8; // Normalize to roughly 0–255
+                // Convert to HSV
+                float rf = R / 255.0f;
+                float gf = G / 255.0f;
+                float bf = B / 255.0f;
 
-                // Classify into one of 7 Inkplate colors
-                // 0=Black, 1=Blue, 2=Green, 3=Red, 4=Orange, 5=Yellow, 6=White
+                float maxc = max(rf, max(gf, bf));
+                float minc = min(rf, min(gf, bf));
+                float delta = maxc - minc;
+
+                float H = 0.0f;        // hue 0–360
+                float S = (maxc == 0) ? 0 : (delta / maxc);
+                float V = maxc;
+
+                // Compute hue
+                if (delta > 0.0001f) {
+                    if (maxc == rf)      H = 60.0f * fmod(((gf - bf) / delta), 6.0f);
+                    else if (maxc == gf) H = 60.0f * (((bf - rf) / delta) + 2.0f);
+                    else                 H = 60.0f * (((rf - gf) / delta) + 4.0f);
+                }
+                if (H < 0) H += 360.0f;
+
+                // Classification
                 uint8_t color;
 
-                if (lum < 40)
-                {
-                    color = INKPLATE_BLACK;
+                if (S < 0.12f) {
+                    if (V < 0.20f)      color = INKPLATE_BLACK;
+                    else if (V > 0.85f) color = INKPLATE_WHITE;
+                    else                color = INKPLATE_YELLOW; 
                 }
-                else if (lum < 80)
-                {
-                    // Dark tones — favor blue/green/red based on dominant channel
-                    if (B >= R && B >= G)
-                        color = INKPLATE_BLUE;
-                    else if (G >= R)
-                        color = INKPLATE_GREEN;
-                    else
-                        color = INKPLATE_RED;
-                }
-                else if (lum < 150)
-                {
-                    // Mid tones — orange and yellowish
-                    if (R > 180 && G > 100)
-                        color = INKPLATE_YELLOW;
-                    else if (R > 150 && G > 80)
-                        color = INKPLATE_ORANGE;
-                    else
-                        color = INKPLATE_RED;
-                }
-                else if (lum < 220)
-                {
-                    color = INKPLATE_YELLOW;
-                }
-                else
-                {
-                    color = INKPLATE_WHITE;
-                }
+                else {
+                    if      (H >= 190 && H < 260) color = INKPLATE_BLUE;
+                    else if (H >= 90  && H < 150) color = INKPLATE_GREEN;
+                    else if (H >= 15  && H < 45)  color = INKPLATE_ORANGE;
+                    else if (H >= 45  && H < 90)  color = INKPLATE_YELLOW;
+                    else                          color = INKPLATE_RED;
+}
+
 
                 // Apply 180° flip (Inkplate coordinate convention)
                 int32_t sx = area->x1 + x;
