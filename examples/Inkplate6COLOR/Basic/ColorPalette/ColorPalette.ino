@@ -20,7 +20,7 @@ Inkplate inkplate;
 void setup() {
     // Initialize display in FULL render mode (for color and dithering)
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
-    inkplate.enableDithering(1);
+    inkplate.enableDithering(0);
 
     // Set active screen background to white
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
@@ -36,7 +36,7 @@ void setup() {
         0xFFE0, // Yellow  
         0x001F, // Blue    
         0xF800, // Red     
-        0xFD20  // Orange  
+        0xFBE0  // Orange  
     };
 
     // Create and position vertical rectangles
