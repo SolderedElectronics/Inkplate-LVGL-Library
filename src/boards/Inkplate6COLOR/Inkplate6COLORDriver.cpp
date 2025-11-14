@@ -128,33 +128,48 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 float minc = min(rf, min(gf, bf));
                 float delta = maxc - minc;
 
-                float H = 0.0f;        // hue 0–360
+                float H = 0.0f; // hue 0–360
                 float S = (maxc == 0) ? 0 : (delta / maxc);
                 float V = maxc;
 
                 // Compute hue
-                if (delta > 0.0001f) {
-                    if (maxc == rf)      H = 60.0f * fmod(((gf - bf) / delta), 6.0f);
-                    else if (maxc == gf) H = 60.0f * (((bf - rf) / delta) + 2.0f);
-                    else                 H = 60.0f * (((rf - gf) / delta) + 4.0f);
+                if (delta > 0.0001f)
+                {
+                    if (maxc == rf)
+                        H = 60.0f * fmod(((gf - bf) / delta), 6.0f);
+                    else if (maxc == gf)
+                        H = 60.0f * (((bf - rf) / delta) + 2.0f);
+                    else
+                        H = 60.0f * (((rf - gf) / delta) + 4.0f);
                 }
-                if (H < 0) H += 360.0f;
+                if (H < 0)
+                    H += 360.0f;
 
                 // Classification
                 uint8_t color;
 
-                if (S < 0.12f) {
-                    if (V < 0.20f)      color = INKPLATE_BLACK;
-                    else if (V > 0.85f) color = INKPLATE_WHITE;
-                    else                color = INKPLATE_YELLOW; 
+                if (S < 0.12f)
+                {
+                    if (V < 0.20f)
+                        color = INKPLATE_BLACK;
+                    else if (V > 0.85f)
+                        color = INKPLATE_WHITE;
+                    else
+                        color = INKPLATE_YELLOW;
                 }
-                else {
-                    if      (H >= 190 && H < 260) color = INKPLATE_BLUE;
-                    else if (H >= 90  && H < 150) color = INKPLATE_GREEN;
-                    else if (H >= 15  && H < 45)  color = INKPLATE_ORANGE;
-                    else if (H >= 45  && H < 90)  color = INKPLATE_YELLOW;
-                    else                          color = INKPLATE_RED;
-}
+                else
+                {
+                    if (H >= 190 && H < 260)
+                        color = INKPLATE_BLUE;
+                    else if (H >= 90 && H < 150)
+                        color = INKPLATE_GREEN;
+                    else if (H >= 15 && H < 45)
+                        color = INKPLATE_ORANGE;
+                    else if (H >= 45 && H < 90)
+                        color = INKPLATE_YELLOW;
+                    else
+                        color = INKPLATE_RED;
+                }
 
 
                 // Apply 180° flip (Inkplate coordinate convention)
