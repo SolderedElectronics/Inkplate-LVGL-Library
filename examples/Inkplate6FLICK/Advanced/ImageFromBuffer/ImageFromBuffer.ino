@@ -43,18 +43,21 @@ const lv_image_dsc_t my_image = {
 };
 
 // LVGL task that ticks the timer every 5 ms
-void lvgl_task(void *arg) {
-    for (;;) {
+void lvgl_task(void *arg) 
+{
+    for (;;) 
+    {
         lv_tick_inc(5);
         lv_timer_handler();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
-void setup() {
+void setup() 
+{
     Serial.begin(115200);
     delay(1000);
-    Serial.println("Starting LVGL grayscale image example on Inkplate 6...");
+    Serial.println("Starting LVGL grayscale image example on Inkplate 6FLICK...");
 
     // Initialize Inkplate + LVGL in full render mode
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
@@ -95,6 +98,7 @@ void setup() {
     Serial.println("Display updated with 8-bit grayscale (L8) image");
 }
 
-void loop() {
+void loop() 
+{
     // Nothing needed in loop
 }
