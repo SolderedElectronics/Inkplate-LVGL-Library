@@ -111,7 +111,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     bool is3bit = (self->getDisplayMode() == INKPLATE_3BIT);
 
-    if (self->ditherEnabled)
+    if(self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT, is3bit);
     }

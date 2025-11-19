@@ -85,7 +85,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
         lv_display_flush_ready(disp);
         return;
     }
-    if (self->ditherEnabled)
+    if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT);
     }

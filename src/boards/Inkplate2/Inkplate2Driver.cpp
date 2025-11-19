@@ -62,7 +62,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
-    if (self->ditherEnabled)
+    if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
     }
