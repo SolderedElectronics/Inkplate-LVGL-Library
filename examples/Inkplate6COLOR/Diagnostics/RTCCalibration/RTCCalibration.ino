@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        EEPROMUsage.ino
+ * @file        RTCCalibration.ino
  * @brief       Example showing  how to Calibrate the RTC to be more precise and accurate.
  *              If you have any issues with the time precision, in this way you can change the internal capacitor value, 
  *              and set the clock offset. Please follow the instructions below carefully.
