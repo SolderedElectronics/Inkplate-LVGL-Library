@@ -42,7 +42,7 @@
 #define LED_PIN 15
 
 // Create an instance of the Inkplate object
-Inkplate display;
+Inkplate inkplate(INKPLATE_1BIT);
 
 void setup()
 {
@@ -51,19 +51,19 @@ void setup()
     Serial.println("External IO Expander LED blink on Inkplate 10 (LVGL / L8 backend)");
 
     // Init Inkplate library and LVGL in PARTIAL render mode
-    display.begin(LV_DISP_RENDER_MODE_PARTIAL);
+    inkplate.begin(LV_DISP_RENDER_MODE_PARTIAL);
 
     // Set LED pin (P1-7 / GPB7 / 15) as output on the external IO expander
-    display.externalIO.pinMode(LED_PIN, OUTPUT);
+    inkplate.externalIO.pinMode(LED_PIN, OUTPUT);
 }
 
 void loop()
 {
     // Turn LED off (set output LOW)
-    display.externalIO.digitalWrite(LED_PIN, LOW);
+    inkplate.externalIO.digitalWrite(LED_PIN, LOW);
     delay(1000); // Wait for one second
 
     // Turn LED on (set output HIGH)
-    display.externalIO.digitalWrite(LED_PIN, HIGH);
+    inkplate.externalIO.digitalWrite(LED_PIN, HIGH);
     delay(1000); // Wait for one second
 }

@@ -34,7 +34,7 @@
 
 // Inkplate in 1-bit mode (fast partial updates)
 Inkplate inkplate(INKPLATE_1BIT);
-BME680   bme680;               // easyC/I2C (Soldered uses 0x76)
+BME280   bme280;               // easyC/I2C (Soldered uses 0x76)
 
 // Optional temperature calibration offset
 const float TEMPERATURE_OFFSET = 0.0f;
