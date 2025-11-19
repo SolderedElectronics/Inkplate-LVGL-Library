@@ -81,8 +81,8 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
                 // Extract raw channel bits
                 uint8_t r5 = (px >> 11) & 0x1F;
-                uint8_t g6 = (px >> 5)  & 0x3F;
-                uint8_t b5 =  px        & 0x1F;
+                uint8_t g6 = (px >> 5) & 0x3F;
+                uint8_t b5 = px & 0x1F;
 
                 // Cheap summed brightness
                 uint16_t bright = r5 + g6 + b5;
@@ -90,19 +90,23 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 uint8_t color;
 
                 // Black (very low brightness)
-                if (bright < 20) {
-                    color = 1;         // BLACK
+                if (bright < 20)
+                {
+                    color = 1; // BLACK
                 }
                 // Red (strong R, weak G/B)
-                else if (r5 > 20 && g6 < 16 && b5 < 16) {
-                    color = 2;         // RED
+                else if (r5 > 20 && g6 < 16 && b5 < 16)
+                {
+                    color = 2; // RED
                 }
                 // White (all channels fairly high)
-                else if (r5 > 20 && g6 > 20 && b5 > 20) {
-                    color = 0;         // WHITE
+                else if (r5 > 20 && g6 > 20 && b5 > 20)
+                {
+                    color = 0; // WHITE
                 }
                 // Otherwise classify into nearest
-                else {
+                else
+                {
                     // Slightly warm → red
                     if (r5 > g6 && r5 > b5)
                         color = 1;
@@ -112,8 +116,6 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 }
 
                 self->writePixelInternal(area->x1 + x, area->y1 + y, color);
-
-
             }
         }
     }
