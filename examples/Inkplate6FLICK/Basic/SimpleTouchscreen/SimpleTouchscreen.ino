@@ -11,7 +11,7 @@
  * @date        November 2025
  ***************************************************/
 
- // Include the Inkplate LVGL Library
+// Include the Inkplate LVGL Library
 #include <Inkplate-LVGL.h>
 
 // Create an instance of Inkplate display in 1-bit mode (change to INKPLATE_3BIT if you want grayscale)
