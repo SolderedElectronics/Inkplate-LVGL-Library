@@ -28,15 +28,15 @@ void setup() {
     const int NUM_RECTS = 7;
     const int RECT_WIDTH = E_INK_WIDTH / NUM_RECTS;
 
-    // Colors in RGB565 (16-bit)
-    uint16_t colors[NUM_RECTS] = {
-        0x0000, // Black   
-        0xFFFF, // White   
-        0x07E0, // Green   
-        0xFFE0, // Yellow  
-        0x001F, // Blue    
-        0xF800, // Red     
-        0xFBE0  // Orange  
+    // Colors in RGB888
+    int colors[NUM_RECTS] = {
+        0x000000, // Black   
+        0xFFFFFF, // White   
+        0x00FF00, // Green   
+        0xFFFF00, // Yellow  
+        0x0000FF, // Blue    
+        0xFF0000, // Red     
+        0xFF8000  // Orange  
     };
 
     // Create and position vertical rectangles
@@ -45,15 +45,8 @@ void setup() {
         lv_obj_set_size(rect, RECT_WIDTH, E_INK_HEIGHT);
         lv_obj_set_pos(rect, i * RECT_WIDTH, 0);
 
-        // Convert RGB565 to LVGL color
-        lv_color_t lvcol = lv_color_make(
-            (colors[i] >> 11) * 255 / 31,           // R
-            ((colors[i] >> 5) & 0x3F) * 255 / 63,  // G
-            (colors[i] & 0x1F) * 255 / 31           // B
-        );
-
         // Apply styles
-        lv_obj_set_style_bg_color(rect, lvcol, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(rect, lv_color_hex(colors[i]), LV_PART_MAIN);
         lv_obj_set_style_border_width(rect, 0, LV_PART_MAIN);
         lv_obj_set_style_radius(rect, 0, LV_PART_MAIN);
     }
