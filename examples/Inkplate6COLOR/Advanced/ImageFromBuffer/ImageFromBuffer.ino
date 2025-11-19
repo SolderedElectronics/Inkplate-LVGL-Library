@@ -22,7 +22,7 @@
 // Include the image data
 #include "cat.h"
 // Create an instance of the Inkplate object
-Inkplate display;
+Inkplate inkplate;
 
 lv_obj_t *screen;
 
@@ -53,11 +53,11 @@ void setup() {
   Serial.println("Starting LVGL image example...");
 
   // Initialize the display as well as lvgl in full render mode
-  display.begin(LV_DISP_RENDER_MODE_FULL);
+  inkplate.begin(LV_DISP_RENDER_MODE_FULL);
 
   // Enables dithering of the whole lvgl buffer
   // Note: Dithering is only supported in full render mode
-  display.enableDithering(1);
+  inkplate.enableDithering(1);
 
   // Create LVGL task on core 1 to run independently from the rest of the sketch
   xTaskCreatePinnedToCore(
@@ -88,7 +88,7 @@ void setup() {
     delay(10);
   }
 
-  display.display();
+  inkplate.display();
   Serial.println("Display updated with L8 image");
 }
 

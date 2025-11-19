@@ -16,7 +16,7 @@
 
 
 // Create an instance of the Inkplate object
-Inkplate display;
+Inkplate inkplate;
 
 // Create an lvgl task which will tick the lvgl timer every 5 ms
 // and handle any animations needed
@@ -34,13 +34,13 @@ void setup() {
   delay(1000);
 
   // Initialize display and LVGL in full render mode
-  display.begin(LV_DISP_RENDER_MODE_FULL);
-  display.enableDithering(1);
-  display.clearDisplay();
+  inkplate.begin(LV_DISP_RENDER_MODE_FULL);
+  inkplate.enableDithering(1);
+  inkplate.clearDisplay();
   Serial.println("Display initialized");
 
   // Initialize SD card
-  if (!display.sdCardInit()) {
+  if (!inkplate.sdCardInit()) {
     Serial.println("SD Card init failed!");
     return;
   }
@@ -101,10 +101,10 @@ void setup() {
   }
 
   // Turn off the SD card to save power
-  display.sdCardSleep();
+  inkplate.sdCardSleep();
 
   // Display the image
-  display.display();
+  inkplate.display();
   Serial.println("Display updated");
 }
 

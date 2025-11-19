@@ -15,12 +15,12 @@
 
 #define EEPROM_SIZE 128 // How much data to write to EEPROM in this example
 
-Inkplate display; // Create object on Inkplate library and set library to work in monochrome mode
+Inkplate inkplate; // Create object on Inkplate library and set library to work in monochrome mode
 
 void setup()
 {
     Serial.begin(115200);                 // Init serial monitor to display what's happening
-    display.begin(LV_DISP_RENDER_MODE_FULL);                      // Init library (you should call this function ONLY ONCE)
+    inkplate.begin(LV_DISP_RENDER_MODE_FULL);                      // Init library (you should call this function ONLY ONCE)
 
     // Init EEPROM library with 128 of EEPROM size.
     EEPROM.begin(EEPROM_SIZE);

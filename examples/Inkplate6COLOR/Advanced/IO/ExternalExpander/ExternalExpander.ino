@@ -15,16 +15,16 @@
 #include "Inkplate-LVGL.h" //Include Inkplate library to the sketch
 
 
-Inkplate display; // Create an instance of the Inkplate object
+Inkplate inkplate; // Create an instance of the Inkplate object
 
 void setup()
 {
-    display.begin(LV_DISP_RENDER_MODE_PARTIAL); // Init Inkplate library and LVGL in PARTIAL rende mode
+    inkplate.begin(LV_DISP_RENDER_MODE_PARTIAL); // Init Inkplate library and LVGL in PARTIAL rende mode
     // Set all of the pins (P0-0 to P1-7) to output
     // Note: P0-0 is defined as 0, up to P1-7 which is defined as 15
     for(int i=0;i<16;i++)
     {
-        display.externalIO.pinMode(i, OUTPUT);
+        inkplate.externalIO.pinMode(i, OUTPUT);
     }
 }
 
@@ -33,13 +33,13 @@ void loop()
     // Set all of the GPIO pins to LOW
     for(int i=0;i<16;i++)
     {
-        display.externalIO.digitalWrite(i, LOW);
+        inkplate.externalIO.digitalWrite(i, LOW);
     }
     delay(1000);                           // Wait for one second
     // Set all of the GPIO pins to HIGH
     for(int i=0;i<16;i++)
     {
-        display.externalIO.digitalWrite(i, HIGH);
+        inkplate.externalIO.digitalWrite(i, HIGH);
     }
     delay(1000);                           // Wait for one second
 }
