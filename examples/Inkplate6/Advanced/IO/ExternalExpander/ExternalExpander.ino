@@ -26,7 +26,7 @@
  ***************************************************/
 
 // Next 3 lines are a precaution, you can ignore those, and the example would also work without them
-#ifndef ARDUINO_INKPLATE6
+#ifndef ARDUINO_INKPLATE6V2
 #error "Wrong board selection for this example, please select Soldered Inkplate 6"
 #endif
 
