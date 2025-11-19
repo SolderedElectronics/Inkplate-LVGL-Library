@@ -19,10 +19,6 @@
  **************************************************
  */
 
-#if !defined(ARDUINO_ESP32_DEV) && !defined(ARDUINO_INKPLATE6V2)
-#error "Wrong board selection for this example, please select e-radionica Inkplate6 or Soldered Inkplate6 in the boards menu."
-#endif
-
 #include <EEPROM.h>        // ESP32 EEPROM library
 #include <Inkplate-LVGL.h> // Inkplate + LVGL
 
@@ -76,7 +72,7 @@ void setup()
     lv_obj_set_style_text_color(lbl_text, lv_color_hex(0x000000), 0);
     lv_obj_set_style_text_font(lbl_text, &lv_font_montserrat_20, 0);
     lv_label_set_long_mode(lbl_text, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(lbl_text, 800 - 16);  // fit the Inkplate 6 width minus margins
+    lv_obj_set_width(lbl_text, 800 - 16);
 
     // 1) Clear
     Serial.println("Clearing EEPROM...");
