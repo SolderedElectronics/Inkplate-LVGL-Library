@@ -55,7 +55,7 @@ class EPDDriver
     void clean();
 
 
-    IOExpander internalIO;
+    IOExpander externalIO;
 
     uint8_t _beginDone = 0;
     uint8_t _displayMode;
@@ -82,9 +82,9 @@ class EPDDriver
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
 
-    // Color palette of the Specta screen.
+    // Color palette of the 6COLOR screen.
     uint16_t _paletteIdeal[7] = {0x0000, 0xFFFF, 0x07E0, 0x001F, 0xF800, 0xFFE0, 0xFBE0};
-    // uint16_t _palleteMeasured[6] = {0x4A4A, 0xA554, 0xB549, 0x7249, 0x4B32, 0x536C};
+
     uint8_t _paletteIndex[7] = {0, 1, 2, 3, 4, 5, 6};
 
     int8_t paletteSize = 7;

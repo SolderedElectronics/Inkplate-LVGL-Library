@@ -85,7 +85,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
         lv_display_flush_ready(disp);
         return;
     }
-    if (self->ditherEnabled)
+    if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT);
     }
@@ -119,47 +119,58 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 G = (g6 * 259 + 33) >> 6;
                 B = (b5 * 527 + 23) >> 6;
 
-                // Convert to luminance (Y)
-                // Similar to grayscale "L" mode in LVGL: weighted brightness
-                uint16_t lum = (uint16_t)R * 54 + (uint16_t)G * 183 + (uint16_t)B * 19;
-                lum >>= 8; // Normalize to roughly 0–255
+                // Convert to HSV
+                float rf = R / 255.0f;
+                float gf = G / 255.0f;
+                float bf = B / 255.0f;
 
-                // Classify into one of 7 Inkplate colors
-                // 0=Black, 1=Blue, 2=Green, 3=Red, 4=Orange, 5=Yellow, 6=White
+                float maxc = max(rf, max(gf, bf));
+                float minc = min(rf, min(gf, bf));
+                float delta = maxc - minc;
+
+                float H = 0.0f; // hue 0–360
+                float S = (maxc == 0) ? 0 : (delta / maxc);
+                float V = maxc;
+
+                // Compute hue
+                if (delta > 0.0001f)
+                {
+                    if (maxc == rf)
+                        H = 60.0f * fmod(((gf - bf) / delta), 6.0f);
+                    else if (maxc == gf)
+                        H = 60.0f * (((bf - rf) / delta) + 2.0f);
+                    else
+                        H = 60.0f * (((rf - gf) / delta) + 4.0f);
+                }
+                if (H < 0)
+                    H += 360.0f;
+
+                // Classification
                 uint8_t color;
 
-                if (lum < 40)
+                if (S < 0.12f)
                 {
-                    color = INKPLATE_BLACK;
-                }
-                else if (lum < 80)
-                {
-                    // Dark tones — favor blue/green/red based on dominant channel
-                    if (B >= R && B >= G)
-                        color = INKPLATE_BLUE;
-                    else if (G >= R)
-                        color = INKPLATE_GREEN;
+                    if (V < 0.20f)
+                        color = INKPLATE_BLACK;
+                    else if (V > 0.85f)
+                        color = INKPLATE_WHITE;
                     else
-                        color = INKPLATE_RED;
-                }
-                else if (lum < 150)
-                {
-                    // Mid tones — orange and yellowish
-                    if (R > 180 && G > 100)
                         color = INKPLATE_YELLOW;
-                    else if (R > 150 && G > 80)
-                        color = INKPLATE_ORANGE;
-                    else
-                        color = INKPLATE_RED;
-                }
-                else if (lum < 220)
-                {
-                    color = INKPLATE_YELLOW;
                 }
                 else
                 {
-                    color = INKPLATE_WHITE;
+                    if (H >= 190 && H < 260)
+                        color = INKPLATE_BLUE;
+                    else if (H >= 90 && H < 150)
+                        color = INKPLATE_GREEN;
+                    else if (H >= 15 && H < 45)
+                        color = INKPLATE_ORANGE;
+                    else if (H >= 45 && H < 90)
+                        color = INKPLATE_YELLOW;
+                    else
+                        color = INKPLATE_RED;
                 }
+
 
                 // Apply 180° flip (Inkplate coordinate convention)
                 int32_t sx = area->x1 + x;
@@ -519,48 +530,48 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
 void EPDDriver::setIOExpanderForLowPower()
 {
     Wire.begin();
-    internalIO.begin(IO_INT_ADDR);
+    externalIO.begin(IO_INT_ADDR);
 
     // TOUCHPAD PINS
-    internalIO.pinMode(IO_PIN_B2, OUTPUT);
-    internalIO.pinMode(IO_PIN_B3, OUTPUT);
-    internalIO.pinMode(IO_PIN_B4, OUTPUT);
+    externalIO.pinMode(IO_PIN_B2, OUTPUT);
+    externalIO.pinMode(IO_PIN_B3, OUTPUT);
+    externalIO.pinMode(IO_PIN_B4, OUTPUT);
 
-    internalIO.digitalWrite(IO_PIN_B2, LOW);
-    internalIO.digitalWrite(IO_PIN_B3, LOW);
-    internalIO.digitalWrite(IO_PIN_B4, LOW);
+    externalIO.digitalWrite(IO_PIN_B2, LOW);
+    externalIO.digitalWrite(IO_PIN_B3, LOW);
+    externalIO.digitalWrite(IO_PIN_B4, LOW);
 
     // Battery voltage Switch MOSFET
-    internalIO.pinMode(IO_PIN_B1, OUTPUT);
-    internalIO.digitalWrite(IO_PIN_B1, LOW);
+    externalIO.pinMode(IO_PIN_B1, OUTPUT);
+    externalIO.digitalWrite(IO_PIN_B1, LOW);
 
     // Rest of pins go to OUTPUT LOW state because in deepSleep mode they are
     // using least amount of power
-    internalIO.pinMode(IO_PIN_A0, OUTPUT);
-    internalIO.pinMode(IO_PIN_A1, OUTPUT);
-    internalIO.pinMode(IO_PIN_A2, OUTPUT);
-    internalIO.pinMode(IO_PIN_A3, OUTPUT);
-    internalIO.pinMode(IO_PIN_A4, OUTPUT);
-    internalIO.pinMode(IO_PIN_A5, OUTPUT);
-    internalIO.pinMode(IO_PIN_A6, OUTPUT);
-    internalIO.pinMode(IO_PIN_A7, OUTPUT);
-    internalIO.pinMode(IO_PIN_B0, OUTPUT);
-    internalIO.pinMode(IO_PIN_B5, OUTPUT);
-    internalIO.pinMode(IO_PIN_B6, OUTPUT);
-    internalIO.pinMode(IO_PIN_B7, OUTPUT);
+    externalIO.pinMode(IO_PIN_A0, OUTPUT);
+    externalIO.pinMode(IO_PIN_A1, OUTPUT);
+    externalIO.pinMode(IO_PIN_A2, OUTPUT);
+    externalIO.pinMode(IO_PIN_A3, OUTPUT);
+    externalIO.pinMode(IO_PIN_A4, OUTPUT);
+    externalIO.pinMode(IO_PIN_A5, OUTPUT);
+    externalIO.pinMode(IO_PIN_A6, OUTPUT);
+    externalIO.pinMode(IO_PIN_A7, OUTPUT);
+    externalIO.pinMode(IO_PIN_B0, OUTPUT);
+    externalIO.pinMode(IO_PIN_B5, OUTPUT);
+    externalIO.pinMode(IO_PIN_B6, OUTPUT);
+    externalIO.pinMode(IO_PIN_B7, OUTPUT);
 
-    internalIO.digitalWrite(IO_PIN_A0, LOW);
-    internalIO.digitalWrite(IO_PIN_A1, LOW);
-    internalIO.digitalWrite(IO_PIN_A2, LOW);
-    internalIO.digitalWrite(IO_PIN_A3, LOW);
-    internalIO.digitalWrite(IO_PIN_A4, LOW);
-    internalIO.digitalWrite(IO_PIN_A5, LOW);
-    internalIO.digitalWrite(IO_PIN_A6, LOW);
-    internalIO.digitalWrite(IO_PIN_A7, LOW);
-    internalIO.digitalWrite(IO_PIN_B0, LOW);
-    internalIO.digitalWrite(IO_PIN_B5, LOW);
-    internalIO.digitalWrite(IO_PIN_B6, LOW);
-    internalIO.digitalWrite(IO_PIN_B7, LOW);
+    externalIO.digitalWrite(IO_PIN_A0, LOW);
+    externalIO.digitalWrite(IO_PIN_A1, LOW);
+    externalIO.digitalWrite(IO_PIN_A2, LOW);
+    externalIO.digitalWrite(IO_PIN_A3, LOW);
+    externalIO.digitalWrite(IO_PIN_A4, LOW);
+    externalIO.digitalWrite(IO_PIN_A5, LOW);
+    externalIO.digitalWrite(IO_PIN_A6, LOW);
+    externalIO.digitalWrite(IO_PIN_A7, LOW);
+    externalIO.digitalWrite(IO_PIN_B0, LOW);
+    externalIO.digitalWrite(IO_PIN_B5, LOW);
+    externalIO.digitalWrite(IO_PIN_B6, LOW);
+    externalIO.digitalWrite(IO_PIN_B7, LOW);
 }
 
 
@@ -571,8 +582,8 @@ void EPDDriver::setIOExpanderForLowPower()
  */
 int16_t EPDDriver::sdCardInit()
 {
-    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    externalIO.pinMode(SD_PMOS_PIN, OUTPUT);
+    externalIO.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(15, SD_SCK_MHZ(25)));
@@ -591,7 +602,7 @@ void EPDDriver::sdCardSleep()
     pinMode(15, INPUT);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    externalIO.pinMode(SD_PMOS_PIN, INPUT);
 }
 
 /**
@@ -646,19 +657,19 @@ double EPDDriver::readBattery()
 {
     // Read the pin on the battery MOSFET. If is high, that means is older version of the board
     // that uses PMOS only. If it's low, newer board with both PMOS and NMOS.
-    internalIO.pinMode(9, INPUT);
-    int state = internalIO.digitalRead(9);
-    internalIO.pinMode(9, OUTPUT);
+    externalIO.pinMode(9, INPUT);
+    int state = externalIO.digitalRead(9);
+    externalIO.pinMode(9, OUTPUT);
 
     // If the input is pulled high, it's PMOS only.
     // If it's pulled low, it's PMOS and NMOS.
     if (state)
     {
-        internalIO.digitalWrite(9, LOW);
+        externalIO.digitalWrite(9, LOW);
     }
     else
     {
-        internalIO.digitalWrite(9, HIGH);
+        externalIO.digitalWrite(9, HIGH);
     }
 
     // Wait a little bit after a MOSFET enable.
@@ -671,11 +682,11 @@ double EPDDriver::readBattery()
     // Turn off the MOSFET (and voltage divider).
     if (state)
     {
-        internalIO.digitalWrite(9, HIGH);
+        externalIO.digitalWrite(9, HIGH);
     }
     else
     {
-        internalIO.digitalWrite(9, LOW);
+        externalIO.digitalWrite(9, LOW);
     }
 
     // Calculate the voltage at the battery terminal (voltage is divided in half by voltage divider).
