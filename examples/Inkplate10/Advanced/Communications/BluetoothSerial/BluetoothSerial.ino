@@ -21,9 +21,6 @@
  **************************************************
  */
 
-#if !defined(ARDUINO_ESP32_DEV) && !defined(ARDUINO_INKPLATE10)
-#error "Wrong board selection for this example, please select e-radionica Inkplate10 or Soldered Inkplate10 in the boards menu."
-#endif
 
 #include <Inkplate-LVGL.h>
 #include <BluetoothSerial.h>
