@@ -41,18 +41,23 @@ int y_position = 50;
 
 static void btn_event_cb(lv_event_t *e)
 {
+    // Get the event code
     lv_event_code_t code = lv_event_get_code(e);
 
+    // If click event detected, update the position
     if (code == LV_EVENT_CLICKED) 
     {
         if (rect)
         {
+            // Update coordinates
             x_position += 100;
             y_position += 100;
-
+            
             if (y_position < 660) 
             {
+                // Set new position of an object
                 lv_obj_set_pos(rect, x_position, y_position);
+                // Mark the object to redraw it in next refresh
                 lv_obj_invalidate(rect);
                 isRectangleClicked = true;
             }
@@ -60,39 +65,9 @@ static void btn_event_cb(lv_event_t *e)
             {
                 x_position = 50;
                 y_position = 50;
-
-                inkplate.clearDisplay();
-                lv_obj_clean(lv_scr_act());
-                lv_draw_initials();
-                lv_obj_invalidate(lv_scr_act());
-                for (int i = 0; i < 5; i++) 
-                {
-                    lv_timer_handler();
-                    delay(10);
-                }
-                inkplate.display();
             }
         }
     }
-}
-
-static void lv_draw_initials()
-{
-    /* Create a black label, set its text and font and align it to the center */
-    lv_obj_t *label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "Touch the rectangles on screen!");
-    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
-    lv_obj_set_style_text_font(label,  &lv_font_montserrat_48, 0);
-    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
-
-    /* Create a black rectangle */
-    rect = lv_obj_create(lv_scr_act());
-    lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);
-    lv_obj_set_size(rect, 100, 50);
-    lv_obj_set_pos(rect, x_position, y_position);
-
-    // Add event callback function
-    lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
 }
 
 void setup()
@@ -112,6 +87,25 @@ void setup()
         while (true);
     }
 
+    /* Create a black label, set its text and font and align it to the center */
+    lv_obj_t *label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "Touch the rectangles on screen!");
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_text_font(label,  &lv_font_montserrat_48, 0);
+    lv_obj_center(label);
+
+    // Render text on screen
+    lv_timer_handler();
+    inkplate.display();
+
+    // Wait for 2 seconds
+    delay(2000);
+    
+    // Delete the label object and clear the display
+    lv_obj_del(label);
+    label = NULL;
+    inkplate.clearDisplay();
+    
     // Create LVGL task on core 1 to run independently from the rest of the sketch
     xTaskCreatePinnedToCore(
       lvgl_task, // Function which will be pinned 
@@ -123,7 +117,14 @@ void setup()
       1 // core used
     );
 
-    lv_draw_initials();
+    /* Create a black rectangle and add a callback event function to it */
+    rect = lv_obj_create(lv_scr_act());
+    lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);
+    lv_obj_set_size(rect, 100, 50);
+    lv_obj_set_pos(rect, x_position, y_position);
+
+    // Add event callback function
+    lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
 
     // Force initial render
     for (int i = 0; i < 5; i++) 
@@ -131,6 +132,7 @@ void setup()
         lv_timer_handler();
         delay(10);
     }
+
     // Display content from buffer
     inkplate.display();
 }
@@ -143,4 +145,3 @@ void loop()
         isRectangleClicked = false;
     }
 }
-
