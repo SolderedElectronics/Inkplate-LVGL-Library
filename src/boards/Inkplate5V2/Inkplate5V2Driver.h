@@ -55,6 +55,10 @@ class EPDDriver : public Esp
     SdFat getSdFat();
     SPIClass *getSPIptr();
 
+    int einkOn();
+    void einkOff();
+    void clean(uint8_t c, uint8_t rep);
+
     int8_t readTemperature();
 
     double readBattery();
@@ -91,14 +95,11 @@ class EPDDriver : public Esp
     void gpioInit();
     uint8_t readPowerGood();
     void pinsAsOutputs();
-    int einkOn();
-    void einkOff();
     void display1b(bool _leaveOn);
     void display3b(bool _leaveOn);
     void pinsZstate();
     uint8_t getPanelState();
     void setPanelState(uint8_t state);
-    void clean(uint8_t c, uint8_t rep);
     void vscan_start();
     void hscan_start(uint32_t _d);
     void vscan_end();

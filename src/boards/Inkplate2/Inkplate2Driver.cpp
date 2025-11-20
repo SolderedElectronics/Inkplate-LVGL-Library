@@ -62,7 +62,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
-    if (self->ditherEnabled)
+    if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
     }
@@ -77,28 +77,43 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
             for (int32_t x = 0; x < w; x++)
             {
                 // Read 16-bit pixel (RGB565)
-                uint16_t pixel = src_row[x * 2] | (src_row[x * 2 + 1] << 8);
+                uint16_t px = src_row[x * 2] | (src_row[x * 2 + 1] << 8);
 
-                // Extract RGB components
-                uint8_t r = (pixel >> 11) & 0x1F;
-                uint8_t g = (pixel >> 5) & 0x3F;
-                uint8_t b = pixel & 0x1F;
+                // Extract raw channel bits
+                uint8_t r5 = (px >> 11) & 0x1F;
+                uint8_t g6 = (px >> 5) & 0x3F;
+                uint8_t b5 = px & 0x1F;
 
-                // Scale up to 8-bit per channel
-                r = (r * 255) / 31;
-                g = (g * 255) / 63;
-                b = (b * 255) / 31;
+                // Cheap summed brightness
+                uint16_t bright = r5 + g6 + b5;
 
-                // Convert to brightness
-                uint8_t gray = (uint8_t)((r * 0.299f) + (g * 0.587f) + (b * 0.114f));
+                uint8_t color;
 
-                uint16_t color;
-                if (gray < 85)
-                    color = 1; // Black
-                else if (gray > 180)
-                    color = 0; // Red
+                // Black (very low brightness)
+                if (bright < 20)
+                {
+                    color = 1; // BLACK
+                }
+                // Red (strong R, weak G/B)
+                else if (r5 > 20 && g6 < 16 && b5 < 16)
+                {
+                    color = 2; // RED
+                }
+                // White (all channels fairly high)
+                else if (r5 > 20 && g6 > 20 && b5 > 20)
+                {
+                    color = 0; // WHITE
+                }
+                // Otherwise classify into nearest
                 else
-                    color = 2; // White
+                {
+                    // Slightly warm → red
+                    if (r5 > g6 && r5 > b5)
+                        color = 1;
+                    // Otherwise → white
+                    else
+                        color = 2;
+                }
 
                 self->writePixelInternal(area->x1 + x, area->y1 + y, color);
             }

@@ -35,6 +35,8 @@ class EPDDriver
     void selectDisplayMode(uint8_t displayMode);
     void clearDisplay();
 
+    void clean();
+
     double readBattery();
 
     uint8_t _beginDone = 0;
@@ -56,7 +58,6 @@ class EPDDriver
     uint8_t getPanelState();
     void setPanelState(uint8_t state);
     bool waitForEpd(uint16_t _timeout);
-    void clean();
     void resetPanel();
     void sendCommand(uint8_t _command);
     void sendData(uint8_t *_data, int _n);
