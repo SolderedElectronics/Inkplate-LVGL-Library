@@ -30,18 +30,15 @@ In order to get a head start with Inkplate (any), follow these steps:
 3. Install Inkplate Arduino library - Install the library from the Arduino Library Manager (just type "Inkplate" and click "Install") or install it with this repo. If you don't know how, check our [tutorial](https://soldered.com/learn/arduino-library/#Kako%20instaliraty%20library?).
 4. You are ready to get started! Select Tools -> Board -> Inkplate Boards and then pick correct one, as well as correct COM port and upload!
 
-### Code examples
+### Code examples & LVGL Documentation
 
-As this is currently a work in progress, only a small amount of examples are present, but more are coming very soon!
+As this is currently a work in progress, all examples except the 'project' Inkplate examples have been ported! The projects are coming soon.
+
+To see the entire LVGL documentation, please check out the [official LVGL documentation](https://docs.lvgl.io/master/).
 
 ### Documentation
 
 Find Inkplate documentation [here](https://soldered.com/documentation/inkplate/). 
-
-### Soldered Image Converter
-
-In order to display an Image on Inkplate, you can use the Soldered Image Converter to convert from .png, .jpg, .bmp to .h files which can be easily added to your project. Download the latest release [here](https://github.com/SolderedElectronics/Soldered-Image-Converter/releases).
-
 
 ### Battery power
 
@@ -52,22 +49,6 @@ Please check the polarity on the battery JST connector! Some batteries that can 
 
 #### ℹ NOTE
 CR2032 battery is only for RTC backup. Inkplate cannot be powered with it.
-
-### Linux?
-
-Running Linux? You'll need to run few other lines from your Terminal:
-
-```
-apt install python3-pip
-pip3 install pyserial
-apt install python-is-python3
-```
-
-In case you're getting an [error](https://github.com/SolderedElectronics/Inkplate-Arduino-library/issues/212) while trying to install pyserial, run the following command:
-
-```
-apt install python3-serial
-```
 
 ### Open-source
 
