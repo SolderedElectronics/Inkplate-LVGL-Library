@@ -4,7 +4,7 @@
 #include "Inkplate-LVGL.h"
 
 SPIClass spi2(2);
-SdFat sd(&spi2);
+SdFat sd;
 
 /**
  *
@@ -1015,7 +1015,7 @@ int16_t EPDDriver::sdCardInit()
     internalIO.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
-    setSdCardOk(sd.begin(15, SD_SCK_MHZ(25)));
+    setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
     return getSdCardOk();
 }
 
@@ -1039,7 +1039,7 @@ void EPDDriver::sdCardSleep()
  *
  * @return      sd card class object
  */
-SdFat EPDDriver::getSdFat()
+SdFat& EPDDriver::getSdFat()
 {
     return sd;
 }

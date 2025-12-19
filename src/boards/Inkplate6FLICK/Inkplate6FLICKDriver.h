@@ -52,7 +52,7 @@ class EPDDriver : public Esp
     int16_t getSdCardOk();
     int16_t sdCardInit();
     void sdCardSleep();
-    SdFat getSdFat();
+    SdFat& getSdFat();
     SPIClass *getSPIptr();
 
     int8_t readTemperature();
