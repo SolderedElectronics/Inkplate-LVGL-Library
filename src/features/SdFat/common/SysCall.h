@@ -35,7 +35,7 @@
 #warning nullptr defined
 /** Define nullptr if not C++11 */
 #define nullptr NULL
-#endif  // __cplusplus < 201103
+#endif // __cplusplus < 201103
 //------------------------------------------------------------------------------
 /** Type for FsBlockDevice sector */
 typedef uint32_t Sector_t;
@@ -46,24 +46,25 @@ typedef uint32_t Sector_t;
 typedef Print print_t;
 /** Use Arduino Stream. */
 typedef Stream stream_t;
-#else  // defined(ARDUINO)
+#else // defined(ARDUINO)
 #error "Unknown system"
-#endif  // defined(ARDUINO)
+#endif // defined(ARDUINO)
 //------------------------------------------------------------------------------
 #ifndef F
 /** Define macro for strings stored in flash. */
 #define F(str) (str)
-#endif  // F
+#endif // F
 //------------------------------------------------------------------------------
-#else  // ENABLE_ARDUINO_FEATURES
+#else // ENABLE_ARDUINO_FEATURES
 #include "PrintBasic.h"
 /** If not Arduino */
 typedef PrintBasic print_t;
 /** If not Arduino */
-class stream_t : public print_t {
- public:
-  virtual int available() = 0;
-  virtual int read() = 0;
-  virtual int peek() = 0;
+class stream_t : public print_t
+{
+  public:
+    virtual int available() = 0;
+    virtual int read() = 0;
+    virtual int peek() = 0;
 };
-#endif  // ENABLE_ARDUINO_FEATURES
+#endif // ENABLE_ARDUINO_FEATURES

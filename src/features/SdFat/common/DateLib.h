@@ -39,12 +39,13 @@
  * @param[in] Y year
  * @return true if Y is a leap year
  */
-inline bool leap(uint16_t Y) {
+inline bool leap(uint16_t Y)
+{
 #if USE_1901_2099
-  return (Y & 3) == 0;
-#else   // USE_1901_2099
-  return Y % 4 != 0 ? false : Y % 100 != 0 ? true : Y % 400 == 0;
-#endif  // USE_1901_2099
+    return (Y & 3) == 0;
+#else  // USE_1901_2099
+    return Y % 4 != 0 ? false : Y % 100 != 0 ? true : Y % 400 == 0;
+#endif // USE_1901_2099
 }
 
 /** Number of days in the year before the current month
@@ -53,9 +54,10 @@ inline bool leap(uint16_t Y) {
  * @return days in year before current month [0, 335]
  * Probably from "Astronomical Algorithms" ISBN 0-943396-61-1
  */
-inline uint16_t daysBeforeMonth(uint16_t Y, uint8_t M) {
-  bool L = leap(Y);
-  return (275 * M / 9) - (M > 2 ? L ? 1 : 2 : 0) - 30;
+inline uint16_t daysBeforeMonth(uint16_t Y, uint8_t M)
+{
+    bool L = leap(Y);
+    return (275 * M / 9) - (M > 2 ? L ? 1 : 2 : 0) - 30;
 }
 
 /** Number of days in a month.
@@ -63,9 +65,10 @@ inline uint16_t daysBeforeMonth(uint16_t Y, uint8_t M) {
  * @param[in] M month 0 < M < 13
  * @return Count of days in month [1, 31].
  */
-inline uint8_t daysInMonth(uint16_t Y, uint8_t M) {
-  bool L = leap(Y);
-  return M == 2 ? (L ? 29 : 28) : M < 8 ? 30 + (M & 1) : 31 - (M & 1);
+inline uint8_t daysInMonth(uint16_t Y, uint8_t M)
+{
+    bool L = leap(Y);
+    return M == 2 ? (L ? 29 : 28) : M < 8 ? 30 + (M & 1) : 31 - (M & 1);
 }
 
 /** Day of week with Sunday == 0.
@@ -74,17 +77,19 @@ inline uint8_t daysInMonth(uint16_t Y, uint8_t M) {
  * @param[in] D day 1 <= D <= (last day of month)
  * @return Day of week [0,6].
  */
-inline uint8_t dayOfWeek(uint16_t Y, uint8_t M, uint8_t D) {
-  if (M < 3) {
-    M += 12;
-    Y--;
-  }
+inline uint8_t dayOfWeek(uint16_t Y, uint8_t M, uint8_t D)
+{
+    if (M < 3)
+    {
+        M += 12;
+        Y--;
+    }
 #if USE_1901_2099
-  // For the year in [1901,2099], - Y /100 + Y / 400 is -15.
-  return (2 + D + (13 * M - 2) / 5 + Y + Y / 4 - 15) % 7;
-#else   // USE_1901_2099
-  return (2 + D + (13 * M - 2) / 5 + Y + Y / 4 - Y / 100 + Y / 400) % 7;
-#endif  // USE_1901_2099
+    // For the year in [1901,2099], - Y /100 + Y / 400 is -15.
+    return (2 + D + (13 * M - 2) / 5 + Y + Y / 4 - 15) % 7;
+#else  // USE_1901_2099
+    return (2 + D + (13 * M - 2) / 5 + Y + Y / 4 - Y / 100 + Y / 400) % 7;
+#endif // USE_1901_2099
 }
 
 /** Day of year with Jan1 == 0.
@@ -94,8 +99,9 @@ inline uint8_t dayOfWeek(uint16_t Y, uint8_t M, uint8_t D) {
  * @param[in] D day 0 < D <= length of month
  * @return Day of year [0, 365]
  **/
-inline uint16_t dayOfYear(uint16_t Y, uint8_t M, uint8_t D) {
-  return daysBeforeMonth(Y, M) + D - 1;
+inline uint16_t dayOfYear(uint16_t Y, uint8_t M, uint8_t D)
+{
+    return daysBeforeMonth(Y, M) + D - 1;
 }
 
 /** Day of year to day
@@ -105,9 +111,10 @@ inline uint16_t dayOfYear(uint16_t Y, uint8_t M, uint8_t D) {
  * @return day of month
  * Based on http://ss64.net/merlyn/daycount.htm#DYZ
  */
-inline uint8_t dayOfYearToDay(uint16_t doy, uint16_t Y, uint8_t M) {
-  bool L = leap(Y);
-  return doy + 1 - (M < 3 ? 31 * (M - 1) : (153 * M - 2) / 5 - (L ? 31 : 32));
+inline uint8_t dayOfYearToDay(uint16_t doy, uint16_t Y, uint8_t M)
+{
+    bool L = leap(Y);
+    return doy + 1 - (M < 3 ? 31 * (M - 1) : (153 * M - 2) / 5 - (L ? 31 : 32));
 }
 
 /** Day of year to month
@@ -116,9 +123,10 @@ inline uint8_t dayOfYearToDay(uint16_t doy, uint16_t Y, uint8_t M) {
  * @return month [1,12]
  * Based on http://ss64.net/merlyn/daycount.htm#DYZ
  */
-inline uint8_t dayOfYearToMonth(uint16_t doy, uint16_t Y) {
-  bool L = leap(Y);
-  return doy < 31 ? 1 : 1 + (303 + 5 * (doy - (L ? 59 : 58))) / 153;
+inline uint8_t dayOfYearToMonth(uint16_t doy, uint16_t Y)
+{
+    bool L = leap(Y);
+    return doy < 31 ? 1 : 1 + (303 + 5 * (doy - (L ? 59 : 58))) / 153;
 }
 
 /** Count of days since Epoch.
@@ -130,13 +138,14 @@ inline uint8_t dayOfYearToMonth(uint16_t doy, uint16_t Y) {
  *
  * Derived from Zeller's congruence
  */
-inline uint16_t epochDay(uint16_t Y, uint8_t M, uint8_t D) {
-  if (M < 3) {
-    M += 12;
-    Y--;
-  }
-  return 365 * (Y + 1 - EPOCH_YEAR) + Y / 4 - (EPOCH_YEAR - 1) / 4 +
-         (153 * M - 2) / 5 + D - 398;
+inline uint16_t epochDay(uint16_t Y, uint8_t M, uint8_t D)
+{
+    if (M < 3)
+    {
+        M += 12;
+        Y--;
+    }
+    return 365 * (Y + 1 - EPOCH_YEAR) + Y / 4 - (EPOCH_YEAR - 1) / 4 + (153 * M - 2) / 5 + D - 398;
 }
 
 /** epoch day to day of week (Sunday == 0)
@@ -144,8 +153,9 @@ inline uint16_t epochDay(uint16_t Y, uint8_t M, uint8_t D) {
  * @param[in] eday count of days since epoch.
  * @return day of week (Sunday == 0)
  **/
-inline uint8_t epochDayToDayOfWeek(uint16_t eday) {
-  return (eday + EPOCH_YEAR - 1 + (EPOCH_YEAR - 1) / 4) % 7;
+inline uint8_t epochDayToDayOfWeek(uint16_t eday)
+{
+    return (eday + EPOCH_YEAR - 1 + (EPOCH_YEAR - 1) / 4) % 7;
 }
 
 /** Day of epoch to year
@@ -153,9 +163,9 @@ inline uint8_t epochDayToDayOfWeek(uint16_t eday) {
  * @param[in] eday count of days since epoch
  * @return year for count of days since epoch
  */
-inline uint16_t epochDayToYear(uint16_t eday) {
-  return EPOCH_YEAR +
-         (eday - (eday + 365 * (1 + (EPOCH_YEAR - 1) % 4)) / 1461) / 365;
+inline uint16_t epochDayToYear(uint16_t eday)
+{
+    return EPOCH_YEAR + (eday - (eday + 365 * (1 + (EPOCH_YEAR - 1) % 4)) / 1461) / 365;
 }
 
 /** epoch day to year, month, day
@@ -167,22 +177,26 @@ inline uint16_t epochDayToYear(uint16_t eday) {
  * @param[out] M month
  * @param[out] D day
  */
-inline void epochDayToYMD(uint16_t eday, uint16_t* Y, uint8_t* M, uint8_t* D) {
-  // Align day number with leap year.
-  eday += 365 * (3 - EPOCH_YEAR % 4);
-  uint8_t n4 = eday / 1461;
-  eday = eday % 1461;
-  uint8_t n1 = eday / 365;
-  eday = eday % 365;
-  uint16_t yr = 4 * n4 + n1 + EPOCH_YEAR - (3 - EPOCH_YEAR % 4);
-  if (n1 == 4) {
-    // last day of a leap year.
-    *Y = yr - 1;
-    *M = 12;
-    *D = 31;
-  } else {
-    *Y = yr;
-    *M = dayOfYearToMonth(eday, yr);
-    *D = eday - daysBeforeMonth(yr, *M) + 1;
-  }
+inline void epochDayToYMD(uint16_t eday, uint16_t *Y, uint8_t *M, uint8_t *D)
+{
+    // Align day number with leap year.
+    eday += 365 * (3 - EPOCH_YEAR % 4);
+    uint8_t n4 = eday / 1461;
+    eday = eday % 1461;
+    uint8_t n1 = eday / 365;
+    eday = eday % 365;
+    uint16_t yr = 4 * n4 + n1 + EPOCH_YEAR - (3 - EPOCH_YEAR % 4);
+    if (n1 == 4)
+    {
+        // last day of a leap year.
+        *Y = yr - 1;
+        *M = 12;
+        *D = 31;
+    }
+    else
+    {
+        *Y = yr;
+        *M = dayOfYearToMonth(eday, yr);
+        *D = eday - daysBeforeMonth(yr, *M) + 1;
+    }
 }
