@@ -15,11 +15,11 @@
 // ------- //
 
 #define cmd_rsp_wrap_target 0
-#define cmd_rsp_wrap 9
+#define cmd_rsp_wrap        9
 #define cmd_rsp_pio_version 0
 
 static const uint16_t cmd_rsp_program_instructions[] = {
-            //     .wrap_target
+    //     .wrap_target
     0x7101, //  0: out    pins, 1         side 0 [1]
     0x1940, //  1: jmp    x--, 0          side 1 [1]
     0x1160, //  2: jmp    !y, 0           side 0 [1]
@@ -34,24 +34,25 @@ static const uint16_t cmd_rsp_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program cmd_rsp_program = {
-    .instructions = cmd_rsp_program_instructions,
-    .length = 10,
-    .origin = -1,
-    .pio_version = cmd_rsp_pio_version,
+static const struct pio_program cmd_rsp_program = {.instructions = cmd_rsp_program_instructions,
+                                                   .length = 10,
+                                                   .origin = -1,
+                                                   .pio_version = cmd_rsp_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
+                                                   .used_gpio_ranges = 0x0
 #endif
 };
 
-static inline pio_sm_config cmd_rsp_program_get_default_config(uint offset) {
+static inline pio_sm_config cmd_rsp_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + cmd_rsp_wrap_target, offset + cmd_rsp_wrap);
     sm_config_set_sideset(&c, 2, true, false);
     return c;
 }
 
-static inline pio_sm_config pio_cmd_rsp_program_config(uint offset, uint cmd_pin, uint clk_pin, float clk_div) {
+static inline pio_sm_config pio_cmd_rsp_program_config(uint offset, uint cmd_pin, uint clk_pin, float clk_div)
+{
     pio_sm_config c = cmd_rsp_program_get_default_config(offset);
     sm_config_set_sideset_pins(&c, clk_pin);
     sm_config_set_out_pins(&c, cmd_pin, 1);
@@ -71,7 +72,7 @@ static inline pio_sm_config pio_cmd_rsp_program_config(uint offset, uint cmd_pin
 // ------ //
 
 #define rd_clk_wrap_target 3
-#define rd_clk_wrap 4
+#define rd_clk_wrap        4
 #define rd_clk_pio_version 0
 
 static const uint16_t rd_clk_program_instructions[] = {
@@ -85,24 +86,25 @@ static const uint16_t rd_clk_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program rd_clk_program = {
-    .instructions = rd_clk_program_instructions,
-    .length = 5,
-    .origin = -1,
-    .pio_version = rd_clk_pio_version,
+static const struct pio_program rd_clk_program = {.instructions = rd_clk_program_instructions,
+                                                  .length = 5,
+                                                  .origin = -1,
+                                                  .pio_version = rd_clk_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
+                                                  .used_gpio_ranges = 0x0
 #endif
 };
 
-static inline pio_sm_config rd_clk_program_get_default_config(uint offset) {
+static inline pio_sm_config rd_clk_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + rd_clk_wrap_target, offset + rd_clk_wrap);
     sm_config_set_sideset(&c, 2, true, false);
     return c;
 }
 
-static inline pio_sm_config pio_rd_clk_program_config(uint offset, uint d0_pin, uint clk_pin, float clk_div) {
+static inline pio_sm_config pio_rd_clk_program_config(uint offset, uint d0_pin, uint clk_pin, float clk_div)
+{
     pio_sm_config c = rd_clk_program_get_default_config(offset);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     sm_config_set_sideset_pins(&c, clk_pin);
@@ -120,7 +122,7 @@ static inline pio_sm_config pio_rd_clk_program_config(uint offset, uint d0_pin, 
 // ------- //
 
 #define rd_data_wrap_target 1
-#define rd_data_wrap 3
+#define rd_data_wrap        3
 #define rd_data_pio_version 0
 
 #define rd_data_offset_wait0 1u
@@ -136,39 +138,41 @@ static const uint16_t rd_data_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program rd_data_program = {
-    .instructions = rd_data_program_instructions,
-    .length = 4,
-    .origin = -1,
-    .pio_version = rd_data_pio_version,
+static const struct pio_program rd_data_program = {.instructions = rd_data_program_instructions,
+                                                   .length = 4,
+                                                   .origin = -1,
+                                                   .pio_version = rd_data_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x1
+                                                   .used_gpio_ranges = 0x1
 #endif
 };
 
-static inline pio_sm_config rd_data_program_get_default_config(uint offset) {
+static inline pio_sm_config rd_data_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + rd_data_wrap_target, offset + rd_data_wrap);
     return c;
 }
 
-static inline void rd_data_patch_program(pio_program *prog, uint16_t* inst, uint clk_pin) {
-  *prog = rd_data_program;
-  prog->instructions = inst;
+static inline void rd_data_patch_program(pio_program *prog, uint16_t *inst, uint clk_pin)
+{
+    *prog = rd_data_program;
+    prog->instructions = inst;
 #if PICO_PIO_VERSION > 0
     prog->used_gpio_ranges = clk_pin < 16 ? 1 : clk_pin < 32 ? 2 : clk_pin < 48 ? 4 : 8;
 #endif
-  memcpy(inst, rd_data_program_instructions, sizeof(rd_data_program_instructions));
-  inst[rd_data_offset_wait0] = pio_encode_wait_gpio(0, clk_pin);
-  inst[rd_data_offset_wait1] = pio_encode_wait_gpio(1, clk_pin);
+    memcpy(inst, rd_data_program_instructions, sizeof(rd_data_program_instructions));
+    inst[rd_data_offset_wait0] = pio_encode_wait_gpio(0, clk_pin);
+    inst[rd_data_offset_wait1] = pio_encode_wait_gpio(1, clk_pin);
 }
-static inline pio_sm_config pio_rd_data_program_config(uint offset, uint data_pin, float clk_div) {
-  pio_sm_config c = rd_data_program_get_default_config(offset);
-  sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
-  sm_config_set_in_pins(&c, data_pin);
-  sm_config_set_in_shift(&c, false, true, 32);
-  sm_config_set_clkdiv(&c, clk_div);
-  return c;
+static inline pio_sm_config pio_rd_data_program_config(uint offset, uint data_pin, float clk_div)
+{
+    pio_sm_config c = rd_data_program_get_default_config(offset);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    sm_config_set_in_pins(&c, data_pin);
+    sm_config_set_in_shift(&c, false, true, 32);
+    sm_config_set_clkdiv(&c, clk_div);
+    return c;
 }
 
 #endif
@@ -178,7 +182,7 @@ static inline pio_sm_config pio_rd_data_program_config(uint offset, uint data_pi
 // ------- //
 
 #define wr_data_wrap_target 3
-#define wr_data_wrap 3
+#define wr_data_wrap        3
 #define wr_data_pio_version 0
 
 static const uint16_t wr_data_program_instructions[] = {
@@ -191,24 +195,25 @@ static const uint16_t wr_data_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program wr_data_program = {
-    .instructions = wr_data_program_instructions,
-    .length = 4,
-    .origin = -1,
-    .pio_version = wr_data_pio_version,
+static const struct pio_program wr_data_program = {.instructions = wr_data_program_instructions,
+                                                   .length = 4,
+                                                   .origin = -1,
+                                                   .pio_version = wr_data_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
+                                                   .used_gpio_ranges = 0x0
 #endif
 };
 
-static inline pio_sm_config wr_data_program_get_default_config(uint offset) {
+static inline pio_sm_config wr_data_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + wr_data_wrap_target, offset + wr_data_wrap);
     sm_config_set_sideset(&c, 2, true, false);
     return c;
 }
 
-static inline pio_sm_config pio_wr_data_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div) {
+static inline pio_sm_config pio_wr_data_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div)
+{
     pio_sm_config c = wr_data_program_get_default_config(offset);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     sm_config_set_sideset_pins(&c, clk_pin);
@@ -226,7 +231,7 @@ static inline pio_sm_config pio_wr_data_program_config(uint offset, uint data_pi
 // ------- //
 
 #define wr_resp_wrap_target 2
-#define wr_resp_wrap 3
+#define wr_resp_wrap        3
 #define wr_resp_pio_version 0
 
 static const uint16_t wr_resp_program_instructions[] = {
@@ -239,24 +244,25 @@ static const uint16_t wr_resp_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program wr_resp_program = {
-    .instructions = wr_resp_program_instructions,
-    .length = 4,
-    .origin = -1,
-    .pio_version = wr_resp_pio_version,
+static const struct pio_program wr_resp_program = {.instructions = wr_resp_program_instructions,
+                                                   .length = 4,
+                                                   .origin = -1,
+                                                   .pio_version = wr_resp_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
+                                                   .used_gpio_ranges = 0x0
 #endif
 };
 
-static inline pio_sm_config wr_resp_program_get_default_config(uint offset) {
+static inline pio_sm_config wr_resp_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + wr_resp_wrap_target, offset + wr_resp_wrap);
     sm_config_set_sideset(&c, 2, true, false);
     return c;
 }
 
-static inline pio_sm_config pio_wr_resp_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div) {
+static inline pio_sm_config pio_wr_resp_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div)
+{
     pio_sm_config c = wr_resp_program_get_default_config(offset);
     sm_config_set_sideset_pins(&c, clk_pin);
     sm_config_set_in_pins(&c, data_pin);
@@ -265,9 +271,8 @@ static inline pio_sm_config pio_wr_resp_program_config(uint offset, uint data_pi
     sm_config_set_clkdiv(&c, clk_div);
     return c;
 }
-static const size_t total_pio_length =
-    cmd_rsp_program.length + rd_data_program.length + rd_clk_program.length +
-    wr_data_program.length + wr_resp_program.length;
+static const size_t total_pio_length = cmd_rsp_program.length + rd_data_program.length + rd_clk_program.length +
+                                       wr_data_program.length + wr_resp_program.length;
 
 #endif
 
@@ -276,11 +281,11 @@ static const size_t total_pio_length =
 // -------- //
 
 #define fill_pio_wrap_target 0
-#define fill_pio_wrap 3
+#define fill_pio_wrap        3
 #define fill_pio_pio_version 0
 
 static const uint16_t fill_pio_program_instructions[] = {
-            //     .wrap_target
+    //     .wrap_target
     0x0000, //  0: jmp    0
     0x0001, //  1: jmp    1
     0x0002, //  2: jmp    2
@@ -289,17 +294,17 @@ static const uint16_t fill_pio_program_instructions[] = {
 };
 
 #if !PICO_NO_HARDWARE
-static const struct pio_program fill_pio_program = {
-    .instructions = fill_pio_program_instructions,
-    .length = 4,
-    .origin = -1,
-    .pio_version = fill_pio_pio_version,
+static const struct pio_program fill_pio_program = {.instructions = fill_pio_program_instructions,
+                                                    .length = 4,
+                                                    .origin = -1,
+                                                    .pio_version = fill_pio_pio_version,
 #if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
+                                                    .used_gpio_ranges = 0x0
 #endif
 };
 
-static inline pio_sm_config fill_pio_program_get_default_config(uint offset) {
+static inline pio_sm_config fill_pio_program_get_default_config(uint offset)
+{
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + fill_pio_wrap_target, offset + fill_pio_wrap);
     return c;

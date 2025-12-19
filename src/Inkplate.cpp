@@ -132,7 +132,7 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 
     if (renderMode == LV_DISPLAY_RENDER_MODE_PARTIAL)
     {
-        #define PARTIAL_ROWS 16
+#define PARTIAL_ROWS 16
         buf_1 = (lv_color_t *)heap_caps_malloc(screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8), MALLOC_CAP_8BIT);
         buf_2 = (lv_color_t *)heap_caps_malloc(screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8), MALLOC_CAP_8BIT);
         buffer_size = screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8);

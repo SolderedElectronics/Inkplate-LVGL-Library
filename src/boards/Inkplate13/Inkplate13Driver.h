@@ -45,7 +45,7 @@ class EPDDriver
     int16_t getSdCardOk();
     int16_t sdCardInit();
     void sdCardSleep();
-    SdFat& getSdFat();
+    SdFat &getSdFat();
     SPIClass *getSPIptr();
 
     double readBattery();
@@ -87,12 +87,12 @@ class EPDDriver
 
     // Color display of the spectra panel
     uint16_t _palette[6] = {
-    0x0000,  // Black
-    0xFFFF,  // White
-    0xFFE0,  // Yellow
-    0xF800,  // Red
-    0x001F,  // Blue
-    0x07E0   // Green
+        0x0000, // Black
+        0xFFFF, // White
+        0xFFE0, // Yellow
+        0xF800, // Red
+        0x001F, // Blue
+        0x07E0  // Green
     };
 
 

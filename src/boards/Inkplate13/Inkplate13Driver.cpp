@@ -70,7 +70,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
-      self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
+        self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
     }
     else
     {
@@ -152,53 +152,54 @@ void EPDDriver::clearDisplay()
 void EPDDriver::display(bool _leaveOn)
 {
 
-  // Power up the screen (if is not already powered on).
-  setPanelState(true);
+    // Power up the screen (if is not already powered on).
+    setPanelState(true);
 
-  // Framebuffer must be send to two seperate display driver.
-  // The screen is splitted in half - left and right side.
-  // Send data in rows - first on master (left side of the screen).
-  digitalWrite(SPECTRA133_CS_M_PIN, LOW);
-  digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
+    // Framebuffer must be send to two seperate display driver.
+    // The screen is splitted in half - left and right side.
+    // Send data in rows - first on master (left side of the screen).
+    digitalWrite(SPECTRA133_CS_M_PIN, LOW);
+    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
 
-  // Start SPI transaction and send the command to fill the EPD framebuffer with data.
-  SPI.beginTransaction(epdSpiSettings);
-  SPI.write(SPECTRA133_REGISTER_DTM);
+    // Start SPI transaction and send the command to fill the EPD framebuffer with data.
+    SPI.beginTransaction(epdSpiSettings);
+    SPI.write(SPECTRA133_REGISTER_DTM);
 
-  // Send the data to the first driver (left side)
-  for (int i = 0; i < E_INK_HEIGHT; i++) 
-  {
-    SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2), (E_INK_WIDTH / 4));
-  }
-  SPI.endTransaction();
+    // Send the data to the first driver (left side)
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+        SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2), (E_INK_WIDTH / 4));
+    }
+    SPI.endTransaction();
 
-  // Send data in rows - now on slave (right side of the screen).
-  digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
-  digitalWrite(SPECTRA133_CS_S_PIN, LOW);
-  waitForBusy();
+    // Send data in rows - now on slave (right side of the screen).
+    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
+    digitalWrite(SPECTRA133_CS_S_PIN, LOW);
+    waitForBusy();
 
-  // Start SPI transaction and send the command to fill the EPD framebuffer with data.
-  SPI.beginTransaction(epdSpiSettings);
-  SPI.write(SPECTRA133_REGISTER_DTM);
+    // Start SPI transaction and send the command to fill the EPD framebuffer with data.
+    SPI.beginTransaction(epdSpiSettings);
+    SPI.write(SPECTRA133_REGISTER_DTM);
 
-  // Send the data to the second driver (right side).
-  for (int i = 0; i < E_INK_HEIGHT; i++)
-  {
-    SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2) + (E_INK_WIDTH / 4), (E_INK_WIDTH / 4));
-  }
-  SPI.endTransaction();
+    // Send the data to the second driver (right side).
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+        SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2) + (E_INK_WIDTH / 4), (E_INK_WIDTH / 4));
+    }
+    SPI.endTransaction();
 
-  // Disable both drivers.
-  digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-  digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
-  waitForBusy();
+    // Disable both drivers.
+    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
+    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
+    waitForBusy();
 
-  // Force display command.
-  sendCommand(SPECTRA133_REGISTER_DRF, SPECTRA133_REGISTER_DRF_V, sizeof(SPECTRA133_REGISTER_DRF_V), eChipIdBoth);
-  waitForBusy();
+    // Force display command.
+    sendCommand(SPECTRA133_REGISTER_DRF, SPECTRA133_REGISTER_DRF_V, sizeof(SPECTRA133_REGISTER_DRF_V), eChipIdBoth);
+    waitForBusy();
 
-  // Disable power to the display (if needed).
-  if (!_leaveOn) setPanelState(false);
+    // Disable power to the display (if needed).
+    if (!_leaveOn)
+        setPanelState(false);
 }
 
 /**
@@ -220,55 +221,56 @@ uint8_t EPDDriver::getPanelState()
 void EPDDriver::setPanelState(uint8_t state)
 {
     // Check if the current display power state is different than the provided.
-  // If there is a difference - update it/change it.
-  if (state != _panelState)
-  {
-    // Check if the screen must be powered down or powered up.
-    if (state)
+    // If there is a difference - update it/change it.
+    if (state != _panelState)
     {
-      // Configure GPIOs.
-      setIO();
+        // Check if the screen must be powered down or powered up.
+        if (state)
+        {
+            // Configure GPIOs.
+            setIO();
 
-      // Enable power to the screen.
-      digitalWrite(SPECTRA133_PWR_EN, HIGH);
+            // Enable power to the screen.
+            digitalWrite(SPECTRA133_PWR_EN, HIGH);
 
-      // Wait a little bit.
-      delay(100ULL);
+            // Wait a little bit.
+            delay(100ULL);
 
-      // First, do a hardware reset!
-      resetPanel();
+            // First, do a hardware reset!
+            resetPanel();
 
-      // Wait for the reset to finish.
-      delay(100ULL);
+            // Wait for the reset to finish.
+            delay(100ULL);
 
-      // Initialze the screen by sending the magic values to the registers provided by the manufacturer.
-      screenInit();
+            // Initialze the screen by sending the magic values to the registers provided by the manufacturer.
+            screenInit();
 
-      // Power up a screen.
-      sendCommand(SPECTRA133_REGISTER_PON, nullptr, 0, eChipIdBoth);
-      waitForBusy();
+            // Power up a screen.
+            sendCommand(SPECTRA133_REGISTER_PON, nullptr, 0, eChipIdBoth);
+            waitForBusy();
+        }
+        else
+        {
+            // Power off the screen.
+            sendCommand(SPECTRA133_REGISTER_POF, SPECTRA133_REGISTER_POF_V, sizeof(SPECTRA133_REGISTER_POF_V),
+                        eChipIdBoth);
+            waitForBusy();
+
+            // Disable GPIOs.
+            pinMode(SPECTRA133_DC_PIN, INPUT);
+            pinMode(SPECTRA133_CS_M_PIN, INPUT);
+            pinMode(SPECTRA133_CS_S_PIN, INPUT);
+            pinMode(SPECTRA133_RST_PIN, INPUT);
+            pinMode(SPECTRA133_BUSYN_PIN, INPUT);
+            pinMode(SPECTRA133_PWR_EN, INPUT);
+
+            // Disable power to the screen.
+            digitalWrite(SPECTRA133_PWR_EN, LOW);
+        }
+
+        // Update the status variable.
+        _panelState = state;
     }
-    else
-    {
-      // Power off the screen.
-      sendCommand(SPECTRA133_REGISTER_POF, SPECTRA133_REGISTER_POF_V, sizeof(SPECTRA133_REGISTER_POF_V), eChipIdBoth);
-      waitForBusy();
-
-      // Disable GPIOs.
-      pinMode(SPECTRA133_DC_PIN, INPUT);
-      pinMode(SPECTRA133_CS_M_PIN, INPUT);
-      pinMode(SPECTRA133_CS_S_PIN, INPUT);
-      pinMode(SPECTRA133_RST_PIN, INPUT);
-      pinMode(SPECTRA133_BUSYN_PIN, INPUT);
-      pinMode(SPECTRA133_PWR_EN, INPUT);
-
-      // Disable power to the screen.
-      digitalWrite(SPECTRA133_PWR_EN, LOW);
-    }
-
-    // Update the status variable.
-    _panelState = state;
-  }
 }
 
 /**
@@ -277,34 +279,34 @@ void EPDDriver::setPanelState(uint8_t state)
  */
 void EPDDriver::setIO()
 {
-  // Config the GPIOs.
-  pinMode(SPECTRA133_DC_PIN, OUTPUT);
-  pinMode(SPECTRA133_CS_M_PIN, OUTPUT);
-  pinMode(SPECTRA133_CS_S_PIN, OUTPUT);
-  pinMode(SPECTRA133_RST_PIN, OUTPUT);
-  pinMode(SPECTRA133_BUSYN_PIN, INPUT_PULLUP);
-  pinMode(SPECTRA133_PWR_EN, OUTPUT);
-  pinMode(SPECTRA133_BS0, OUTPUT);
-  pinMode(SPECTRA133_BS1, OUTPUT);
+    // Config the GPIOs.
+    pinMode(SPECTRA133_DC_PIN, OUTPUT);
+    pinMode(SPECTRA133_CS_M_PIN, OUTPUT);
+    pinMode(SPECTRA133_CS_S_PIN, OUTPUT);
+    pinMode(SPECTRA133_RST_PIN, OUTPUT);
+    pinMode(SPECTRA133_BUSYN_PIN, INPUT_PULLUP);
+    pinMode(SPECTRA133_PWR_EN, OUTPUT);
+    pinMode(SPECTRA133_BS0, OUTPUT);
+    pinMode(SPECTRA133_BS1, OUTPUT);
 
-  // Set their default states.
-  digitalWrite(SPECTRA133_DC_PIN, HIGH);
-  digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
-  digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-  digitalWrite(SPECTRA133_RST_PIN, LOW);
-  digitalWrite(SPECTRA133_PWR_EN, LOW);
-  digitalWrite(SPECTRA133_BS0, LOW);
-  digitalWrite(SPECTRA133_BS1, HIGH);
+    // Set their default states.
+    digitalWrite(SPECTRA133_DC_PIN, HIGH);
+    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
+    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
+    digitalWrite(SPECTRA133_RST_PIN, LOW);
+    digitalWrite(SPECTRA133_PWR_EN, LOW);
+    digitalWrite(SPECTRA133_BS0, LOW);
+    digitalWrite(SPECTRA133_BS1, HIGH);
 
-  // Config SPI.
-  if(!SPI.begin(SPECTRA133_SPI_SCK, SPECTRA133_SPI_MISO, SPECTRA133_SPI_MOSI))
-  {
-    Serial.println("Failed to init SPI");
-  }
-  else
-  {
-    Serial.println("SPI init done");
-  }
+    // Config SPI.
+    if (!SPI.begin(SPECTRA133_SPI_SCK, SPECTRA133_SPI_MISO, SPECTRA133_SPI_MOSI))
+    {
+        Serial.println("Failed to init SPI");
+    }
+    else
+    {
+        Serial.println("SPI init done");
+    }
 }
 
 /**
@@ -325,52 +327,64 @@ void EPDDriver::resetPanel()
  * @param       uint8_t _command
  *              predefined command for epaper control
  */
-void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t* _parameters, uint32_t _n, enum eSpectraChipID _chipId)
+void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t *_parameters, uint32_t _n, enum eSpectraChipID _chipId)
 {
-  // Config the SPI.
-  SPI.beginTransaction(epdSpiSettings);
+    // Config the SPI.
+    SPI.beginTransaction(epdSpiSettings);
 
-  // Set the chip select pin to low as well.
-  if (_chipId & eChipIdSlave) digitalWrite(SPECTRA133_CS_S_PIN, LOW);
-  if (_chipId & eChipIdMaster) digitalWrite(SPECTRA133_CS_M_PIN, LOW);
+    // Set the chip select pin to low as well.
+    if (_chipId & eChipIdSlave)
+        digitalWrite(SPECTRA133_CS_S_PIN, LOW);
+    if (_chipId & eChipIdMaster)
+        digitalWrite(SPECTRA133_CS_M_PIN, LOW);
 
-  // Send the command.
-  SPI.write(_cmd);
+    // Send the command.
+    SPI.write(_cmd);
 
-  if (_n != 0) {
-    SPI.writeBytes(_parameters, _n);
+    if (_n != 0)
+    {
+        SPI.writeBytes(_parameters, _n);
+    }
 
-  }
+    SPI.endTransaction();
 
-  SPI.endTransaction();
-
-  // Release the chip select.
-  if (_chipId & eChipIdSlave) digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-  if (_chipId & eChipIdMaster) digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
+    // Release the chip select.
+    if (_chipId & eChipIdSlave)
+        digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
+    if (_chipId & eChipIdMaster)
+        digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
 }
-
 
 
 void EPDDriver::screenInit()
 {
-  // Send magic values to the registers. These values are provided from the manufacturer.
-  sendCommand(SPECTRA133_REGISTER_AN_TM, SPECTRA133_REGISTER_AN_TM_V, sizeof(SPECTRA133_REGISTER_AN_TM_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_CMD66, SPECTRA133_REGISTER_CMD66_V, sizeof(SPECTRA133_REGISTER_CMD66_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_PSR, SPECTRA133_REGISTER_PSR_V, sizeof(SPECTRA133_REGISTER_PSR_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_PLL, SPECTRA133_REGISTER_PLL_V, sizeof(SPECTRA133_REGISTER_PLL_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_CDI, SPECTRA133_REGISTER_CDI_V, sizeof(SPECTRA133_REGISTER_CDI_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_TCON, SPECTRA133_REGISTER_TCON_V, sizeof(SPECTRA133_REGISTER_TCON_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_AGID, SPECTRA133_REGISTER_AGID_V, sizeof(SPECTRA133_REGISTER_AGID_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_PWS, SPECTRA133_REGISTER_PWS_V, sizeof(SPECTRA133_REGISTER_PWS_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_CCSET, SPECTRA133_REGISTER_CCSET_V, sizeof(SPECTRA133_REGISTER_CCSET_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_TRES, SPECTRA133_REGISTER_TRES_V, sizeof(SPECTRA133_REGISTER_TRES_V), eChipIdBoth);
-  sendCommand(SPECTRA133_REGISTER_PWR, SPECTRA133_REGISTER_PWR_V, sizeof(SPECTRA133_REGISTER_PWR_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_EN_BUF, SPECTRA133_REGISTER_EN_BUF_V, sizeof(SPECTRA133_REGISTER_EN_BUF_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_BTST_P, SPECTRA133_REGISTER_BTST_P_V, sizeof(SPECTRA133_REGISTER_BTST_P_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_BOOST_VDDP_EN, SPECTRA133_REGISTER_BOOST_VDDP_EN_V, sizeof(SPECTRA133_REGISTER_BOOST_VDDP_EN_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_BTST_N, SPECTRA133_REGISTER_BTST_N_V, sizeof(SPECTRA133_REGISTER_BTST_N_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_BUCK_BOOST_VDDN, SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V, sizeof(SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V), eChipIdMaster);
-  sendCommand(SPECTRA133_REGISTER_TFT_VCOM_POWER, SPECTRA133_REGISTER_TFT_VCOM_POWER_V, sizeof(SPECTRA133_REGISTER_TFT_VCOM_POWER_V), eChipIdMaster);
+    // Send magic values to the registers. These values are provided from the manufacturer.
+    sendCommand(SPECTRA133_REGISTER_AN_TM, SPECTRA133_REGISTER_AN_TM_V, sizeof(SPECTRA133_REGISTER_AN_TM_V),
+                eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_CMD66, SPECTRA133_REGISTER_CMD66_V, sizeof(SPECTRA133_REGISTER_CMD66_V),
+                eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_PSR, SPECTRA133_REGISTER_PSR_V, sizeof(SPECTRA133_REGISTER_PSR_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_PLL, SPECTRA133_REGISTER_PLL_V, sizeof(SPECTRA133_REGISTER_PLL_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_CDI, SPECTRA133_REGISTER_CDI_V, sizeof(SPECTRA133_REGISTER_CDI_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_TCON, SPECTRA133_REGISTER_TCON_V, sizeof(SPECTRA133_REGISTER_TCON_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_AGID, SPECTRA133_REGISTER_AGID_V, sizeof(SPECTRA133_REGISTER_AGID_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_PWS, SPECTRA133_REGISTER_PWS_V, sizeof(SPECTRA133_REGISTER_PWS_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_CCSET, SPECTRA133_REGISTER_CCSET_V, sizeof(SPECTRA133_REGISTER_CCSET_V),
+                eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_TRES, SPECTRA133_REGISTER_TRES_V, sizeof(SPECTRA133_REGISTER_TRES_V), eChipIdBoth);
+    sendCommand(SPECTRA133_REGISTER_PWR, SPECTRA133_REGISTER_PWR_V, sizeof(SPECTRA133_REGISTER_PWR_V), eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_EN_BUF, SPECTRA133_REGISTER_EN_BUF_V, sizeof(SPECTRA133_REGISTER_EN_BUF_V),
+                eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_BTST_P, SPECTRA133_REGISTER_BTST_P_V, sizeof(SPECTRA133_REGISTER_BTST_P_V),
+                eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_BOOST_VDDP_EN, SPECTRA133_REGISTER_BOOST_VDDP_EN_V,
+                sizeof(SPECTRA133_REGISTER_BOOST_VDDP_EN_V), eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_BTST_N, SPECTRA133_REGISTER_BTST_N_V, sizeof(SPECTRA133_REGISTER_BTST_N_V),
+                eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_BUCK_BOOST_VDDN, SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V,
+                sizeof(SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V), eChipIdMaster);
+    sendCommand(SPECTRA133_REGISTER_TFT_VCOM_POWER, SPECTRA133_REGISTER_TFT_VCOM_POWER_V,
+                sizeof(SPECTRA133_REGISTER_TFT_VCOM_POWER_V), eChipIdMaster);
 }
 
 
@@ -409,7 +423,7 @@ void EPDDriver::sdCardSleep()
  *
  * @return      sd card class object
  */
-SdFat& EPDDriver::getSdFat()
+SdFat &EPDDriver::getSdFat()
 {
     return sd;
 }
@@ -495,13 +509,13 @@ double EPDDriver::readBattery()
 // Method waits until the screen is ready to accept new commands.
 void EPDDriver::waitForBusy()
 {
-  // Wait until the screen is ready to accept new commads.
-  // This will be indicated by pulling the BUSYN pin to high.
-  while (!digitalRead(SPECTRA133_BUSYN_PIN)) 
-  {
-    // Let the RTOS breathe.
-    delay(1);
-  }
+    // Wait until the screen is ready to accept new commads.
+    // This will be indicated by pulling the BUSYN pin to high.
+    while (!digitalRead(SPECTRA133_BUSYN_PIN))
+    {
+        // Let the RTOS breathe.
+        delay(1);
+    }
 }
 
 

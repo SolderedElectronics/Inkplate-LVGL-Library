@@ -33,61 +33,66 @@
  * \class FsBlockDeviceInterface
  * \brief FsBlockDeviceInterface class.
  */
-class FsBlockDeviceInterface {
- public:
-  virtual ~FsBlockDeviceInterface() {}
+class FsBlockDeviceInterface
+{
+  public:
+    virtual ~FsBlockDeviceInterface()
+    {
+    }
 
-  /** end use of device */
-  virtual void end() {}
-  /**
-   * Check for FsBlockDevice busy.
-   *
-   * \return true if busy else false.
-   */
-  virtual bool isBusy() = 0;
-  /**
-   * Read a sector.
-   *
-   * \param[in] sector Logical sector to be read.
-   * \param[out] dst Pointer to the location that will receive the data.
-   * \return true for success or false for failure.
-   */
-  virtual bool readSector(Sector_t sector, uint8_t* dst) = 0;
+    /** end use of device */
+    virtual void end()
+    {
+    }
+    /**
+     * Check for FsBlockDevice busy.
+     *
+     * \return true if busy else false.
+     */
+    virtual bool isBusy() = 0;
+    /**
+     * Read a sector.
+     *
+     * \param[in] sector Logical sector to be read.
+     * \param[out] dst Pointer to the location that will receive the data.
+     * \return true for success or false for failure.
+     */
+    virtual bool readSector(Sector_t sector, uint8_t *dst) = 0;
 
-  /**
-   * Read multiple sectors.
-   *
-   * \param[in] sector Logical sector to be read.
-   * \param[in] ns Number of sectors to be read.
-   * \param[out] dst Pointer to the location that will receive the data.
-   * \return true for success or false for failure.
-   */
-  virtual bool readSectors(Sector_t sector, uint8_t* dst, size_t ns) = 0;
+    /**
+     * Read multiple sectors.
+     *
+     * \param[in] sector Logical sector to be read.
+     * \param[in] ns Number of sectors to be read.
+     * \param[out] dst Pointer to the location that will receive the data.
+     * \return true for success or false for failure.
+     */
+    virtual bool readSectors(Sector_t sector, uint8_t *dst, size_t ns) = 0;
 
-  /** \return device size in sectors. */
-  virtual Sector_t sectorCount() = 0;
+    /** \return device size in sectors. */
+    virtual Sector_t sectorCount() = 0;
 
-  /** End multi-sector transfer and go to idle state.
-   * \return true for success or false for failure.
-   */
-  virtual bool syncDevice() = 0;
+    /** End multi-sector transfer and go to idle state.
+     * \return true for success or false for failure.
+     */
+    virtual bool syncDevice() = 0;
 
-  /**
-   * Writes a sector.
-   *
-   * \param[in] sector Logical sector to be written.
-   * \param[in] src Pointer to the location of the data to be written.
-   * \return true for success or false for failure.
-   */
-  virtual bool writeSector(Sector_t sector, const uint8_t* src) = 0;
+    /**
+     * Writes a sector.
+     *
+     * \param[in] sector Logical sector to be written.
+     * \param[in] src Pointer to the location of the data to be written.
+     * \return true for success or false for failure.
+     */
+    virtual bool writeSector(Sector_t sector, const uint8_t *src) = 0;
 
-  /**
-   * Write multiple sectors.
-   *
-   * \param[in] sector Logical sector to be written.
-   * \param[in] ns Number of sectors to be written.
-   * \param[in] src Pointer to the location of the data to be written.
-   * \return true for success or false for failure.
-   */
-  virtual bool writeSectors(Sector_t sector, const uint8_t* src, size_t ns) = 0;
+    /**
+     * Write multiple sectors.
+     *
+     * \param[in] sector Logical sector to be written.
+     * \param[in] ns Number of sectors to be written.
+     * \param[in] src Pointer to the location of the data to be written.
+     * \return true for success or false for failure.
+     */
+    virtual bool writeSectors(Sector_t sector, const uint8_t *src, size_t ns) = 0;
 };
