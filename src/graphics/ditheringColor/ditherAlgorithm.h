@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2)
+#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_ESP32S3_DEV)
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -115,13 +115,11 @@ uint8_t Inkplate::getRotation()
 
 void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 {
-    Serial.println("Initializing LVGL...");
-
     // Init the lvgl library itself
     lv_init();
 
 // Define display resolution
-#ifndef ARDUINO_INKPLATE2
+#if !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_ESP32S3_DEV)
     uint32_t screen_width = E_INK_WIDTH;
     uint32_t screen_height = E_INK_HEIGHT;
 #else
@@ -134,7 +132,7 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 
     if (renderMode == LV_DISPLAY_RENDER_MODE_PARTIAL)
     {
-#define PARTIAL_ROWS 16
+        #define PARTIAL_ROWS 16
         buf_1 = (lv_color_t *)heap_caps_malloc(screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8), MALLOC_CAP_8BIT);
         buf_2 = (lv_color_t *)heap_caps_malloc(screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8), MALLOC_CAP_8BIT);
         buffer_size = screen_width * PARTIAL_ROWS * (LV_COLOR_DEPTH / 8);
@@ -162,7 +160,6 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 #else
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_L8);
 #endif
-
 
     // Attach the buffer
     lv_display_set_buffers(disp, buf_1, buf_2, buffer_size, renderMode);

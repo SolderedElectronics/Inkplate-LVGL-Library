@@ -15,7 +15,10 @@
 
 #include <Arduino.h>
 
-#ifdef ARDUINO_INKPLATE10V2
+#if defined(ARDUINO_ESP32S3_DEV)
+#define USE_COLOR_IMAGE
+#include "boards/Inkplate13/Inkplate13BoardFile.h"
+#elif defined(ARDUINO_INKPLATE10V2)
 #include "boards/Inkplate10/Inkplate10BoardFile.h"
 #elif defined(ARDUINO_INKPLATE6V2)
 #define USES_I2S

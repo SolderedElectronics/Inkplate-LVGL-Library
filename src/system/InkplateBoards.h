@@ -15,7 +15,9 @@
 #define __INKPLATE_BOARDS_H__
 
 // Board selector. It only includes files for selected board.
-#ifdef ARDUINO_INKPLATE10V2
+#if defined(ARDUINO_ESP32S3_DEV)
+#include "boards/Inkplate13/Inkplate13BoardFile.h"
+#elif defined(ARDUINO_INKPLATE10V2)
 #include "../boards/Inkplate10/Inkplate10Driver.h"
 #elif defined(ARDUINO_INKPLATE6V2)
 #include "boards/Inkplate6/Inkplate6Driver.h"
