@@ -2,7 +2,7 @@
 #define __INKPLATE13DRIVER_H__
 
 // Header guard for the Arduino include
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_INKPLATE13SPECTRA
 
 // Inkplate Board name.
 #define INKPLATE_BOARD_NAME "Inkplate 13"

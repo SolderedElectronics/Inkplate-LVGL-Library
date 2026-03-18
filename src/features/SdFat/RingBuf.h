@@ -137,8 +137,8 @@ template <class F, size_t Size> class RingBuf : public Print
     }
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
     // See write(), read(), beginISR() and endISR().
-    size_t __attribute__((error("use write(buf, count), beginISR(), endISR()"))) memcpyIn(const void *buf,
-                                                                                          size_t count);
+    size_t __attribute__((error("use write(buf, count), beginISR(), endISR()")))
+    memcpyIn(const void *buf, size_t count);
     size_t __attribute__((error("use read(buf, count), beginISR(), endISR()"))) memcpyOut(void *buf, size_t count);
 #endif // DOXYGEN_SHOULD_SKIP_THIS
     /** Print a number followed by a field terminator.

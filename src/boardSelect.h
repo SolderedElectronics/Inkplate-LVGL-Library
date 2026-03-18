@@ -15,7 +15,7 @@
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ESP32S3_DEV)
+#if defined(ARDUINO_INKPLATE13SPECTRA)
 #define USE_COLOR_IMAGE
 #include "boards/Inkplate13/Inkplate13BoardFile.h"
 #elif defined(ARDUINO_INKPLATE10V2)
@@ -34,6 +34,9 @@
 #elif defined(ARDUINO_INKPLATECOLOR)
 #define USE_COLOR_IMAGE
 #include "boards/Inkplate6COLOR/Inkplate6COLORBoardFile.h"
+#elif defined(ARDUINO_INKPLATE4TEMPERA)
+#define MULTIPLE_DISPLAY_MODES
+#include "boards/Inkplate4TEMPERA/Inkplate4TEMPERABoardFile.h"
 #elif defined(ARDUINO_INKPLATE2)
 #define USE_COLOR_IMAGE
 #include "boards/Inkplate2/Inkplate2BoardFile.h"

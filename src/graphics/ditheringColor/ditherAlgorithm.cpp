@@ -1,7 +1,7 @@
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
-#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_ESP32S3_DEV)
+#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA)
 
 // RGB565 to RGBTRIPLE
 void DitherAlgorithm::RGB565_to_RGBtriple(uint16_t c, uint8_t *r, uint8_t *g, uint8_t *b)

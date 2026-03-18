@@ -15,7 +15,7 @@
 #define __INKPLATE13_BOARD_SELECT_H__
 
 // Board select check.
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_INKPLATE13SPECTRA
 
 // Include Inkplate10 board header file.
 #include "Inkplate13Driver.h"

@@ -14,15 +14,17 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#include "../../lvgl.h"
+#include "../../lv_conf_internal.h"
 
 #if LV_USE_DRAW_VG_LITE
 
 #include "../../misc/lv_profiler.h"
+#include "../../misc/lv_area.h"
+#include "../../misc/lv_style.h"
+#include "../../misc/lv_matrix.h"
 
-#include <stdbool.h>
 #if LV_USE_VG_LITE_THORVG
-#include "../../others/vg_lite_tvg/vg_lite.h"
+#include "../../debugging/vg_lite_tvg/vg_lite.h"
 #else
 #if LV_USE_VG_LITE_DRIVER
 #include "../../libs/vg_lite_driver/inc/vg_lite.h"

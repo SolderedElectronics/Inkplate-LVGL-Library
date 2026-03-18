@@ -1,0 +1,1399 @@
+// Header guard for the Arduino include
+#ifdef ARDUINO_INKPLATE4TEMPERA
+#include "Inkplate4TEMPERADriver.h"
+#include "Inkplate-LVGL.h"
+
+SPIClass spi2(2);
+SdFat sd;
+
+/**
+ *
+ * @brief       writePixelInternal funtion sets pixel data for (x, y) pixel position
+ *
+ * @param       int16_t x0
+ *              default position for x, will be changed depending on rotation
+ * @param       int16_t y0
+ *              default position for y, will be changed depending on rotation
+ * @param       uint16_t color
+ *              pixel color, in 3bit mode have values in range 0-7
+ *
+ * @note        If x0 or y0 are out of inkplate screen borders, function will
+ * exit.
+ */
+void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
+{
+    int16_t x0 = x;
+    int16_t y0 = y;
+    if (x0 > E_INK_WIDTH - 1 || y0 > E_INK_HEIGHT - 1 || x0 < 0 || y0 < 0)
+        return;
+
+    // set x, y depending on selected rotation
+    switch (_inkplate->getRotation())
+    {
+    case 0: // 90 degree left
+        _swap_int16_t(x0, y0);
+        x0 = E_INK_HEIGHT - x0 - 1;
+        break;
+    case 1: // 180 degree, or upside down
+        x0 = E_INK_WIDTH - x0 - 1;
+        y0 = E_INK_HEIGHT - y0 - 1;
+        break;
+    case 2: // 90 degree right
+        _swap_int16_t(x0, y0);
+        y0 = E_INK_WIDTH - y0 - 1;
+        break;
+    }
+
+    // If the 1 bit mode is used, pixels are packed 1 bit = 1 pixel in frame buffer
+    if (getDisplayMode() == 0)
+    {
+        int x = x0 / 8;
+        int x_sub = x0 % 8;
+        uint8_t temp = *(_partial + (E_INK_WIDTH / 8 * y0) + x); // DMemoryNew[99 * y0 + x];
+        *(_partial + (E_INK_WIDTH / 8 * y0) + x) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
+    }
+    else
+    {
+        color &= 7;
+        int x = x0 / 2;
+        int x_sub = x0 % 2;
+        uint8_t temp;
+        temp = *(DMemory4Bit + E_INK_WIDTH / 2 * y0 + x);
+        *(DMemory4Bit + E_INK_WIDTH / 2 * y0 + x) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
+    }
+}
+
+/**
+ * @brief       display_flush_callback function is called whenever there is a change made on the current
+ *              LVGL screen. The data is downscaled to 3 bit or 1 bit grayscale depending on the current display mode
+ *              and stored in the EPD buffer for rendering
+ *
+ * @param       lv_display_t *disp
+ *              A pointer to the created LVGL display instance
+ *
+ * @param       lv_area_t *area
+ *              A pointer to the area of the display which has changed
+ *
+ * @param       uint8_t px_map
+ *              An array of pixel values in L8 format
+ *
+ */
+void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
+
+    int32_t w = lv_area_get_width(area);
+    int32_t h = lv_area_get_height(area);
+
+    if (w <= 0 || h <= 0 || px_map == nullptr || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_WIDTH ||
+        area->y2 >= E_INK_HEIGHT)
+    {
+        lv_display_flush_ready(disp);
+        return;
+    }
+
+    bool is3bit = (self->getDisplayMode() == INKPLATE_3BIT);
+
+    if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
+    {
+        self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT, is3bit);
+    }
+    else
+    {
+        uint8_t *buffer1b = self->_partial;
+        uint8_t *buffer3b = self->DMemory4Bit;
+
+        const int width_bytes_1b = E_INK_WIDTH / 8;
+        const int width_bytes_3b = E_INK_WIDTH / 2;
+
+        // Preload LUTs to local for faster access
+        const uint8_t *maskLUT = pixelMaskLUT;
+        const uint8_t *maskGLUT = pixelMaskGLUT;
+
+        for (int32_t y = 0; y < h; y++)
+        {
+            int32_t screen_y = area->y1 + y;
+            const uint8_t *src_row = px_map + (y * w);
+
+            if (is3bit)
+            {
+                uint8_t *dst_row = buffer3b + (width_bytes_3b * screen_y);
+
+                for (int32_t x = 0; x < w; x++)
+                {
+                    int32_t screen_x = area->x1 + x;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
+
+                    uint8_t gray3 = src_row[x] >> 5;
+                    int x_byte = screen_x / 2;
+                    int x_sub = screen_x % 2;
+
+                    uint8_t temp = dst_row[x_byte];
+                    uint8_t newv = (maskGLUT[x_sub] & temp) | (x_sub ? gray3 : (gray3 << 4));
+
+                    dst_row[x_byte] = newv;
+                }
+            }
+            else
+            {
+                uint8_t *dst_row = buffer1b + (width_bytes_1b * screen_y);
+
+                for (int32_t x = 0; x < w; x++)
+                {
+                    int32_t screen_x = area->x1 + x;
+                    if (screen_x >= E_INK_WIDTH)
+                        break;
+
+                    uint8_t gray = src_row[x];
+                    uint8_t bit = (gray < 128) ? 1 : 0;
+
+                    int x_byte = screen_x / 8;
+                    int x_sub = screen_x % 8;
+
+                    uint8_t temp = dst_row[x_byte];
+                    // Preserve other bits using original mask logic
+                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
+                }
+            }
+        }
+    }
+
+
+    lv_display_flush_ready(disp);
+}
+
+
+/**
+ * @brief       begin function initialize Inkplate object with predefined
+ * settings
+ *
+ * @param       uint8_t lightWaveform
+ *              if inkplate doesn't work well or if it is fading after turning off
+ *              lightWaveform should be set to 1 in order to fix that, but older boards
+ *              may not support it
+ *
+ * @return      True if initialization is successful, false if failed or already
+ * initialized
+ */
+int EPDDriver::initDriver(Inkplate *_inkplatePtr)
+{
+    // If the driver was already initialized, skip current initialization
+    if (_beginDone == 1)
+        return 0;
+
+    // Save the given inkplate pointer for internal use
+    _inkplate = _inkplatePtr;
+
+    touchscreen.begin(_inkplatePtr);
+
+    frontlight.begin(_inkplatePtr);
+
+    buzzer.begin(_inkplatePtr);
+
+    // Initialize the all GPIOs
+    gpioInit();
+
+    // Block using pins connected to the panel by the user
+    blockGpioPins();
+
+
+    if (!initializeFramebuffers())
+    {
+        return 0;
+    }
+
+    // Calculate color LUTs to optimize drawing to the screen
+    calculateLUTs();
+
+    // Put all the sensors to sleep initially
+    // They are woken up with their begin functions
+    sleepPeripheral(INKPLATE_BUZZER | INKPLATE_APDS9960 | INKPLATE_BME688 | INKPLATE_ACCELEROMETER |
+                    INKPLATE_FUEL_GAUGE);
+
+    dither.begin(_inkplatePtr);
+
+    _beginDone = 1;
+    return 1;
+}
+
+
+/**
+ * @brief       Calculates the values of the lookup table to
+ *              speed up rendering
+ */
+void EPDDriver::calculateLUTs()
+{
+    // Fill up the pixel to EPD LUT for 3 bit mode.
+    for (int j = 0; j < 9; ++j)
+    {
+        for (uint32_t i = 0; i < 256; ++i)
+        {
+            uint8_t z = (waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j]);
+            GLUT[j * 256 + i] = ((z & B00000011) << 4) | (((z & B00001100) >> 2) << 18) |
+                                (((z & B00010000) >> 4) << 23) | (((z & B11100000) >> 5) << 25);
+            z = ((waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j])) << 4;
+            GLUT2[j * 256 + i] = ((z & B00000011) << 4) | (((z & B00001100) >> 2) << 18) |
+                                 (((z & B00010000) >> 4) << 23) | (((z & B11100000) >> 5) << 25);
+        }
+    }
+}
+
+
+/**
+ * @brief       vscan_start starts writing new frame and skips first two lines
+ * that are invisible on screen
+ */
+void EPDDriver::vscan_start()
+{
+    CKV_SET;
+    delayMicroseconds(7);
+    SPV_CLEAR;
+    delayMicroseconds(10);
+    CKV_CLEAR;
+    delayMicroseconds(0);
+    CKV_SET;
+    delayMicroseconds(8);
+    SPV_SET;
+    delayMicroseconds(10);
+    CKV_CLEAR;
+    delayMicroseconds(0);
+    CKV_SET;
+    delayMicroseconds(18);
+    CKV_CLEAR;
+    delayMicroseconds(0);
+    CKV_SET;
+    delayMicroseconds(18);
+    CKV_CLEAR;
+    delayMicroseconds(0);
+    CKV_SET;
+}
+
+/**
+ * @brief       vscan_end ends current row and prints data to screen
+ */
+void EPDDriver::vscan_end()
+{
+    CKV_CLEAR;
+    LE_SET;
+    LE_CLEAR;
+    delayMicroseconds(0);
+}
+
+/**
+ * @brief       sets the current display mode of the e-ink display
+ *
+ * @param       uint8_t
+ *              if set to 1, it will be set to grayscale mode
+ *              if set to 0, set to BW mode
+ */
+void EPDDriver::selectDisplayMode(uint8_t displayMode)
+{
+    _displayMode = displayMode;
+}
+
+/**
+ * @brief       clearDisplay function clears memory buffer for display
+ *
+ * @note        This does not clear the actual display, only the memory buffer, you need to call
+ * display() function after this to clear the display
+ */
+void EPDDriver::clearDisplay()
+{
+    // Clear 1 bit per pixel display buffer
+    if (_displayMode == 0)
+        memset(_partial, 0, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+    // Clear 3 bit per pixel display buffer
+    else if (_displayMode == 1)
+        memset(DMemory4Bit, 255, E_INK_WIDTH * E_INK_HEIGHT / 2);
+}
+
+/**
+ * @brief       display function update display with new data from buffer
+ *
+ * @param       bool leaveOn
+ *              if set to 1, it will disable turning supply for eink after
+ *              display update in order to save some time needed for power supply
+ *              to save some time at next display update or increase refreshing speed
+ */
+void EPDDriver::display(bool _leaveOn)
+{
+    if (_displayMode == 0)
+    {
+        display1b(_leaveOn);
+    }
+    else if (_displayMode == 1)
+    {
+        display3b(_leaveOn);
+    }
+}
+
+/**
+ * @brief       display3b function writes grayscale data to display
+ *
+ * @param       bool leaveOn
+ *              if set to 1, it will disable turning supply for eink after
+ *              display update in order to save some time needed for power supply
+ *              to save some time at next display update or increase refreshing speed
+ */
+void IRAM_ATTR EPDDriver::display3b(bool _leaveOn)
+{
+    if (!einkOn())
+        return;
+
+    clean(0, 5);
+    clean(1, 15);
+    clean(0, 15);
+    clean(1, 15);
+    clean(0, 15);
+    for (int k = 0; k < 8; ++k)
+    {
+        uint8_t *dp = DMemory4Bit + E_INK_WIDTH * E_INK_HEIGHT / 2;
+
+        vscan_start();
+        for (int i = 0; i < E_INK_HEIGHT; ++i)
+        {
+            uint32_t t = GLUT2[k * 256 + (*(--dp))];
+            t |= GLUT[k * 256 + (*(--dp))];
+            hscan_start(t);
+            t = GLUT2[k * 256 + (*(--dp))];
+            t |= GLUT[k * 256 + (*(--dp))];
+            GPIO.out_w1ts = t | CL;
+            GPIO.out_w1tc = DATA | CL;
+
+            for (int j = 0; j < ((E_INK_WIDTH / 8) - 1); ++j)
+            {
+                t = GLUT2[k * 256 + (*(--dp))];
+                t |= GLUT[k * 256 + (*(--dp))];
+                GPIO.out_w1ts = t | CL;
+                GPIO.out_w1tc = DATA | CL;
+                t = GLUT2[k * 256 + (*(--dp))];
+                t |= GLUT[k * 256 + (*(--dp))];
+                GPIO.out_w1ts = t | CL;
+                GPIO.out_w1tc = DATA | CL;
+            }
+            GPIO.out_w1ts = CL;
+            GPIO.out_w1tc = DATA | CL;
+            vscan_end();
+        }
+        delayMicroseconds(230);
+    }
+    clean(3, 1);
+    vscan_start();
+
+    if (!_leaveOn)
+        einkOff();
+}
+
+/**
+ *
+ * @brief       display1b function writes black and white data to display
+ *
+ * @param       bool leaveOn
+ *              if set to 1, it will disable turning supply for eink after
+ *              display update in order to save some time needed for power supply
+ *              to save some time at next display update or increase refreshing speed
+ */
+void EPDDriver::display1b(bool leaveOn)
+{
+    memcpy(DMemoryNew, _partial, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+    uint32_t _send;
+    uint8_t data;
+    uint8_t dram;
+
+    if (!einkOn())
+        return;
+
+    clean(0, 5);
+    clean(1, 15);
+    clean(0, 15);
+    clean(1, 15);
+    clean(0, 15);
+
+    for (int k = 0; k < 10; ++k)
+    {
+        uint8_t *DMemoryNewPtr = DMemoryNew + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+        vscan_start();
+        for (int i = 0; i < E_INK_HEIGHT; ++i)
+        {
+            dram = *(DMemoryNewPtr--);
+            data = LUTB[dram >> 4];
+            _send = pinLUT[data];
+            hscan_start(_send);
+            data = LUTB[dram & 0x0F];
+            _send = pinLUT[data];
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = DATA | CL;
+
+            for (int j = 0; j < ((E_INK_WIDTH / 8) - 1); ++j)
+            {
+                dram = *(DMemoryNewPtr--);
+                data = LUTB[dram >> 4];
+                _send = pinLUT[data];
+                GPIO.out_w1ts = (_send) | CL;
+                GPIO.out_w1tc = DATA | CL;
+                data = LUTB[dram & 0x0F];
+                _send = pinLUT[data];
+                GPIO.out_w1ts = (_send) | CL;
+                GPIO.out_w1tc = DATA | CL;
+            }
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = DATA | CL;
+            vscan_end();
+        }
+        delayMicroseconds(230);
+    }
+
+    uint16_t _pos = (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    vscan_start();
+    for (int i = 0; i < E_INK_HEIGHT; ++i)
+    {
+        dram = *(DMemoryNew + _pos);
+        data = LUT2[dram >> 4];
+        _send = pinLUT[data];
+        hscan_start(_send);
+        data = LUT2[dram & 0x0F];
+        _send = pinLUT[data];
+        GPIO.out_w1ts = (_send) | CL;
+        GPIO.out_w1tc = DATA | CL;
+        _pos--;
+        for (int j = 0; j < ((E_INK_WIDTH / 8) - 1); ++j)
+        {
+            dram = *(DMemoryNew + _pos);
+            data = LUT2[dram >> 4];
+            _send = pinLUT[data];
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = DATA | CL;
+            data = LUT2[dram & 0x0F];
+            _send = pinLUT[data];
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = DATA | CL;
+            _pos--;
+        }
+        GPIO.out_w1ts = (_send) | CL;
+        GPIO.out_w1tc = DATA | CL;
+        vscan_end();
+    }
+    delayMicroseconds(230);
+
+    clean(2, 1);
+    clean(3, 1);
+    vscan_start();
+
+    if (!leaveOn)
+        einkOff();
+
+    _blockPartial = 0;
+}
+
+/**
+ * @brief       partialUpdate function updates changed parts of the screen
+ * without need to refresh whole display
+ *
+ * @param       bool _forced
+ *              For advanced use with deep sleep. Can force partial update in
+ * deep sleep
+ *
+ * @param       bool leaveOn
+ *              if set to 1, it will disable turning supply for eink after
+ *              display update in order to save some time needed for power supply
+ *              to save some time at next display update or increase refreshing speed
+ *
+ * @note        Partial update only works in black and white mode
+ *
+ * @return      Number of pixels changed from black to white, leaving blur
+ */
+uint32_t EPDDriver::partialUpdate(bool _forced, bool _leaveOn)
+{
+    if (getDisplayMode() == 1)
+        return 0;
+    if (_blockPartial == 1 && !_forced)
+    {
+        display1b(_leaveOn);
+        return 0;
+    }
+
+    if (_partialUpdateCounter >= _partialUpdateLimiter && _partialUpdateLimiter != 0)
+    {
+        // Force full update.
+        display1b(_leaveOn);
+
+        // Reset the counter!
+        _partialUpdateCounter = 0;
+
+        // Go back!
+        return 0;
+    }
+
+    uint32_t _pos = (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    // uint32_t _send;
+    uint8_t data;
+    uint8_t diffw, diffb;
+    uint32_t n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+
+    uint32_t changeCount = 0;
+
+    for (int i = 0; i < E_INK_HEIGHT; ++i)
+    {
+        for (int j = 0; j < E_INK_WIDTH / 8; ++j)
+        {
+            diffw = *(DMemoryNew + _pos) & ~*(_partial + _pos);
+            diffb = ~*(DMemoryNew + _pos) & *(_partial + _pos);
+            if (diffw) // count pixels turning from black to white as these are visible blur
+            {
+                for (int bv = 1; bv < 256; bv <<= 1)
+                {
+                    if (diffw & bv)
+                        ++changeCount;
+                }
+            }
+            _pos--;
+            *(_pBuffer + n) = LUTW[diffw >> 4] & (LUTB[diffb >> 4]);
+            n--;
+            *(_pBuffer + n) = LUTW[diffw & 0x0F] & (LUTB[diffb & 0x0F]);
+            n--;
+        }
+    }
+
+    if (!einkOn())
+        return 0;
+
+    for (int k = 0; k < 9; k++)
+    {
+        vscan_start();
+        n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+        for (int i = 0; i < E_INK_HEIGHT; i++)
+        {
+            data = *(_pBuffer + n);
+            hscan_start(pinLUT[data]);
+            n--;
+            for (int j = 0; j < ((E_INK_WIDTH / 4) - 1); j++)
+            {
+                data = *(_pBuffer + n);
+                GPIO.out_w1ts = (pinLUT[data]) | CL;
+                GPIO.out_w1tc = DATA | CL;
+                n--;
+            }
+            GPIO.out_w1ts = CL;
+            GPIO.out_w1tc = DATA | CL;
+            vscan_end();
+        }
+        delayMicroseconds(230);
+    }
+
+    clean(2, 2);
+    clean(3, 1);
+    vscan_start();
+
+    if (!_leaveOn)
+        einkOff();
+    memcpy(DMemoryNew, _partial, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+    if (_partialUpdateLimiter != 0)
+        _partialUpdateCounter++;
+
+    return changeCount;
+}
+
+/**
+ * @brief   Set the number of partial updates afterwhich full screen update is performed.
+ *
+ * @param   uint16_t _numberOfPartialUpdates
+ *          Number of allowed partial updates afterwhich full update is performed.
+ *          0 = disabled, no automatic full update will be performed.
+ *
+ * @note    By default, this is disabled, but to keep best image quality perform a full update
+ *          every 60-80 partial updates.
+ */
+void EPDDriver::setFullUpdateThreshold(uint16_t _numberOfPartialUpdates)
+{
+    // Copy the value into the local variable.
+    _partialUpdateLimiter = _numberOfPartialUpdates;
+
+    // If the limiter is enabled, force full update.
+    if (_numberOfPartialUpdates != 0)
+        _blockPartial = 1;
+}
+
+/**
+ * @brief       einkOn turns on supply for epaper display (TPS65186) [+15 VDC,
+ * -15VDC, +22VDC, -20VDC, +3.3VDC, VCOM]
+ *
+ * @note        its important to use this order when turning epaper on.
+ *              using wrong order can irreparably damage epaper
+ *
+ * @return      1 if succesfully turned on, 0 if failed
+ */
+int EPDDriver::einkOn()
+{
+    if (getPanelState() == 1)
+        return 1;
+    WAKEUP_SET;
+    delay(5);
+    // Enable all rails
+    Wire.beginTransmission(0x48);
+    Wire.write(0x01);
+    Wire.write(B00100000);
+    Wire.endTransmission();
+
+
+    // Modify power up sequence.
+    Wire.beginTransmission(0x48);
+    Wire.write(0x09);
+    Wire.write(B11100100);
+    Wire.endTransmission();
+
+    // Modify power down sequence  (VEE and VNEG are swapped)
+    Wire.beginTransmission(0x48);
+    Wire.write(0x0b);
+    Wire.write(B00011011);
+    Wire.endTransmission();
+
+
+    pinsAsOutputs();
+    LE_CLEAR;
+    CL_CLEAR;
+    SPH_SET;
+    GMOD_SET;
+    SPV_SET;
+    CKV_CLEAR;
+    OE_CLEAR;
+    PWRUP_SET;
+    setPanelState(1);
+
+    unsigned long timer = millis();
+    do
+    {
+        delay(1);
+    } while ((readPowerGood() != PWR_GOOD_OK) && (millis() - timer) < 250);
+    if ((millis() - timer) >= 250)
+    {
+        einkOff();
+        return 0;
+    }
+
+    VCOM_SET;
+    OE_SET;
+
+    return 1;
+}
+
+/**
+ * @brief       einkOff turns off epaper power supply and put all digital IO
+ * pins in high Z state
+ */
+void EPDDriver::einkOff()
+{
+    if (getPanelState() == 0)
+        return;
+    VCOM_CLEAR;
+    OE_CLEAR;
+    GMOD_CLEAR;
+    GPIO.out &= ~(DATA | LE | CL);
+    CKV_CLEAR;
+    SPH_CLEAR;
+    SPV_CLEAR;
+    PWRUP_CLEAR;
+
+    unsigned long timer = millis();
+    do
+    {
+        delay(1);
+    } while ((readPowerGood() != 0) && (millis() - timer) < 250);
+
+    WAKEUP_CLEAR; // Disable 3V3 Switch for ePaper.
+    Wire.beginTransmission(0x48);
+    Wire.write(0x01);
+    Wire.write(B00000000);
+    Wire.endTransmission();
+    pinsZstate();
+    setPanelState(0);
+}
+
+void EPDDriver::pmicBegin()
+{
+    WAKEUP_SET;
+    delay(1);
+    Wire.beginTransmission(0x48);
+    Wire.write(0x09);
+    Wire.write(B00011011); // Power up seq.
+    Wire.write(B00000000); // Power up delay (3mS per rail)
+    Wire.write(B00011011); // Power down seq.
+    Wire.write(B00000000); // Power down delay (6mS per rail)
+    Wire.endTransmission();
+    delay(1);
+    WAKEUP_CLEAR;
+}
+
+
+/**
+ * @brief       pinsAsOutputs sets all tps pins as outputs
+ */
+void EPDDriver::pinsAsOutputs()
+{
+    pinMode(2, OUTPUT);
+    pinMode(32, OUTPUT);
+    pinMode(33, OUTPUT);
+    internalIO.pinMode(OE, OUTPUT, true);
+    internalIO.pinMode(GMOD, OUTPUT, true);
+    internalIO.pinMode(SPV, OUTPUT, true);
+    pinMode(0, OUTPUT);
+    pinMode(4, OUTPUT);
+    pinMode(5, OUTPUT);
+    pinMode(18, OUTPUT);
+    pinMode(19, OUTPUT);
+    pinMode(23, OUTPUT);
+    pinMode(25, OUTPUT);
+    pinMode(26, OUTPUT);
+    pinMode(27, OUTPUT);
+}
+
+uint8_t EPDDriver::getPanelState()
+{
+    return _panelState;
+}
+void EPDDriver::setPanelState(uint8_t state)
+{
+    _panelState = state;
+}
+
+/**
+ * @brief       readPowerGood reads ok status for each rail
+ *
+ * @return      power good status register
+ */
+uint8_t EPDDriver::readPowerGood()
+{
+    Wire.beginTransmission(0x48);
+    Wire.write(0x0F);
+    Wire.endTransmission();
+    Wire.requestFrom(0x48, 1);
+    return Wire.read();
+}
+
+/**
+ * @brief       isPowerGood checks if power good status is ok for all rails
+ *
+ * @return      true if power good status is ok for all rails, false otherwise
+ */
+bool EPDDriver::isPowerGood()
+{
+    return readPowerGood() == PWR_GOOD_OK;
+}
+
+/**
+ * @brief       pinsZstate sets all tps pins at high z state
+ *
+ * @note        this is used only when turning off epaper
+ */
+void EPDDriver::pinsZstate()
+{
+    pinMode(2, INPUT);
+    pinMode(32, INPUT);
+    pinMode(33, INPUT);
+    internalIO.pinMode(OE, INPUT, true);
+    internalIO.pinMode(GMOD, INPUT, true);
+    internalIO.pinMode(SPV, INPUT, true);
+
+    // Set up the EPD Data and CL pins for I2S .
+    pinMode(0, INPUT);
+    pinMode(4, INPUT);
+    pinMode(5, INPUT);
+    pinMode(18, INPUT);
+    pinMode(19, INPUT);
+    pinMode(23, INPUT);
+    pinMode(25, INPUT);
+    pinMode(26, INPUT);
+    pinMode(27, INPUT);
+}
+
+/**
+ * @brief       clean function cleans screen of any potential burn in
+ *
+ *              Based on c param it will: if c=0 light screen, c=1 darken the
+ * screen, c=2 discharge the screen or 3 skip all pixels
+ *
+ * @param       uint8_t c
+ *              one of four posible pixel states
+ *
+ * @param       uint8_t rep
+ *              Number of repetitions
+ *
+ *
+ * @note        Should not be used in intervals smaller than 5 seconds
+ */
+void EPDDriver::clean(uint8_t c, uint8_t rep)
+{
+    einkOn();
+    uint8_t data;
+    if (c == 0)
+    {
+        data = B10101010; // White
+    }
+    else if (c == 1)
+    {
+        data = B01010101; // Black
+    }
+    else if (c == 2)
+    {
+        data = B00000000; // Discharge
+    }
+    else if (c == 3)
+    {
+        data = B11111111; // Skip
+    }
+    else
+    {
+        data = 0;
+    }
+
+    uint32_t _send = ((data & B00000011) << 4) | (((data & B00001100) >> 2) << 18) | (((data & B00010000) >> 4) << 23) |
+                     (((data & B11100000) >> 5) << 25);
+
+    for (int k = 0; k < rep; k++)
+    {
+        vscan_start();
+        for (int i = 0; i < E_INK_HEIGHT; i++)
+        {
+            hscan_start(_send);
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = CL;
+            for (int j = 0; j < (E_INK_WIDTH / 8) - 1; j++)
+            {
+                GPIO.out_w1ts = CL;
+                GPIO.out_w1tc = CL;
+                GPIO.out_w1ts = CL;
+                GPIO.out_w1tc = CL;
+            }
+            GPIO.out_w1ts = (_send) | CL;
+            GPIO.out_w1tc = DATA | CL;
+            vscan_end();
+        }
+        delayMicroseconds(230);
+    }
+}
+
+/**
+ * @brief       hscan_start starts writing data into current row
+ *
+ * @param       uint32_t _d
+ *              data to be written into current row
+ */
+void EPDDriver::hscan_start(uint32_t _d)
+{
+    SPH_CLEAR;
+    GPIO.out_w1ts = (_d) | CL;
+    GPIO.out_w1tc = DATA | CL;
+    SPH_SET;
+    CKV_SET;
+}
+
+uint8_t EPDDriver::getDisplayMode()
+{
+    return _displayMode;
+}
+
+/**
+ * @brief       Initializes the internal and external IO expanders,
+ *              Configures all of the data and control pins for the
+ *              EPD Driver.
+ */
+void EPDDriver::gpioInit()
+{
+    internalIO.begin(IO_INT_ADDR);
+    externalIO.begin(IO_EXT_ADDR);
+
+    for (uint32_t i = 0; i < 256; ++i)
+        pinLUT[i] = ((i & B00000011) << 4) | (((i & B00001100) >> 2) << 18) | (((i & B00010000) >> 4) << 23) |
+                    (((i & B11100000) >> 5) << 25);
+
+    // Set all IO expander registers to 0
+    memset(internalIO._ioExpanderRegs, 0, 22);
+    memset(externalIO._ioExpanderRegs, 0, 22);
+
+    internalIO.pinMode(VCOM, OUTPUT, true);
+    internalIO.pinMode(PWRUP, OUTPUT, true);
+    internalIO.pinMode(WAKEUP, OUTPUT, true);
+    internalIO.pinMode(GPIO0_ENABLE, OUTPUT);
+    internalIO.digitalWrite(GPIO0_ENABLE, 1);
+
+    pmicBegin();
+
+
+    // Set SPI pins to input to reduce power consumption in deep sleep
+    pinMode(12, INPUT_PULLDOWN);
+    pinMode(13, INPUT_PULLDOWN);
+    pinMode(14, INPUT_PULLDOWN);
+    pinMode(15, INPUT_PULLDOWN);
+
+    // And also disable uSD card supply
+    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+
+    // CONTROL PINS
+    pinMode(0, OUTPUT);
+    pinMode(2, OUTPUT);
+    pinMode(32, OUTPUT);
+    pinMode(33, OUTPUT);
+    internalIO.pinMode(OE, OUTPUT, true);
+    internalIO.pinMode(GMOD, OUTPUT, true);
+    internalIO.pinMode(SPV, OUTPUT, true);
+
+    // DATA PINS
+    pinMode(4, OUTPUT); // D0
+    pinMode(5, OUTPUT);
+    pinMode(18, OUTPUT);
+    pinMode(19, OUTPUT);
+    pinMode(23, OUTPUT);
+    pinMode(25, OUTPUT);
+    pinMode(26, OUTPUT);
+    pinMode(27, OUTPUT); // D7
+
+    // Set the rest of the internal GPIO expander pins
+    internalIO.pinMode(INT_APDS, INPUT_PULLUP); // Gesture interrupt pin
+
+    // LSM interrupt pins. Pins must be set as inputs, since the default state of the INT pin on LSM is push-pull.
+    internalIO.pinMode(INT2_LSM, INPUT);
+    internalIO.pinMode(INT1_LSM, INPUT);
+
+    // Turn off the buzzer so it doesn't beep
+    internalIO.pinMode(BUZZ_EN, OUTPUT);
+    internalIO.digitalWrite(BUZZ_EN, HIGH);
+
+    // Disable microSD card.
+    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
+    internalIO.digitalWrite(SD_PMOS_PIN, HIGH);
+
+    // Disable frontlight at start.
+    internalIO.pinMode(FRONTLIGHT_EN, OUTPUT);
+    internalIO.digitalWrite(FRONTLIGHT_EN, LOW);
+
+    // Disable touchscreen.
+    externalIO.pinMode(TOUCHSCREEN_EN, OUTPUT);
+    externalIO.digitalWrite(TOUCHSCREEN_EN, HIGH);
+
+    // Set Fuel Gauge GPOUT to input with pull up enabled.
+    internalIO.pinMode(FG_GPOUT, INPUT_PULLUP);
+
+    // Disable SPI pins on microSD card.
+    sdCardSleep();
+
+    // Set the rest of the IO Expander pins to low to reduce power in deep sleep.
+    for (int i = 2; i < 16; i++)
+    {
+        externalIO.pinMode(i, OUTPUT);
+        externalIO.digitalWrite(i, LOW);
+    }
+}
+
+/**
+ * @brief       initializeFramebuffers allocates memory to be used
+ *              by specific display modes of the display
+ *
+ * @return      returns 0 if allocation failed, 1 if it succeeded
+ */
+uint8_t EPDDriver::initializeFramebuffers()
+{
+    // Initialize all the framebuffers
+    DMemoryNew = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8);
+    _partial = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8);
+    _pBuffer = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4);
+    DMemory4Bit = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2);
+    GLUT = (uint32_t *)malloc(256 * 9 * sizeof(uint32_t));
+    GLUT2 = (uint32_t *)malloc(256 * 9 * sizeof(uint32_t));
+    if (DMemoryNew == NULL || _partial == NULL || _pBuffer == NULL || DMemory4Bit == NULL || GLUT == NULL ||
+        GLUT2 == NULL)
+    {
+        return 0;
+    }
+    // Set all the framebuffers to White at start
+    memset(DMemoryNew, 0, E_INK_WIDTH * E_INK_HEIGHT / 8);
+    memset(_partial, 0, E_INK_WIDTH * E_INK_HEIGHT / 8);
+    memset(_pBuffer, 0, E_INK_WIDTH * E_INK_HEIGHT / 4);
+    memset(DMemory4Bit, 255, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+    return 1;
+}
+
+/**
+ * @brief       sdCardInit initializes sd card trough SPI
+ *
+ * @return      0 if failed to initialise, 1 if successful
+ */
+int16_t EPDDriver::sdCardInit()
+{
+    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
+    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    delay(50);
+    spi2.begin(14, 12, 13, 15);
+    setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
+    return getSdCardOk();
+}
+
+/**
+ * @brief       sdCardSleep turns off the P-MOS which powers the sd card to save energy in deep sleep
+ */
+void EPDDriver::sdCardSleep()
+{
+    // Set SPI pins to input to reduce power consumption in deep sleep
+    pinMode(12, INPUT);
+    pinMode(13, INPUT);
+    pinMode(14, INPUT);
+    pinMode(15, INPUT);
+
+    // And also disable uSD card supply
+    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+}
+
+/**
+ * @brief       getSdFat gets sd card object
+ *
+ * @return      sd card class object
+ */
+SdFat &EPDDriver::getSdFat()
+{
+    return sd;
+}
+
+/**
+ * @brief       getSPIptr gets SPI class object pointer
+ *
+ * @return      SPI class object
+ */
+SPIClass *EPDDriver::getSPIptr()
+{
+    return &spi2;
+}
+
+/**
+ * @brief       setSdCardOk sets sd card OK status
+ *
+ * @param       int16_t s
+ *              sd card OK status, can be 1 or 0
+ */
+void EPDDriver::setSdCardOk(int16_t s)
+{
+    _sdCardOk = s;
+}
+
+
+/**
+ * @brief       setSdCardOk gets sd card OK status
+ *
+ * @return      sd card OK status, can be 1 or 0
+ */
+int16_t EPDDriver::getSdCardOk()
+{
+    return _sdCardOk;
+}
+
+
+/**
+ * @brief       readTemperature reads panel temperature
+ *
+ * @return      returns  temperature in range from -10 to 85 degree C with
+ * accuracy of +-1 in range from 0 to 50
+ */
+int8_t EPDDriver::readTemperature()
+{
+    int8_t temp;
+    if (getPanelState() == 0)
+    {
+        WAKEUP_SET;
+        PWRUP_SET;
+        delay(5);
+    }
+    Wire.beginTransmission(0x48);
+    Wire.write(0x0D);
+    Wire.write(B10000000);
+    Wire.endTransmission();
+    delay(5);
+
+    Wire.beginTransmission(0x48);
+    Wire.write(0x00);
+    Wire.endTransmission();
+
+    Wire.requestFrom(0x48, 1);
+    temp = Wire.read();
+    if (getPanelState() == 0)
+    {
+        PWRUP_CLEAR;
+        WAKEUP_CLEAR;
+        delay(5);
+    }
+    return temp;
+}
+
+/**
+ * @brief       burnInClean function cleans the screen of any potential burn in by
+ *              by writing a clear sequence to the panel
+ *
+ *
+ * @param       uint8_t clear_cycles
+ *              number of clear cycles
+ *
+ * @param       uint16_t cycles delay
+ *              delay between clear cycles (in milliseconds)
+ *
+ *
+ * @note        Cycles delay should not be smaller than 5 seconds
+ */
+void EPDDriver::burnInClean(uint8_t clear_cycles, uint16_t cycles_delay)
+{
+    einkOn();
+
+    while (clear_cycles)
+    {
+        clean(1, 21);
+        clean(2, 1);
+        clean(0, 12);
+        clean(2, 1);
+        clean(1, 21);
+        clean(2, 1);
+        clean(0, 12);
+        clean(2, 1);
+
+        delay(cycles_delay);
+        clear_cycles--;
+    }
+}
+
+bool EPDDriver::setVCOM(double vcom)
+{
+    EEPROM.begin(512);
+    // Check for out of bounds
+    if (vcom < -5.0 || vcom > 0.0)
+    {
+        return false;
+    }
+
+    if (!writeVCOMToPanelEEPROM(vcom))
+    {
+        return false;
+    }
+
+    EEPROM.put(0, vcom);
+    EEPROM.commit();
+    return true;
+}
+
+
+bool EPDDriver::writeVCOMToPanelEEPROM(double v)
+{
+    internalIO.pinMode(6, INPUT_PULLUP);
+    int raw = abs((int)(v * 100.0)) & 0x1FF;
+
+    uint8_t vcomL = (uint8_t)(raw & 0xFF);
+    uint8_t vcomMSB = (uint8_t)((raw >> 8) & 0x01); // goes into bit0 of reg 0x04
+
+    // Power up TPS65186
+    einkOn();
+    delay(10);
+
+    // Write low 8 bits
+    writeReg(0x03, vcomL);
+
+    // Read current reg 0x04 and preserve everything except bit0/bit6
+    uint8_t r4 = readReg(0x04);
+    r4 &= (uint8_t) ~((1 << 0) | (1 << 6)); // clear bit0 (MSB) and bit6 (program)
+    r4 |= vcomMSB;                          // set bit0 as needed
+
+    // Write updated reg 0x04 (bit6 still 0)
+    writeReg(0x04, r4);
+    delay(1);
+
+    // Strobe "program to EEPROM" (bit6 = 1)
+    writeReg(0x04, (uint8_t)(r4 | (1 << 6)));
+
+    // Wait until EEPROM has been programmed (INT goes LOW)
+    // Make sure INT pin is configured correctly elsewhere (usually input pullup).
+    while (internalIO.digitalRead(6))
+    {
+        delay(1);
+    }
+
+    // Clear interrupt flag by reading INT1 register
+    (void)readReg(0x07);
+
+
+    // Read back registers for verification
+    uint8_t rdL = readReg(0x03);
+    // uint8_t rdH_bit0 = readReg(0x04) & 0x01;
+    uint8_t reg04full = readReg(0x04);
+    uint8_t rdH_bit0 = reg04full & 0x01;
+
+    int check = ((int)rdH_bit0 << 8) | rdL;
+
+    // DEBUG PRINTS
+    Serial.printf("\nraw=%d (0x%03X), vcomL=0x%02X, vcomMSB=%d\n", raw, raw, vcomL, vcomMSB);
+    Serial.printf("readback: rdL=0x%02X, rdHbit0=%d => check=%d (0x%03X)\n", rdL, rdH_bit0, check, check);
+    Serial.printf("reg04 full=0x%02X\n", reg04full);
+    // Turn off TPS/EPD power (your function)
+    einkOff();
+    delay(100);
+
+
+    return (check == raw);
+}
+
+double EPDDriver::getVCOMValue()
+{
+    EEPROM.begin(512);
+    double vcom;
+    EEPROM.get(0, vcom);
+    return vcom;
+}
+/**
+ * @brief Write to a register of the TPS e-Paper power supply chip
+ *
+ * @param _reg The selected register
+ * @param _data The data to write
+ */
+void EPDDriver::writeReg(uint8_t _reg, float _data)
+{
+    Serial.printf("value that will be stored: %d", _data);
+    Wire.beginTransmission(0x48);
+    Wire.write(_reg);
+    Wire.write((uint8_t)_data);
+    uint8_t err = Wire.endTransmission();
+    Serial.printf("W reg 0x%02X = 0x%02X, endTx=%u\n", _reg, _data, err);
+}
+
+/**
+ * @brief Read a register of the TPS e-Paper power supply chip
+ *
+ * @param _reg The selected register to read
+ * @return uint8_t The data stored in the register
+ */
+uint8_t EPDDriver::readReg(uint8_t _reg)
+{
+    Wire.beginTransmission(0x48);
+    Wire.write(_reg);
+    uint8_t err = Wire.endTransmission(false);
+    Wire.endTransmission(false);
+    uint8_t got = Wire.requestFrom(0x48, (uint8_t)1);
+    uint8_t v = got ? Wire.read() : 0xFF;
+
+    Serial.printf("R reg 0x%02X, endTx=%u, got=%u, val=0x%02X\n", _reg, err, got, v);
+    return v;
+}
+
+/**
+ * @brief       getVcomVoltage reads VCOM voltage from registers
+ *
+ * @return      VCOM voltage in volts
+ */
+double EPDDriver::getStoredVCOM()
+{
+    delay(10);                            // Wake up TPS65186 so registers respond
+    uint8_t vcomL = readReg(0x03);        // REad low 8 bits from register 0x03
+    uint8_t vcomH = readReg(0x04) & 0x01; // Read full byte, mask off all but bit 0 (MSB)
+    delay(10);                            // Power down driver
+    int raw = (vcomH << 8) | vcomL;       // Value between 0 - 511
+    return -(raw / 100.0);
+}
+
+/**
+ * @brief       Wake a single or multiple peripherals for Inkplate 4TEMPERA.
+ *              They are in deep sleep by default so this function MUST be called
+ *
+ * @param       uint8_t _peripheral
+ *              The flag which peripheral to wake from deep sleep, you may use:
+ *              INKPLATE_ACCELEROMETER, INKPLATE_BME688, INKPLATE_APDS9960 and
+ *              INKPLATE_FUEL_GAUGE
+ *
+ * @return      None
+ */
+void EPDDriver::wakePeripheral(uint8_t _peripheral)
+{
+    if (_peripheral & INKPLATE_ACCELEROMETER)
+    {
+        // Wake accelerometer
+        lsm6ds3.settings.gyroEnabled = 1;
+        lsm6ds3.settings.accelEnabled = 1;
+        lsm6ds3.begin(&lsm6ds3.settings);
+    }
+
+    if (_peripheral & INKPLATE_BME688)
+    {
+        // Wake BME
+        uint8_t bmeControlReg = bme688.readByte(BME_CONTROL_ADDR);
+        bme688.putData(BME_CONTROL_ADDR, bmeControlReg | 0x01);
+        bme688.begin();
+    }
+
+    if (_peripheral & INKPLATE_APDS9960)
+    {
+        apds9960.enablePower();
+    }
+
+    if (_peripheral & INKPLATE_FUEL_GAUGE)
+    {
+        // To wake up fuel gauge, just create rising edge signal on GPOUT pin.
+        internalIO.pinMode(FG_GPOUT, INPUT_PULLUP);
+
+        // Wait a little bit.
+        delayMicroseconds(250);
+    }
+}
+
+/**
+ * @brief       Put a peripheral back to sleep, they are in sleep by default
+ *
+ * @param       uint8_t _peripheral
+ *              The flag which peripheral to put to deep sleep, you may use:
+ *              INKPLATE_ACCELEROMETER, INKPLATE_BME688, INKPLATE_APDS9960 and
+ *              INKPLATE_FUEL_GAUGE
+ *
+ * @return      None
+ */
+void EPDDriver::sleepPeripheral(uint8_t _peripheral)
+{
+    if (_peripheral & INKPLATE_ACCELEROMETER)
+    {
+        lsm6ds3.settings.gyroEnabled = 0;
+        lsm6ds3.settings.accelEnabled = 0;
+        lsm6ds3.begin(&lsm6ds3.settings);
+    }
+
+    if (_peripheral & INKPLATE_BME688)
+    {
+        // Put BME in sleep mode
+        uint8_t bmeControlReg = bme688.readByte(BME_CONTROL_ADDR);
+        bmeControlReg &= ~(0b00000011);
+        bme688.putData(BME_CONTROL_ADDR, bmeControlReg);
+    }
+
+    if (_peripheral & INKPLATE_APDS9960)
+    {
+        apds9960.disablePower();
+    }
+
+    if (_peripheral & INKPLATE_FUEL_GAUGE)
+    {
+        // First, set the GPOUT pin of the Fuel Gauge to pull down.
+        internalIO.pinMode(FG_GPOUT, INPUT_PULLDOWN);
+
+        // Issue a shutdown command.
+        battery.shutdown();
+    }
+}
+
+/**
+ * @brief       Blocks pins on the IO Expander which are used to control the panel, done to avoid damage to the display
+ * by the user
+ *
+ * @return      None
+ */
+void EPDDriver::blockGpioPins()
+{
+    internalIO.blockPinUsage(WAKEUP);
+    internalIO.blockPinUsage(PWRUP);
+    internalIO.blockPinUsage(VCOM);
+    internalIO.blockPinUsage(OE);
+    internalIO.blockPinUsage(GMOD);
+    internalIO.blockPinUsage(SPV);
+}
+
+#endif

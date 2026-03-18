@@ -1,5 +1,5 @@
 // Header guard for the Arduino include
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_INKPLATE13SPECTRA
 #include "Inkplate13Driver.h"
 #include "Inkplate-LVGL.h"
 
@@ -68,12 +68,112 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
 
+    if (w <= 0 || h <= 0 || px_map == NULL || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_HEIGHT ||
+        area->y2 >= E_INK_WIDTH)
+    {
+        lv_display_flush_ready(disp);
+        return;
+    }
+
     if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
         self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
     }
     else
     {
+        // Framebuffer and constants
+        uint8_t *buffer3b = self->DMemory4Bit;
+        const int width_bytes_3b = E_INK_WIDTH / 2;
+        const uint8_t *maskGLUT = pixelMaskGLUT;
+
+        const uint8_t *src8 = px_map; // Source image in RGB565 (2 bytes per pixel)
+
+        uint8_t R, G, B;
+
+        for (int32_t y = 0; y < h; y++)
+        {
+            const uint8_t *src_row = src8 + (y * w * 2);
+
+            for (int32_t x = 0; x < w; x++)
+            {
+                uint8_t lo = src_row[2 * x + 0];
+                uint8_t hi = src_row[2 * x + 1];
+                uint16_t pixel = (uint16_t)hi << 8 | lo;
+
+                // Extract 5-6-5 bits and scale to 0–255 range
+                uint8_t r5 = (pixel >> 11) & 0x1F;
+                uint8_t g6 = (pixel >> 5) & 0x3F;
+                uint8_t b5 = pixel & 0x1F;
+
+                R = (r5 * 527 + 23) >> 6;
+                G = (g6 * 259 + 33) >> 6;
+                B = (b5 * 527 + 23) >> 6;
+
+                // Convert to HSV
+                float rf = R / 255.0f;
+                float gf = G / 255.0f;
+                float bf = B / 255.0f;
+
+                float maxc = max(rf, max(gf, bf));
+                float minc = min(rf, min(gf, bf));
+                float delta = maxc - minc;
+
+                float H = 0.0f; // hue 0–360
+                float S = (maxc == 0) ? 0 : (delta / maxc);
+                float V = maxc;
+
+                // Compute hue
+                if (delta > 0.0001f)
+                {
+                    if (maxc == rf)
+                        H = 60.0f * fmod(((gf - bf) / delta), 6.0f);
+                    else if (maxc == gf)
+                        H = 60.0f * (((bf - rf) / delta) + 2.0f);
+                    else
+                        H = 60.0f * (((rf - gf) / delta) + 4.0f);
+                }
+                if (H < 0)
+                    H += 360.0f;
+
+                // Classification to Inkplate 6-color palette
+                uint8_t color;
+                if (S < 0.18f)
+                {
+                    if (V > 0.60f)
+                        color = INKPLATE_WHITE;
+                    else if (V < 0.25f)
+                        color = INKPLATE_BLACK;
+                    else
+                        color = INKPLATE_WHITE;
+                }
+                else
+                {
+                    if (H >= 200 && H < 245)
+                        color = INKPLATE_BLUE;
+                    else if (H >= 90 && H < 150)
+                        color = INKPLATE_GREEN;
+                    else if (H >= 45 && H < 90)
+                        color = INKPLATE_YELLOW;
+                    else
+                        color = INKPLATE_RED;
+                }
+
+                // Apply Inkplate 13 framebuffer orientation
+                int32_t sx = area->x1 + x;
+                int32_t sy = area->y1 + y;
+                int32_t fx = sy;
+                int32_t fy = E_INK_HEIGHT - sx - 1;
+
+                // Write pixel to 3-bit framebuffer (4-bit packed)
+                int x_byte = fx / 2;
+                int x_sub = fx % 2;
+                uint8_t *dst_row = buffer3b + (width_bytes_3b * fy);
+
+                uint8_t prev = dst_row[x_byte];
+                uint8_t newv = (maskGLUT[x_sub] & prev) | (x_sub ? color : (color << 4));
+                dst_row[x_byte] = newv;
+            }
+        }
     }
 
     lv_display_flush_ready(disp);

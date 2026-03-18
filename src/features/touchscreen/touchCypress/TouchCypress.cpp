@@ -22,7 +22,7 @@
 #ifdef ARDUINO_INKPLATE6FLICK
 
 // Macro helpers.
-#define TS_GET_BOOTLOADERMODE(reg) (((reg) & 0x10) >> 4)
+#define TS_GET_BOOTLOADERMODE(reg) (((reg)&0x10) >> 4)
 
 // Interrupt function callback for Touch Interruput event.
 static volatile bool _tsFlag = false;

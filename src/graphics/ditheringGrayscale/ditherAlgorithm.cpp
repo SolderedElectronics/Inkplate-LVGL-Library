@@ -1,7 +1,7 @@
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
-#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_ESP32S3_DEV)
+#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)
 
 
 void DitherAlgorithm::begin(Inkplate *inkplatePtr)

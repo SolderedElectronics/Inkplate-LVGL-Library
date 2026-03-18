@@ -119,7 +119,7 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
     lv_init();
 
 // Define display resolution
-#if !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_ESP32S3_DEV)
+#if !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)
     uint32_t screen_width = E_INK_WIDTH;
     uint32_t screen_height = E_INK_HEIGHT;
 #else

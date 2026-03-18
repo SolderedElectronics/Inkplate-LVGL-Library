@@ -3,7 +3,7 @@
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
 // Header guard for the Arduino include
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_INKPLATE13SPECTRA
 #define IO_INT_ADDR 0x20
 
 // Pin on the internal io expander which controls MOSFET for turning on and off the SD card
