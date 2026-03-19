@@ -61,7 +61,6 @@ class Inkplate : public InkplateBoardClass, public NetworkController
     uint8_t _height = 0;
     uint8_t _beginDone = 0;
     uint8_t _mode;
-    void writePixel(int16_t x, int16_t y, uint16_t color);
     void initLVGL(lv_display_render_mode_t renderMode);
 };
 #endif
