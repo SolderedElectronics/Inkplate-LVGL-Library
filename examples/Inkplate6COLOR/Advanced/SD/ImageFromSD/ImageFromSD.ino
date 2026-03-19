@@ -18,17 +18,6 @@
 // Create an instance of the Inkplate object
 Inkplate inkplate;
 
-// Create an lvgl task which will tick the lvgl timer every 5 ms
-// and handle any animations needed
-void lvgl_task(void *arg) {
-  for (;;) {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5));  
-  }
-}
-
-
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -61,17 +50,6 @@ void setup() {
     Serial.println("File NOT found on SD card!");
     return;
   }
-
-  // Create LVGL task on core 1 to run independently from the rest of the sketch
-  xTaskCreatePinnedToCore(
-      lvgl_task, // Function which will be pinned 
-      "lvgl_tick", // Symbolic name
-      16000,  // Stack depth       
-      nullptr, // No parameters
-      2, // Priority
-      nullptr, // No buffer, it will be allocated dynamically
-      1 // core used
-  );
 
   // Create the screen and color it white
   lv_obj_t *screen = lv_scr_act();

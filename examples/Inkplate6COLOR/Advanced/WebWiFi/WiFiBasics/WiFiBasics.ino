@@ -21,14 +21,6 @@ Inkplate inkplate;
 const char *ssid = "your ssid";
 const char *pass = "your password";
 
-// LVGL tick timer handle for periodic updates
-esp_timer_handle_t lvgl_tick_timer;
-
-// ESP32 timer interrupt routine — increments LVGL’s internal tick every 5 ms
-void lv_tick_task(void *arg) {
-  lv_tick_inc(5);  // Increase LVGL's time base by 5 milliseconds
-}
-
 void setup() {
   // Start serial communication for debugging
   Serial.begin(115200);
@@ -42,15 +34,6 @@ void setup() {
   inkplate.begin(LV_DISP_RENDER_MODE_PARTIAL);
   inkplate.clearDisplay();      // Clear the screen
   inkplate.enableDithering(false);  // Disable dithering for simplicity
-
-  // Create and start a periodic LVGL tick timer (fires every 5 ms)
-  const esp_timer_create_args_t lvgl_tick_args = {
-      .callback = &lv_tick_task,           // Function to call every tick
-      .arg = nullptr,                      // No arguments passed
-      .dispatch_method = ESP_TIMER_TASK,   // Run in ESP32 timer task
-      .name = "lvgl_tick"};                // Name of the timer for debugging
-  esp_timer_create(&lvgl_tick_args, &lvgl_tick_timer);     // Create timer
-  esp_timer_start_periodic(lvgl_tick_timer, 5000);         // Start timer (5000 µs = 5 ms)
 
   // Set up LVGL UI screen
   lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);  // White background

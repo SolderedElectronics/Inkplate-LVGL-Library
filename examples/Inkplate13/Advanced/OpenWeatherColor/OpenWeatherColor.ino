@@ -29,9 +29,6 @@ static const lv_color_t COLOR_GREEN = lv_color_hex(0x00FF00);
 // Create Inkplate instance (RGB565 mode when USE_COLOR_IMAGE is defined)
 Inkplate inkplate;
 
-// LVGL tick timer handle
-esp_timer_handle_t lvgl_tick_timer;
-
 // Simple data container
 struct WeatherData
 {
@@ -44,23 +41,6 @@ struct WeatherData
     String location;
     String dateLine;
 };
-
-// LVGL tick task
-void lv_tick_task(void *arg)
-{
-    lv_tick_inc(5);
-}
-
-void start_lvgl_tick()
-{
-    const esp_timer_create_args_t lvgl_tick_args = {
-        .callback = &lv_tick_task,
-        .arg = nullptr,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "lvgl_tick"};
-    esp_timer_create(&lvgl_tick_args, &lvgl_tick_timer);
-    esp_timer_start_periodic(lvgl_tick_timer, 5000); // 5 ms
-}
 
 static lv_obj_t *createCard(lv_obj_t *parent, int x, int y, int w, int h, lv_color_t bg, int radius)
 {
@@ -243,8 +223,6 @@ void setup()
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.clearDisplay();
     inkplate.enableDithering(true);
-
-    start_lvgl_tick();
 
     WeatherData data;
     data.location = "Osijek, Croatia";

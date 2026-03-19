@@ -46,15 +46,6 @@ const lv_image_dsc_t my_image = {
     .data      = cat,                      // raw grayscale buffer
 };
 
-// LVGL task that ticks the timer every 5 ms
-void lvgl_task(void *arg) {
-    for (;;) {
-        lv_tick_inc(5);
-        lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
-}
-
 void setup() {
     Serial.begin(115200);
     delay(1000);
@@ -65,18 +56,6 @@ void setup() {
 
     // Enable dithering so grayscale images look smoother on BW panel
     inkplate.enableDithering(1);
-
-    // LVGL task on core 1
-    xTaskCreatePinnedToCore(
-        lvgl_task,
-        "lvgl_tick",
-        16000,
-        nullptr,
-        2,
-        nullptr,
-        1);
-
-    delay(100);
 
     // Get the active screen
     screen = lv_scr_act();

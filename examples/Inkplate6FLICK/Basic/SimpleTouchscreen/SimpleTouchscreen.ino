@@ -17,18 +17,6 @@
 // Create an instance of Inkplate display in 1-bit mode (change to INKPLATE_3BIT if you want grayscale)
 Inkplate inkplate(INKPLATE_1BIT);
 
-// Create an lvgl task which will tick the lvgl timer every 5 ms
-// and handle any animations needed
-void lvgl_task(void *arg) 
-{
-  for (;;) 
-  {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5));  
-  }
-}
-
 // Initialize global lvgl rectangle object
 static lv_obj_t *rect = NULL;
 
@@ -106,17 +94,6 @@ void setup()
     label = NULL;
     inkplate.clearDisplay();
     
-    // Create LVGL task on core 1 to run independently from the rest of the sketch
-    xTaskCreatePinnedToCore(
-      lvgl_task, // Function which will be pinned 
-      "lvgl_tick", // Symbolic name
-      16000,  // Stack depth       
-      nullptr, // No parameters
-      2, // Priority
-      nullptr, // No buffer, it will be allocated dynamically
-      1 // core used
-    );
-
     /* Create a black rectangle and add a callback event function to it */
     rect = lv_obj_create(lv_scr_act());
     lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);

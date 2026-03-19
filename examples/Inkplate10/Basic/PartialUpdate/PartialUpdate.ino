@@ -16,14 +16,6 @@
 // Create an instance of Inkplate display in 1-bit mode
 Inkplate inkplate(INKPLATE_1BIT);
 
-// Timer ISR
-esp_timer_handle_t lvgl_tick_timer;
-
-//  ESP32 hardware timer that ticks the LVGL's millisecond tick counter
-void lv_tick_task(void *arg){
-  lv_tick_inc(5);
-}
-
 // Global definitions for LVGL objects
 lv_obj_t *screen;
 lv_obj_t *square;
@@ -39,16 +31,6 @@ void setup() {
   inkplate.clearDisplay();
   inkplate.enableDithering(0);
   inkplate.clearDisplay();
-
-  //Create a FreeRTOS timer that calls lv_tick_task() every 5 milliseconds
-  const esp_timer_create_args_t lvgl_tick_args = {
-    .callback = &lv_tick_task,
-    .arg = nullptr,
-    .dispatch_method = ESP_TIMER_TASK,
-    .name = "lvgl_tick"
-  };
-  esp_timer_create(&lvgl_tick_args, &lvgl_tick_timer);
-  esp_timer_start_periodic(lvgl_tick_timer, 5000);
 
   // Screen setup
   screen = lv_scr_act(); //Get the active screen

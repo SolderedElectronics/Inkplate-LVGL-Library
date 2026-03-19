@@ -16,17 +16,7 @@
 // Inkplate instance
 Inkplate inkplate(INKPLATE_1BIT);
 
-// LVGL tick task (runs LVGL every 5 ms on core 1)
-void lvgl_task(void *arg) 
-{
-  for (;;) {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5));
-  }
-}
-
-void setup() 
+void setup()
 {
   Serial.begin(115200);
   delay(1000);
@@ -58,17 +48,6 @@ void setup()
     Serial.println("File NOT found on SD card!");
     return;
   }
-
-  // Start LVGL tick task on core 1
-  xTaskCreatePinnedToCore(
-      lvgl_task,
-      "lvgl_tick",
-      16000,
-      nullptr,
-      2,
-      nullptr,
-      1
-  );
 
   // Screen setup
   lv_obj_t *screen = lv_scr_act();

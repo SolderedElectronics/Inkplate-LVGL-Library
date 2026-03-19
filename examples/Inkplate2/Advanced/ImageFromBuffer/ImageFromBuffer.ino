@@ -37,16 +37,6 @@ const lv_image_dsc_t my_image = {
     .data = cat,
 };
 
-// Create an lvgl task which will tick the lvgl timer every 5 ms
-// and handle any animations needed
-void lvgl_task(void *arg) {
-  for (;;) {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5));  
-  }
-}
-
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -58,19 +48,6 @@ void setup() {
   // Enables dithering of the whole lvgl buffer
   // Note: Dithering is only supported in full render mode
   inkplate.enableDithering(1);
-
-  // Create LVGL task on core 1 to run independently from the rest of the sketch
-  xTaskCreatePinnedToCore(
-      lvgl_task, // Function which will be pinned 
-      "lvgl_tick", // Symbolic name
-      16000,  // Stack depth       
-      nullptr, // No parameters
-      2, // Priority
-      nullptr, // No buffer, it will be allocated dynamically
-      1 // core used
-  );
-
-  delay(100);
 
   // Create screen
   screen = lv_scr_act();

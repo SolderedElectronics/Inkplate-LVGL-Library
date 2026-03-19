@@ -19,14 +19,6 @@
 // Create Inkplate instance in 1-bit (black & white) mode
 Inkplate inkplate(INKPLATE_1BIT);
 
-// LVGL tick timer (required for internal timekeeping)
-esp_timer_handle_t lvgl_tick_timer;
-
-// Timer callback that increments LVGL’s internal time base
-void lv_tick_task(void *arg) {
-  lv_tick_inc(5); // Increase LVGL tick count by 5 ms
-}
-
 void setup() {
   Serial.begin(115200);
   Serial.println("Inkplate LVGL 1-bit (Black & White) drawing example...");
@@ -36,15 +28,6 @@ void setup() {
   inkplate.begin(LV_DISP_RENDER_MODE_FULL);
   inkplate.clearDisplay();
   inkplate.enableDithering(false); // Disable dithering (only black/white pixels)
-
-  // Create and start LVGL tick timer (every 5 ms)
-  const esp_timer_create_args_t lvgl_tick_args = {
-      .callback = &lv_tick_task,
-      .arg = nullptr,
-      .dispatch_method = ESP_TIMER_TASK,
-      .name = "lvgl_tick"};
-  esp_timer_create(&lvgl_tick_args, &lvgl_tick_timer);
-  esp_timer_start_periodic(lvgl_tick_timer, 5000); // 5000 µs = 5 ms period
 
   // ---- LVGL UI SETUP ----
 
