@@ -30,11 +30,9 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
     int16_t x0 = x;
     int16_t y0 = y;
-    if (x0 > E_INK_HEIGHT - 1 || y0 > E_INK_WIDTH - 1 || x0 < 0 || y0 < 0)
+    if (color > 5)
         return;
-    if (color > 6)
-        return;
-
+    color = colorPalette[color];
 
     _swap_int16_t(x0, y0);
     y0 = E_INK_HEIGHT - y0 - 1;
@@ -67,13 +65,6 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     int32_t w = lv_area_get_width(area);
     int32_t h = lv_area_get_height(area);
-
-    if (w <= 0 || h <= 0 || px_map == NULL || area->x1 < 0 || area->y1 < 0 || area->x2 >= E_INK_HEIGHT ||
-        area->y2 >= E_INK_WIDTH)
-    {
-        lv_display_flush_ready(disp);
-        return;
-    }
 
     if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
@@ -201,6 +192,10 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // buffer and clear frame buffer
     if (!_beginDone)
     {
+
+        setPanelPinsToLow();
+
+
         Wire.begin();
 
         // Save the given inkplate pointer for internal use
@@ -223,6 +218,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Color whole frame buffer in white color
         memset(DMemory4Bit, INKPLATE_WHITE | (INKPLATE_WHITE << 4), E_INK_WIDTH * E_INK_HEIGHT / 2);
 
+        lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
         _beginDone = true;
     }
 
@@ -241,6 +237,17 @@ void EPDDriver::clearDisplay()
     memset(DMemory4Bit, WHITE << 4 | WHITE, E_INK_WIDTH * E_INK_HEIGHT / 2);
 }
 
+
+/**
+ * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
+ *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
+ */
+void EPDDriver::_renderReadyCb(lv_event_t *e)
+{
+    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
+    self->_renderReady = true;
+}
+
 /**
  * @brief       display function update display with new data from buffer
  *
@@ -251,6 +258,13 @@ void EPDDriver::clearDisplay()
  */
 void EPDDriver::display(bool _leaveOn)
 {
+    _renderReady = false; // Discard any render that completed before this call
+    uint32_t _renderTimeout = millis();
+    while (!_renderReady && (millis() - _renderTimeout) < 1000)
+    {
+        delay(1);
+    }
+    _renderReady = false;
 
     // Power up the screen (if is not already powered on).
     setPanelState(true);
@@ -304,7 +318,6 @@ void EPDDriver::display(bool _leaveOn)
 
 /**
  * @brief       returns the current panel state, 0 for off, 1 for on
- *
  */
 uint8_t EPDDriver::getPanelState()
 {
@@ -327,6 +340,11 @@ void EPDDriver::setPanelState(uint8_t state)
         // Check if the screen must be powered down or powered up.
         if (state)
         {
+
+            setPanelPinsToLow();
+
+            delay(50);
+
             // Configure GPIOs.
             setIO();
 
@@ -374,8 +392,7 @@ void EPDDriver::setPanelState(uint8_t state)
 }
 
 /**
- * @brief       initializes the communication pins as well as SPI communication with the Inkplate 13 panel
- *
+ * @brief       setIO initializes the communication pins as well as SPI communication with the Inkplate 13 panel
  */
 void EPDDriver::setIO()
 {
@@ -402,10 +419,6 @@ void EPDDriver::setIO()
     if (!SPI.begin(SPECTRA133_SPI_SCK, SPECTRA133_SPI_MISO, SPECTRA133_SPI_MOSI))
     {
         Serial.println("Failed to init SPI");
-    }
-    else
-    {
-        Serial.println("SPI init done");
     }
 }
 
@@ -455,7 +468,9 @@ void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t *_parameters, uint32_t _
         digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
 }
 
-
+/**
+ * @brief       screenInit powers up and initializes the E ink panel
+ */
 void EPDDriver::screenInit()
 {
     // Send magic values to the registers. These values are provided from the manufacturer.
@@ -590,7 +605,7 @@ double EPDDriver::readBattery()
 
     // Set to the highest resolution and read the voltage.
     analogReadResolution(12);
-    int adc = analogReadMilliVolts(35);
+    int adc = analogReadMilliVolts(1);
 
     // Turn off the MOSFET (and voltage divider).
     if (state)
@@ -606,17 +621,46 @@ double EPDDriver::readBattery()
     return (double(adc) * 2.0 / 1000);
 }
 
-// Method waits until the screen is ready to accept new commands.
+/**
+ * @brief       waitForBusy  waits until the screen is ready to accept new commands.
+ */
 void EPDDriver::waitForBusy()
 {
-    // Wait until the screen is ready to accept new commads.
+    // Wait until the screen is ready to accept new commands.
     // This will be indicated by pulling the BUSYN pin to high.
+    // A 30-second timeout prevents an infinite hang if the panel does not respond.
     while (!digitalRead(SPECTRA133_BUSYN_PIN))
     {
         // Let the RTOS breathe.
         delay(1);
     }
 }
+
+// Function helps empty capacitors, without this sometimes the panel refuses to refresh...
+/**
+ * @brief       setPanelPinsToLow helps empty capacitors, without this sometimes the panel refuses to refresh...
+ */
+void EPDDriver::setPanelPinsToLow()
+{
+    pinMode(SPECTRA133_DC_PIN, OUTPUT);
+    pinMode(SPECTRA133_CS_M_PIN, OUTPUT);
+    pinMode(SPECTRA133_RST_PIN, OUTPUT);
+    pinMode(SPECTRA133_BUSYN_PIN, OUTPUT);
+    pinMode(SPECTRA133_CS_S_PIN, OUTPUT);
+    pinMode(SPECTRA133_PWR_EN, OUTPUT);
+    pinMode(SPECTRA133_BS0, OUTPUT);
+    pinMode(SPECTRA133_BS1, OUTPUT);
+
+    digitalWrite(SPECTRA133_DC_PIN, LOW);
+    digitalWrite(SPECTRA133_CS_M_PIN, LOW);
+    digitalWrite(SPECTRA133_RST_PIN, LOW);
+    digitalWrite(SPECTRA133_BUSYN_PIN, LOW);
+    digitalWrite(SPECTRA133_CS_S_PIN, LOW);
+    digitalWrite(SPECTRA133_PWR_EN, LOW);
+    digitalWrite(SPECTRA133_BS0, LOW);
+    digitalWrite(SPECTRA133_BS1, LOW);
+}
+
 
 
 #endif

@@ -81,6 +81,8 @@ class EPDDriver
     void setIOExpanderForLowPower();
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
+    volatile bool _renderReady = false;
+    static void _renderReadyCb(lv_event_t *e);
 
     // Color palette of the 6COLOR screen.
     uint16_t _paletteIdeal[7] = {0x0000, 0xFFFF, 0x07E0, 0x001F, 0xF800, 0xFFE0, 0xFBE0};

@@ -105,6 +105,8 @@ class EPDDriver : public Esp
     void vscan_end();
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
+    volatile bool _renderReady = false;
+    static void _renderReadyCb(lv_event_t *e);
 };
 
 #endif

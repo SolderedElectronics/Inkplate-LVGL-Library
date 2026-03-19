@@ -232,6 +232,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // Init the I2S driver. It will setup a I2S driver.
     I2SInit(myI2S);
 
+    lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
     _beginDone = 1;
     return 1;
 }
@@ -332,8 +333,26 @@ void EPDDriver::clearDisplay()
  *              display update in order to save some time needed for power supply
  *              to save some time at next display update or increase refreshing speed
  */
+/**
+ * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
+ *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
+ */
+void EPDDriver::_renderReadyCb(lv_event_t *e)
+{
+    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
+    self->_renderReady = true;
+}
+
 void EPDDriver::display(bool _leaveOn)
 {
+    _renderReady = false; // Discard any render that completed before this call
+    uint32_t _renderTimeout = millis();
+    while (!_renderReady && (millis() - _renderTimeout) < 1000)
+    {
+        delay(1);
+    }
+    _renderReady = false;
+
     if (_displayMode == 0)
     {
         display1b(_leaveOn);
