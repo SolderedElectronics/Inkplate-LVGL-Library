@@ -20,7 +20,7 @@
 class APDS_9960 : public SparkFun_APDS9960
 {
   public:
-    APDS_9960() : SparkFun_APDS9960(){};
+    APDS_9960() : SparkFun_APDS9960() {};
 };
 
 #endif

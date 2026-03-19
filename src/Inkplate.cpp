@@ -55,11 +55,12 @@ Inkplate::Inkplate()
  */
 void lvgl_task(void *arg)
 {
-  for (;;) {
-    lv_tick_inc(1);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(1));
-  }
+    for (;;)
+    {
+        lv_tick_inc(1);
+        lv_timer_handler();
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 }
 
 /**
@@ -88,25 +89,17 @@ void Inkplate::begin(lv_display_render_mode_t renderMode)
     // Init low level driver for EPD.
     initDriver(this);
 
-    // Forward the display mode to the EPD driver
-    #ifndef USE_COLOR_IMAGE
-        selectDisplayMode(_mode);
-    #endif
+// Forward the display mode to the EPD driver
+#ifndef USE_COLOR_IMAGE
+    selectDisplayMode(_mode);
+#endif
 
     // Clean frame buffers.
     clearDisplay();
 
     // Start the LVGL tick task only after all driver framebuffers are allocated,
     // so the flush callback never fires against uninitialised memory.
-    xTaskCreatePinnedToCore(
-        lvgl_task,
-        "lvgl_tick",
-        16000,
-        nullptr,
-        2,
-        nullptr,
-        1
-    );
+    xTaskCreatePinnedToCore(lvgl_task, "lvgl_tick", 16000, nullptr, 2, nullptr, 1);
 
     // Block multiple inits.
     _beginDone = 1;

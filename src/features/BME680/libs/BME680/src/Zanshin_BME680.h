@@ -222,8 +222,8 @@ class BME680_Class
             Wire.requestFrom(_I2CAddress, sizeof(T)); // Request 1 byte of data
             structSize = Wire.available();            // Use the actual number of bytes
             for (uint8_t i = 0; i < structSize; i++)
-                *bytePtr++ = Wire.read();                                         // loop for each byte to be read
-        }                                                                         //
+                *bytePtr++ = Wire.read(); // loop for each byte to be read
+        } //
         else                                                                      //
         {                                                                         //
             if (_sck == 0)                                                        // if sck is zero then hardware SPI
@@ -246,23 +246,23 @@ class BME680_Class
                     digitalWrite(_sck, LOW);                         // set the clock signal
                     digitalWrite(_mosi, ((addr) | 0x80) & (1 << j)); // set the MOSI pin state
                     digitalWrite(_sck, HIGH);                        // reset the clock signal
-                }                                                    // of for-next each bit
-                for (i = 0; i < structSize; i++)                     // Loop for each byte to read
-                {                                                    //
-                    reply = 0;                                       // reset our return byte
-                    for (j = 7; j >= 0; j--)                         // Now read the data at that byte
-                    {                                                //
-                        reply <<= 1;                                 // shift buffer one bit left
-                        digitalWrite(_sck, LOW);                     // set and reset the clock signal
-                        digitalWrite(_sck, HIGH);                    // pin to get the next MISO bit
+                } // of for-next each bit
+                for (i = 0; i < structSize; i++)  // Loop for each byte to read
+                {                                 //
+                    reply = 0;                    // reset our return byte
+                    for (j = 7; j >= 0; j--)      // Now read the data at that byte
+                    {                             //
+                        reply <<= 1;              // shift buffer one bit left
+                        digitalWrite(_sck, LOW);  // set and reset the clock signal
+                        digitalWrite(_sck, HIGH); // pin to get the next MISO bit
                         if (digitalRead(_miso))
-                            reply |= 1;  // read the MISO bit, add to reply
-                    }                    // of for-next each bit
-                    *bytePtr++ = reply;  // Add byte just read to return data
-                }                        // of for-next each byte to be read
+                            reply |= 1; // read the MISO bit, add to reply
+                    } // of for-next each bit
+                    *bytePtr++ = reply; // Add byte just read to return data
+                } // of for-next each byte to be read
                 digitalWrite(_cs, HIGH); // Tell BME680 to stop listening
-            }                            // of  if-then-else we are using hardware SPI
-        }                                // of if-then-else we are using I2C
+            } // of  if-then-else we are using hardware SPI
+        } // of if-then-else we are using I2C
         return (structSize);
     } // of method getData()
     template <typename T> uint8_t &putData(const uint8_t addr, const T &value) const
@@ -294,7 +294,7 @@ class BME680_Class
                 for (uint8_t i = 0; i < structSize; i++)
                 {
                     SPI.transfer(*bytePtr++);
-                }                        // loop for each byte to be written
+                } // loop for each byte to be written
                 digitalWrite(_cs, HIGH); // Tell BME680 to stop listening
                 SPI.endTransaction();    // End the transaction
             }
@@ -311,19 +311,19 @@ class BME680_Class
                         digitalWrite(_sck, LOW);                        // set the clock signal
                         digitalWrite(_mosi, (addr & ~0x80) & (1 << j)); // set the MOSI pin state
                         digitalWrite(_sck, HIGH);                       // reset the clock signal
-                    }                                                   // of for-next each bit
-                    for (j = 7; j >= 0; j--)                            // Now read the data at that byte
+                    } // of for-next each bit
+                    for (j = 7; j >= 0; j--) // Now read the data at that byte
                     {
                         reply <<= 1;                              // shift buffer one bit left
                         digitalWrite(_sck, LOW);                  // set the clock signal
                         digitalWrite(_mosi, *bytePtr & (1 << j)); // set the MOSI pin state
                         digitalWrite(_sck, HIGH);                 // reset the clock signal
-                    }                                             // of for-next each bit
-                    digitalWrite(_cs, HIGH);                      // Tell BME680 to stop listening
-                    bytePtr++;                                    // go to next byte to write
-                }                                                 // of for-next each byte to be read
-            }                                                     // of  if-then-else we are using hardware SPI
-        }                                                         // of if-then-else we are using I2C
+                    } // of for-next each bit
+                    digitalWrite(_cs, HIGH); // Tell BME680 to stop listening
+                    bytePtr++;               // go to next byte to write
+                } // of for-next each byte to be read
+            } // of  if-then-else we are using hardware SPI
+        } // of if-then-else we are using I2C
         return (structSize);
     } // of method putData()
 
@@ -341,6 +341,6 @@ class BME680_Class
     uint16_t _H1, _H2, _T1, _P1;                              ///< unsigned 16bit configuration vars
     int16_t _G2, _T2, _P2, _P4, _P5, _P8, _P9;                ///< signed 16bit configuration vars
     int32_t _tfine, _Temperature, _Pressure, _Humidity, _Gas; ///< signed 32bit configuration vars
-};                                                            // of BME680 class definition
+}; // of BME680 class definition
 #endif
 #endif

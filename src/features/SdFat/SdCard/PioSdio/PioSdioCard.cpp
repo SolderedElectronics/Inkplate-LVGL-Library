@@ -653,13 +653,12 @@ bool PioSdioCard::pioInit()
 {
     uint pin[] = {m_clkPin, m_cmdPin, m_dat0Pin, m_dat0Pin + 1, m_dat0Pin + 2, m_dat0Pin + 3};
     uint16_t pio_instructions[PIO_INSTRUCTION_COUNT];
-    pio_program_t pio_program = {
-        .instructions = nullptr,
-        .length = PIO_INSTRUCTION_COUNT,
-        .origin = -1,
-        .pio_version = 0,
+    pio_program_t pio_program = {.instructions = nullptr,
+                                 .length = PIO_INSTRUCTION_COUNT,
+                                 .origin = -1,
+                                 .pio_version = 0,
 #if PICO_PIO_VERSION > 0
-        .used_gpio_ranges = 0x0
+                                 .used_gpio_ranges = 0x0
 #endif
     };
     if (claimPio(pio0, &pio_program))

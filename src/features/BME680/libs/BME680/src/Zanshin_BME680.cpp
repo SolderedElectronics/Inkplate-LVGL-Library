@@ -141,12 +141,12 @@ bool BME680_Class::begin(const uint32_t i2cSpeed, const uint8_t i2cAddress)
             if (Wire.endTransmission() == 0)
             {                                  // We have found a device that could be
                 return commonInitialization(); // a BME680, so perform common init
-            }                                  // of if-then we have found a device
-        }                                      // of if-then check all or a specific address
-    }                                          // of for-next each I2C address loop
-    _I2CAddress = 0;                           // Set to denote no device found
-    _I2CSpeed = 0;                             // Set to denote no device found
-    return false;                              // return failure if we get here
+            } // of if-then we have found a device
+        } // of if-then check all or a specific address
+    } // of for-next each I2C address loop
+    _I2CAddress = 0; // Set to denote no device found
+    _I2CSpeed = 0;   // Set to denote no device found
+    return false;    // return failure if we get here
 } // of method begin()
 bool BME680_Class::begin(const uint8_t chipSelect)
 {
@@ -161,12 +161,12 @@ bool BME680_Class::begin(const uint8_t chipSelect)
     {
         // If 0x76 or 0x77 then we have I2C
         return begin(I2C_STANDARD_MODE, chipSelect); // Std speed with explicit address
-    }                                                // if-then we have an I2C call
-    _cs = chipSelect;                                // Store value for future use
-    digitalWrite(_cs, HIGH);                         // High means ignore master
-    pinMode(_cs, OUTPUT);                            // Make the chip select pin output
-    SPI.begin();                                     // Start hardware SPI
-    return commonInitialization();                   // Perform common initialization
+    } // if-then we have an I2C call
+    _cs = chipSelect;              // Store value for future use
+    digitalWrite(_cs, HIGH);       // High means ignore master
+    pinMode(_cs, OUTPUT);          // Make the chip select pin output
+    SPI.begin();                   // Start hardware SPI
+    return commonInitialization(); // Perform common initialization
 } // of method begin()
 bool BME680_Class::begin(const uint8_t chipSelect, const uint8_t mosi, const uint8_t miso, const uint8_t sck)
 {
@@ -202,15 +202,15 @@ bool BME680_Class::commonInitialization()
     {                                                            // Wrong mode for ID
         bitWrite(SPI_Register, BME680_SPI_MEM_PAGE_POSITION, 0); // Turn off Page bit to go to Page 0
         putData(BME680_SPI_REGISTER, SPI_Register);              // Write value to register
-    }                                                            // of if-then we are in SPI mode
+    } // of if-then we are in SPI mode
     if (readByte(BME680_CHIPID_REGISTER) == BME680_CHIPID)
     {                     // check for correct chip id
         getCalibration(); // get the calibration values
         if (_I2CAddress == 0)
-        {                                                                 // If using SPI, switch to correct
-            bitWrite(SPI_Register, BME680_SPI_MEM_PAGE_POSITION, 1);      // Page "1" again
-            putData(BME680_SPI_REGISTER, SPI_Register);                   // Update register value
-        }                                                                 // of if-then SPI mode
+        {                                                            // If using SPI, switch to correct
+            bitWrite(SPI_Register, BME680_SPI_MEM_PAGE_POSITION, 1); // Page "1" again
+            putData(BME680_SPI_REGISTER, SPI_Register);              // Update register value
+        } // of if-then SPI mode
         uint8_t workRegister = readByte(BME680_CONTROL_MEASURE_REGISTER); // Read the control measure
         putData(BME680_CONTROL_MEASURE_REGISTER,
                 (uint8_t)(workRegister | 1)); // Trigger 1st measurement
@@ -253,8 +253,8 @@ void BME680_Class::reset()
         else
         {
             begin(_cs); // otherwise it must be hardware SPI
-        }               // if-then-else using sw or hw SPI
-    }                   // if-then-else using I2C
+        } // if-then-else using sw or hw SPI
+    } // if-then-else using I2C
 } // of method reset()
 void BME680_Class::getCalibration()
 {
@@ -350,9 +350,9 @@ uint8_t BME680_Class::setOversampling(const uint8_t sensor, const uint8_t sampli
             tempRegister |= sampling;             // Add in the sampling bits
             putData(BME680_CONTROL_HUMIDITY_REGISTER,
                     (uint8_t)tempRegister); // Update humidity bits 0:2
-        }                                   // if-then return current value or set new value
+        } // if-then return current value or set new value
         break;
-    }                    // of HumiditySensor
+    } // of HumiditySensor
     case PressureSensor: // Set the pressure oversampling
     {
         tempRegister = readByte(BME680_CONTROL_MEASURE_REGISTER); // Read the register contents
@@ -367,7 +367,7 @@ uint8_t BME680_Class::setOversampling(const uint8_t sensor, const uint8_t sampli
             putData(BME680_CONTROL_MEASURE_REGISTER, (uint8_t)tempRegister); // Update register
         } // if-then return current value or set new value
         break;
-    }                       // of PressureSensor
+    } // of PressureSensor
     case TemperatureSensor: // Set the temperature oversampling
     {
         tempRegister = readByte(BME680_CONTROL_MEASURE_REGISTER); // Read the register contents
@@ -381,13 +381,13 @@ uint8_t BME680_Class::setOversampling(const uint8_t sensor, const uint8_t sampli
             tempRegister |= (sampling << 5);         // Add in the sampling bits at offset
             putData(BME680_CONTROL_MEASURE_REGISTER,
                     (uint8_t)tempRegister); // Update humidity bits 5:7
-        }                                   // if-then return current value or set new value
+        } // if-then return current value or set new value
         break;
     } // of TemperatureSensor
     default:
         return (UINT8_MAX); // Return an error if no match
-    }                       // of switch the sensor type
-    return (returnValue);   // Otherwise return current value
+    } // of switch the sensor type
+    return (returnValue); // Otherwise return current value
 } // of method setOversampling()
 uint8_t BME680_Class::setIIRFilter(const uint8_t iirFilterSetting) const
 {
@@ -405,7 +405,7 @@ uint8_t BME680_Class::setIIRFilter(const uint8_t iirFilterSetting) const
         returnValue = returnValue & B11100011;              // mask IIR bits
         returnValue |= (iirFilterSetting & B00000111) << 2; // use 3 bits of iirFilterSetting
         putData(BME680_CONFIG_REGISTER, returnValue);       // Write new control register value
-    }                                             // if the value is to be changed                                   //
+    } // if the value is to be changed                                   //
     returnValue = (returnValue >> 2) & B00000111; // Extract IIR filter setting from register
     return (returnValue);                         // Return IIR Filter setting
 } // of method setIIRFilter()
@@ -587,7 +587,7 @@ bool BME680_Class::setGas(uint16_t GasTemp, uint16_t GasMillis) const
                 factor += 1;
             } // of while loop
             durval = (uint8_t)(GasMillis + (factor * 64));
-        }                                                  // of if-then-else duration exceeds max
+        } // of if-then-else duration exceeds max
         putData(BME680_CONTROL_GAS_REGISTER1, (uint8_t)0); // then turn off gas heater
         putData(BME680_GAS_DURATION_REGISTER0, durval);
         putData(BME680_CONTROL_GAS_REGISTER2, (uint8_t)(gasRegister | B00010000));
