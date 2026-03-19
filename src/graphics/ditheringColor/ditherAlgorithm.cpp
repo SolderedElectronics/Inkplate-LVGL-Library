@@ -1,9 +1,27 @@
+/**
+ **************************************************
+ *
+ * @file        ditherAlgorithm.cpp
+ * @brief       Floyd-Steinberg serpentine dithering implementation for
+ *              colour EPD panels (Inkplate 6COLOR, Inkplate 2, Inkplate 13 Spectra).
+ *
+ *              Pixels are read from the LVGL RGB565 framebuffer, mapped to the
+ *              nearest panel palette entry, and written to the EPD framebuffer.
+ *              Error is diffused to unprocessed neighbours using the standard
+ *              Floyd-Steinberg kernel with a serpentine row scan.
+ *
+ * @copyright   GNU Lesser General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
 #if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA)
 
-// RGB565 to RGBTRIPLE
+/**
+ * @brief   Unpack an RGB565 word into R (0–31), G (0–63), B (0–31) channel values.
+ */
 void DitherAlgorithm::RGB565_to_RGBtriple(uint16_t c, uint8_t *r, uint8_t *g, uint8_t *b)
 {
     *r = (c >> 11) & 0x1F;
@@ -13,6 +31,10 @@ void DitherAlgorithm::RGB565_to_RGBtriple(uint16_t c, uint8_t *r, uint8_t *g, ui
 
 uint16_t color_index;
 
+/**
+ * @brief   Copy the board's colour palette into PSRAM and store the Inkplate pointer.
+ *          Must be called once from the driver's initDriver() before any dithering.
+ */
 void DitherAlgorithm::begin(uint16_t *palette, uint8_t *paletteIndices, uint8_t paletteSize, Inkplate *inkplatePtr)
 {
     palette_size = paletteSize;
@@ -27,9 +49,11 @@ void DitherAlgorithm::begin(uint16_t *palette, uint8_t *paletteIndices, uint8_t 
 }
 
 
-// ------------------
-// 1. Classic weighted RGB distance (original)
-// ------------------
+/**
+ * @brief   Find the nearest palette colour using luminance-weighted RGB distance.
+ *          Weights (R×30, G×59, B×11) approximate the sensitivity of human vision.
+ *          Sets the global color_index to the matched palette position.
+ */
 RGBTRIPLE DitherAlgorithm::map_pixel_classic(int _r, int _g, int _b, uint16_t *palette, uint8_t *palette_indices,
                                              uint8_t palette_size)
 {
@@ -64,9 +88,14 @@ RGBTRIPLE DitherAlgorithm::map_pixel_classic(int _r, int _g, int _b, uint16_t *p
     return result;
 }
 
-// ------------------
-// 2. Fast unweighted RGB distance
-// ------------------
+/**
+ * @brief   Find the nearest palette colour using unweighted Euclidean RGB distance
+ *          with a two-level tie-breaking heuristic:
+ *            1. Prefer the entry with the closer luma (2R + 5G + B, cheap approximation).
+ *            2. At equal luma, prefer the entry whose saturation is closer to the source
+ *               to avoid washing out saturated colours with a neutral match.
+ *          Sets color_index to the matched palette position.
+ */
 RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
 {
     uint16_t best_color = _palette[0];
@@ -75,7 +104,7 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
 
     // Precompute source brightness & saturation-ish
     int srcY = 2 * _r + 5 * _g + _b;                         // cheap luma
-    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r); // cheap “colorfulness”
+    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r); // cheap "colorfulness"
 
     for (uint8_t j = 0; j < palette_size; j++)
     {
@@ -104,8 +133,6 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
         }
         else if (dist == min_dist)
         {
-            // Tie-break:
-            // 1) pick closer brightness
             int bestY = 2 * ((best_color >> 11) & 0x1F) + 5 * ((best_color >> 5) & 0x3F) + (best_color & 0x1F);
             int bestBrightnessErr = abs(srcY - bestY);
 
@@ -147,9 +174,11 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
 }
 
 
-// ------------------
-// 3. HSV nearest
-// ------------------
+/**
+ * @brief   Convert RGB565 components (R: 0–31, G: 0–63, B: 0–31) to HSV.
+ *          Channels are normalised to [0, 1] before conversion.
+ *          Hue is in degrees [0, 360), saturation and value in [0, 1].
+ */
 void DitherAlgorithm::RGB_to_HSV(int _r, int _g, int _b, float *h, float *s, float *v)
 {
     float r = _r / 31.0f;
@@ -190,6 +219,11 @@ void DitherAlgorithm::RGB_to_HSV(int _r, int _g, int _b, float *h, float *s, flo
         *h += 360.0f;
 }
 
+/**
+ * @brief   Compute the Euclidean distance between two HSV colours.
+ *          The hue axis is circular, so the difference is clamped to [0, 180]
+ *          and normalised to [0, 1] before squaring.
+ */
 float DitherAlgorithm::HSV_distance(float h1, float s1, float v1, float h2, float s2, float v2)
 {
     float dh = fminf(fabsf(h1 - h2), 360.0f - fabsf(h1 - h2)) / 180.0f;
@@ -198,6 +232,11 @@ float DitherAlgorithm::HSV_distance(float h1, float s1, float v1, float h2, floa
     return sqrtf(dh * dh + ds * ds + dv * dv);
 }
 
+/**
+ * @brief   Find the nearest palette colour by minimising HSV-space distance.
+ *          The source pixel and every palette entry are converted to HSV, then
+ *          the entry with the smallest HSV_distance is selected.
+ */
 RGBTRIPLE DitherAlgorithm::map_pixel_HSV(int _r, int _g, int _b, uint16_t *palette, uint8_t *palette_indices,
                                          uint8_t palette_size)
 {
@@ -231,6 +270,9 @@ RGBTRIPLE DitherAlgorithm::map_pixel_HSV(int _r, int _g, int _b, uint16_t *palet
     return result;
 }
 
+/**
+ * @brief   Clamp an integer to the inclusive range [_min, _max].
+ */
 uint8_t DitherAlgorithm::clampValue(int32_t _value, int32_t _min, int32_t _max)
 {
     if (_value > _max)
@@ -240,6 +282,31 @@ uint8_t DitherAlgorithm::clampValue(int32_t _value, int32_t _min, int32_t _max)
     return _value;
 }
 
+/**
+ * @brief   Apply Floyd-Steinberg serpentine dithering to the LVGL RGB565
+ *          framebuffer and write palette-mapped pixels to the EPD framebuffer.
+ *
+ *          Algorithm overview:
+ *            1. Decode the RGB565 framebuffer into a 2-D RGBTRIPLE array in PSRAM.
+ *            2. For each pixel (serpentine scan):
+ *               a. Add the accumulated per-channel diffusion error.
+ *               b. Clamp corrected R/G/B to their RGB565 ranges.
+ *               c. Map to the nearest palette entry via map_pixel_fast().
+ *               d. Write the palette index to the EPD framebuffer.
+ *               e. Compute per-channel quantisation errors and distribute
+ *                  them to neighbours using the Floyd-Steinberg kernel:
+ *                              [  X  ] [7/16]
+ *                      [3/16]  [5/16]  [1/16]
+ *                  The "behind" and "ahead" positions are relative to the
+ *                  current scan direction, not absolute left/right.
+ *            3. Free all temporary PSRAM allocations.
+ *
+ * @param   frameBuffer
+ *          Pointer to the LVGL RGB565 render buffer (2 bytes per pixel,
+ *          little-endian byte order).
+ * @param   width   Buffer width in pixels.
+ * @param   height  Buffer height in pixels.
+ */
 void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int height)
 {
 
@@ -286,21 +353,12 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
 
 
     // Prepare dithering
-    // int16_t errCurrR[width];
     int16_t *errCurrR = (int16_t *)ps_malloc(width * sizeof(int16_t));
-    // int16_t errCurrG[width];
     int16_t *errCurrG = (int16_t *)ps_malloc(width * sizeof(int16_t));
-    // int16_t errCurrB[width];
     int16_t *errCurrB = (int16_t *)ps_malloc(width * sizeof(int16_t));
 
-    // int16_t errNextR[width];
-    // int16_t errNextG[width];
-    // int16_t errNextB[width];
-
     int16_t *errNextR = (int16_t *)ps_malloc(width * sizeof(int16_t));
-    // int16_t errCurrG[width];
     int16_t *errNextG = (int16_t *)ps_malloc(width * sizeof(int16_t));
-    // int16_t errCurrB[width];
     int16_t *errNextB = (int16_t *)ps_malloc(width * sizeof(int16_t));
 
 

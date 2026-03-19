@@ -1,19 +1,63 @@
+/**
+ **************************************************
+ *
+ * @file        ditherAlgorithm.cpp
+ * @brief       Floyd-Steinberg serpentine dithering implementation for
+ *              grayscale EPD panels (1-bit and 3-bit display modes).
+ *
+ * @copyright   GNU Lesser General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
 #if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)
 
 
+/**
+ * @brief   Store the Inkplate instance pointer for later use by ditherFramebuffer().
+ *
+ * @param   inkplatePtr
+ *          Pointer to the owning Inkplate instance.
+ */
 void DitherAlgorithm::begin(Inkplate *inkplatePtr)
 {
     _inkplate = inkplatePtr;
 }
 
 
+/**
+ * @brief   Apply Floyd-Steinberg serpentine dithering to the LVGL L8 framebuffer
+ *          and write the result directly into the EPD framebuffer via writePixelInternal().
+ *
+ *          Algorithm overview:
+ *            1. For each pixel, add the accumulated diffusion error to its raw value.
+ *            2. Quantise the corrected value to the nearest available display level:
+ *                 - mode 0 (1-bit): threshold at 128 → black (0) or white (1).
+ *                 - mode 1 (3-bit): round to nearest of 8 levels (0–7).
+ *            3. Compute the quantisation error (input − quantised output).
+ *            4. Distribute the error to unprocessed neighbours using the
+ *               Floyd-Steinberg kernel:
+ *                           [  X  ] [7/16]
+ *                   [3/16]  [5/16]  [1/16]
+ *            5. Alternate scan direction each row (serpentine) to reduce
+ *               directional banding artefacts.
+ *
+ *          Two PSRAM row-buffers (errCurr / errNext) hold the per-channel
+ *          accumulated errors; they are swapped at the end of each row.
+ *
+ * @param   frameBuffer
+ *          Pointer to the LVGL L8 (8-bit grayscale) render buffer.
+ * @param   width
+ *          Buffer width in pixels.
+ * @param   height
+ *          Buffer height in pixels.
+ * @param   mode
+ *          0 = 1-bit (black & white only), 1 = 3-bit (8 grayscale levels).
+ */
 void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int height, uint8_t mode)
 {
-    // mode = 0 → 1-bit (2 levels)
-    // mode = 1 → 3-bit (8 levels)
     const int maxLevel = (mode == 0) ? 1 : 7;
     const float scale = 255.0f / maxLevel;
 

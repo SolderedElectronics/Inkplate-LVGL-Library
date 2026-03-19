@@ -60,7 +60,7 @@ static lv_fs_res_t sd_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p) {
 
 // make sure sd_size is declared above and implemented
 void lv_fs_init_sd() {
-  static lv_fs_drv_t drv;              // <-- MUST be static or global for LVGL v9
+  static lv_fs_drv_t drv;              
   lv_fs_drv_init(&drv);
 
   drv.letter = 'S';
@@ -69,7 +69,7 @@ void lv_fs_init_sd() {
   drv.read_cb  = sd_read;
   drv.seek_cb  = sd_seek;
   drv.tell_cb  = sd_tell;
-  drv.cache_size = 0;              // optional but helpful for file reads
+  drv.cache_size = 0;      
 
   lv_fs_drv_register(&drv);
 }
