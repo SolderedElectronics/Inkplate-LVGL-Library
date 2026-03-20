@@ -103,8 +103,8 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
     uint8_t best_idx = 0;
 
     // Precompute source brightness & saturation-ish
-    int srcY = 2 * _r + 5 * _g + _b;                         // cheap luma
-    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r); // cheap "colorfulness"
+    int srcY = 2 * _r + 5 * _g + _b;                        
+    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r); 
 
     for (uint8_t j = 0; j < palette_size; j++)
     {
@@ -121,9 +121,8 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
         int palY = 2 * pr + 5 * pg + pb;
         int palSat = abs(pr - pg) + abs(pg - pb) + abs(pb - pr);
 
-        // lower is better
         int brightnessErr = abs(srcY - palY);
-        int satDiff = srcSat - palSat; // we like palSat close to or above srcSat
+        int satDiff = srcSat - palSat; 
 
         bool better = false;
 
@@ -142,7 +141,6 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
             }
             else if (brightnessErr == bestBrightnessErr)
             {
-                // 2) prefer not washing out saturation
                 int bestPr = (best_color >> 11) & 0x1F;
                 int bestPg = (best_color >> 5) & 0x3F;
                 int bestPb = best_color & 0x1F;
@@ -328,10 +326,6 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
             return;
         }
     }
-
-    // ---------------------------
-    // LOAD frameBuffer → pixels[][]
-    // ---------------------------
     // frameBuffer is RGB565 (2 bytes per pixel)
     for (int y = 0; y < height; y++)
     {

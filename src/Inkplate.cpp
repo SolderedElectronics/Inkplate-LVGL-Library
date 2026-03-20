@@ -237,7 +237,6 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
     lv_fs_init_sd();
 #endif
 
-    Serial.println("LVGL initialization complete");
 }
 
 /**
