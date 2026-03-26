@@ -8,7 +8,7 @@
 #include "config.h"
 
 // Maximum number of calendar events to fetch
-#define MAX_EVENTS 5
+#define MAX_EVENTS 6
 
 struct WeatherInfo
 {
@@ -51,6 +51,7 @@ struct PokemonInfo
     String   ability;           // first non-hidden ability (capitalized)
     String   weaknesses[10];    // types dealing 2× damage (from type API)
     int      weaknessCount = 0;
+    String   description;       // English Pokedex flavor text (from species endpoint)
     uint8_t *spriteData = nullptr;
     size_t   spriteLen  = 0;
     bool     valid = false;

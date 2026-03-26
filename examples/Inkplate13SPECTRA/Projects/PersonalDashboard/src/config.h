@@ -14,19 +14,19 @@
 #define POKEMON_ID 149
 
 // --- WiFi ---
-#define WIFI_SSID "Soldered Electronics"
-#define WIFI_PASS "dasduino"
+#define WIFI_SSID "your-wifi-ssid"
+#define WIFI_PASS "your-wifi-password"
 
 // --- Google Calendar ---
 // Calendar ID: Google Calendar settings > "Integrate calendar" > Calendar ID
 // API Key: console.cloud.google.com > APIs & Services > Credentials > Create API key
 // Make sure Google Calendar API is enabled and your calendar is set to public
-#define CALENDAR_ID  "0993f590ad60b390645331333129b9ae7cdfad3eabb2b143b5b716d848b1e241@group.calendar.google.com"
-#define CALENDAR_KEY "AIzaSyA9Zi7rVHQl_yQScNzpn__UIMhc37SBsfc"
+#define CALENDAR_ID  "your-calendar-id@group.calendar.google.com"
+#define CALENDAR_KEY "your-google-api-key"
 
 // --- Location (for OpenMeteo) ---
-#define LATITUDE   45.5550f  // Latitude of your city
-#define LONGITUDE  18.6955f  // Longitude of your city
-#define TIMEZONE   2         // UTC offset (e.g. 2 for Osijek/CEST, -4 for NYC)
+#define LATITUDE   0.0000f   // Latitude of your city
+#define LONGITUDE  0.0000f   // Longitude of your city
+#define TIMEZONE   0         // UTC offset (e.g. 2 for CEST, -5 for EST, -8 for PST)
 
 #endif

@@ -281,6 +281,36 @@ bool DataFetcher::fetchPokemon(PokemonInfo &out)
     addWeaknesses(out.type);
     if (!out.type2.isEmpty()) addWeaknesses(out.type2);
 
+    // Fetch Pokedex flavor text from the species endpoint (small response, safe after types)
+    {
+        char speciesUrl[64];
+        snprintf(speciesUrl, sizeof(speciesUrl),
+                 "https://pokeapi.co/api/v2/pokemon-species/%d", id);
+        String sb = httpGet(speciesUrl);
+        if (!sb.isEmpty())
+        {
+            JsonDocument sd;
+            if (deserializeJson(sd, sb) == DeserializationError::Ok)
+            {
+                for (JsonObject entry : sd["flavor_text_entries"].as<JsonArray>())
+                {
+                    if (entry["language"]["name"].as<String>() == "en")
+                    {
+                        out.description = entry["flavor_text"].as<String>();
+                        // Game text uses \f (form feed) and \n as line breaks — flatten to spaces
+                        out.description.replace("\f", " ");
+                        out.description.replace("\n", " ");
+                        out.description.replace("\r", " ");
+                        while (out.description.indexOf("  ") >= 0)
+                            out.description.replace("  ", " ");
+                        out.description.trim();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     out.valid = true;
     return true;
 }

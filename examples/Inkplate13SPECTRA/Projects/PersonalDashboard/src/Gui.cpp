@@ -20,12 +20,12 @@
 // Column widths
 #define COL_L  550
 #define COL_M  600
-#define COL_R  (SW - 2*GAP - COL_L - COL_M - 2*GAP)  // 500
+#define COL_R  (SW - 2*GAP - COL_L - COL_M - 2*GAP)  // 350
 
 // Column x positions
 #define LEFT_X  GAP                        // 25
-#define MID_X   (LEFT_X + COL_L + GAP)    // 450
-#define RIGHT_X (MID_X  + COL_M + GAP)    // 1075
+#define MID_X   (LEFT_X + COL_L + GAP)    // 600
+#define RIGHT_X (MID_X  + COL_M + GAP)    // 1225
 
 // Row heights (left + right columns are split)
 #define ROW_T  490
@@ -36,9 +36,9 @@
 #define BOT_Y  (TOP_Y + ROW_T + GAP)      // 620
 
 // Middle column: calendar + quote (stacked)
-#define QUOTE_H  200
-#define CAL_H    (BODY_H - GAP - QUOTE_H)  // 845
-#define QUOTE_Y  (TOP_Y + CAL_H + GAP)     // 975
+#define QUOTE_H  250
+#define CAL_H    (BODY_H - GAP - QUOTE_H)        // 795
+#define QUOTE_Y  (TOP_Y + CAL_H + GAP)          // 925
 
 // Card corner radius
 #define RADIUS 24
@@ -306,6 +306,21 @@ void Gui::renderPokemonInfo(PokemonInfo &p)
             createLabel(wb, p.weaknesses[j].c_str(), &lv_font_montserrat_18, C_WHITE, 10, 4);
             bx += bw + 6;
         }
+        y += 28; // advance past the last badge row
+    }
+
+    // Pokedex description — word-wrapped at the bottom of the card
+    if (!p.description.isEmpty())
+    {
+        y += 14;
+        lv_obj_t *descLbl = lv_label_create(_pokemonPanel);
+        String cleanDesc = sanitizeText(p.description);
+        lv_label_set_text(descLbl, cleanDesc.c_str());
+        lv_obj_set_style_text_font(descLbl, &lv_font_montserrat_20, 0);
+        lv_obj_set_style_text_color(descLbl, C_GRAY, 0);
+        lv_obj_set_width(descLbl, COL_L - 2 * PAD);
+        lv_label_set_long_mode(descLbl, LV_LABEL_LONG_WRAP);
+        lv_obj_set_pos(descLbl, PAD, y);
     }
 }
 
@@ -330,7 +345,7 @@ void Gui::renderCalendar(CalendarEvent events[], int count)
     }
 
     // C_GREEN is reserved for "ongoing" marker — not in cycling set
-    static const lv_color_t dotColors[] = {C_BLUE, C_RED, C_YELLOW, C_GRAY, C_BLUE};
+    static const lv_color_t dotColors[] = {C_BLUE, C_RED, C_YELLOW, C_GRAY, C_BLUE, C_RED, C_YELLOW};
 
     int y = 68;
     String lastDayLabel = "";
