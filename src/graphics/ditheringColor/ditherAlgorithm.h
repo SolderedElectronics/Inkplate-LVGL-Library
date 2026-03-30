@@ -89,7 +89,7 @@ class DitherAlgorithm
     void ditherFramebuffer(uint8_t *frameBuffer, int width, int height);
 
   private:
-    uint8_t color_index;   ///< Index of the last palette entry selected by a map_pixel call.
+    uint8_t color_index; ///< Index of the last palette entry selected by a map_pixel call.
     Inkplate *_inkplate;
     uint8_t palette_size;
     uint16_t *_palette;

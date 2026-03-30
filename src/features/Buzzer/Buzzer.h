@@ -35,7 +35,7 @@ class Inkplate;
 class Buzzer
 {
   public:
-    Buzzer(){};
+    Buzzer() {};
     void begin(Inkplate *_inkplatePtr);
     void init();
     void beep(uint32_t length, int freq);

@@ -1215,8 +1215,8 @@ bool EPDDriver::writeVCOMToPanelEEPROM(double v)
 
     // Read current reg 0x04 and preserve everything except bit0/bit6
     uint8_t r4 = readReg(0x04);
-    r4 &= (uint8_t) ~((1 << 0) | (1 << 6)); // clear bit0 (MSB) and bit6 (program)
-    r4 |= vcomMSB;                          // set bit0 as needed
+    r4 &= (uint8_t)~((1 << 0) | (1 << 6)); // clear bit0 (MSB) and bit6 (program)
+    r4 |= vcomMSB;                         // set bit0 as needed
 
     // Write updated reg 0x04 (bit6 still 0)
     writeReg(0x04, r4);

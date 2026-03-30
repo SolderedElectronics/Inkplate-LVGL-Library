@@ -662,5 +662,4 @@ void EPDDriver::setPanelPinsToLow()
 }
 
 
-
 #endif

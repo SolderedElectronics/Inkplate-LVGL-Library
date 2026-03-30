@@ -2,10 +2,10 @@
  **************************************************
  *
  * @file        OpenWeatherColor.ino
- * @brief       Colorful OpenWeather example for Inkplate 13 (LVGL RGB565 + dithering).
+ * @brief       Colorful OpenWeather example for Inkplate 13 SPECTRA (LVGL RGB565 + dithering).
  *
- * For info on how to quickly get started with Inkplate 13 visit:
- * https://soldered.com/documentation/inkplate/13/overview/
+ * For info on how to quickly get started with Inkplate 13 SPECTRA visit:
+ * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  ***************************************************/
 
@@ -218,7 +218,7 @@ void renderWeather(const WeatherData &data)
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("Inkplate 13 weather dashboard mockup (LVGL RGB565)...");
+    Serial.println("Inkplate 13 SPECTRA weather dashboard mockup (LVGL RGB565)...");
 
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.clearDisplay();
