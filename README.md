@@ -11,15 +11,120 @@ It provides ready-to-use integrations for display control, touch input (where av
 All necessary LVGL initialization is handled internally through the library’s begin() function — meaning you can start building your UI right away without worrying about setup details.
 Below are the color formats used by each Inkplate model:
 
-| Board           | Color Format |
-| --------------- | ------------ |
-| Inkplate 2      | RGB565       |
-| Inkplate 5V2    | L8           |
-| Inkplate 6      | L8           |
-| Inkplate 6Flick | L8           |
-| Inkplate 6Color | RGB565       |
-| Inkplate 10     | L8           |
+| Board              | Color Format |
+| ------------------ | ------------ |
+| Inkplate 2         | RGB565       |
+| Inkplate 4TEMPERA  | RGB565       |
+| Inkplate 5V2       | L8           |
+| Inkplate 6         | L8           |
+| Inkplate 6FLICK    | L8           |
+| Inkplate 6COLOR    | RGB565       |
+| Inkplate 10        | L8           |
+| Inkplate 13SPECTRA | RGB565       |
 
+
+### Source code file structure
+
+```
+Inkplate-LVGL-Library/
+   |
+   +--- src/
+   |      |
+   |      +--- Inkplate-LVGL.h          <-- Main library header, defines the Inkplate class
+   |      +--- Inkplate.cpp             <-- Core class implementation (LVGL init, display control)
+   |      +--- boardSelect.h            <-- Selects the correct board driver at compile time
+   |      |
+   |      +--- boards/                  <-- Per-board EPD driver code
+   |      |      +--- Inkplate2/
+   |      |      |      +--- Inkplate2BoardFile.h      <-- Board wrapper / class alias
+   |      |      |      +--- Inkplate2Driver.cpp       <-- EPD driver implementation
+   |      |      |      +--- Inkplate2Driver.h         <-- EPD driver class definition
+   |      |      |      `--- pins.h                    <-- Pin definitions
+   |      |      |
+   |      |      +--- Inkplate4TEMPERA/
+   |      |      |      +--- Inkplate4TEMPERABoardFile.h
+   |      |      |      +--- Inkplate4TEMPERADriver.cpp
+   |      |      |      +--- Inkplate4TEMPERADriver.h
+   |      |      |      +--- pins.h
+   |      |      |      `--- waveforms.h               <-- EPD waveform lookup tables
+   |      |      |
+   |      |      +--- Inkplate5V2/
+   |      |      |      +--- Inkplate5V2BoardFile.h
+   |      |      |      +--- Inkplate5V2Driver.cpp
+   |      |      |      +--- Inkplate5V2Driver.h
+   |      |      |      +--- pins.h
+   |      |      |      `--- waveforms.h
+   |      |      |
+   |      |      +--- Inkplate6/
+   |      |      |      +--- Inkplate6BoardFile.h
+   |      |      |      +--- Inkplate6Driver.cpp
+   |      |      |      +--- Inkplate6Driver.h
+   |      |      |      +--- pins.h
+   |      |      |      `--- waveforms.h
+   |      |      |
+   |      |      +--- Inkplate6COLOR/
+   |      |      |      +--- Inkplate6COLORBoardFile.h
+   |      |      |      +--- Inkplate6COLORDriver.cpp
+   |      |      |      +--- Inkplate6COLORDriver.h
+   |      |      |      `--- pins.h
+   |      |      |
+   |      |      +--- Inkplate6FLICK/
+   |      |      |      +--- Inkplate6FLICKBoardFile.h
+   |      |      |      +--- Inkplate6FLICKDriver.cpp
+   |      |      |      +--- Inkplate6FLICKDriver.h
+   |      |      |      +--- pins.h
+   |      |      |      `--- waveforms.h
+   |      |      |
+   |      |      +--- Inkplate10/
+   |      |      |      +--- Inkplate10BoardFile.h
+   |      |      |      +--- Inkplate10Driver.cpp
+   |      |      |      +--- Inkplate10Driver.h
+   |      |      |      +--- pins.h
+   |      |      |      `--- waveforms.h
+   |      |      |
+   |      |      `--- Inkplate13/
+   |      |             +--- Inkplate13BoardFile.h
+   |      |             +--- Inkplate13Driver.cpp
+   |      |             +--- Inkplate13Driver.h
+   |      |             `--- pins.h
+   |      |
+   |      +--- features/               <-- Optional on-board peripherals
+   |      |      +--- featureSelect.h  <-- Compile-time switches to enable/disable features
+   |      |      +--- APDS9960/        <-- Gesture & proximity sensor (Inkplate 4TEMPERA)
+   |      |      +--- BME680/          <-- Environmental sensor (Inkplate 4TEMPERA)
+   |      |      +--- BQ27441/         <-- Battery fuel gauge
+   |      |      +--- Buzzer/          <-- Buzzer driver (Inkplate 4TEMPERA)
+   |      |      +--- LSM6DS3/         <-- IMU / accelerometer (Inkplate 4TEMPERA)
+   |      |      +--- MCP4018/         <-- Digital potentiometer (frontlight control)
+   |      |      +--- SdFat/           <-- Vendored SdFat library (SD card access)
+   |      |      +--- frontlight/      <-- Frontlight PWM control
+   |      |      +--- rtc/             <-- Onboard real-time clock
+   |      |      +--- touchpad/        <-- Capacitive touchpad (legacy Inkplate models)
+   |      |      `--- touchscreen/     <-- Touchscreen drivers (Cypress / Elan controllers)
+   |      |
+   |      +--- graphics/               <-- Pixel-level rendering helpers
+   |      |      +--- GraphicsDefs.h   <-- Shared graphics type definitions
+   |      |      +--- ditheringColor/  <-- Floyd-Steinberg dithering for color EPD panels
+   |      |      `--- ditheringGrayscale/ <-- Floyd-Steinberg dithering for grayscale EPD panels
+   |      |
+   |      +--- lvgl/                   <-- LVGL integration layer
+   |      |      +--- FS_driver_implementation.cpp  <-- LVGL SD filesystem driver
+   |      |      +--- FS_driver_implementation.h
+   |      |      +--- custom_allocation_algorithm.h <-- Custom LVGL memory allocator
+   |      |      `--- src/             <-- Vendored LVGL v9 source
+   |      |
+   |      `--- system/                 <-- Low-level ESP32 system utilities
+   |             +--- InkplateBoards.h         <-- Board detection and class selection
+   |             +--- defines.h                <-- Global macros and constants
+   |             +--- NetworkController/       <-- Wi-Fi connection helpers
+   |             +--- UtilI2S/                 <-- I2S audio utility (Inkplate 4TEMPERA)
+   |             +--- esp32/                   <-- ESP32-specific system functions
+   |             `--- pcalExpander/            <-- PCAL6416A GPIO expander driver
+   |
+   +--- examples/                      <-- Arduino sketch examples, one folder per board
+   |
+   `--- README.md                      <-- This file
+```
 
 ### Setting up Inkplate in Arduino IDE
 
