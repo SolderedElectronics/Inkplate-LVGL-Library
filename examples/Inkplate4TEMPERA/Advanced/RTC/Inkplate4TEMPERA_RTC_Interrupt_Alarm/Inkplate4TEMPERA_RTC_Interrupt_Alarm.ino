@@ -33,11 +33,11 @@ void setup()
 
     // Initialize Inkplate in FULL render mode
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
-    inkplate.rtc.Reset();
+    inkplate.rtc.reset();
 
     // Set RTC to a known epoch and set an alarm 60s later
-    inkplate.rtc.SetEpoch(1762957188);
-    inkplate.rtc.SetAlarmEpoch(inkplate.rtc.GetEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
+    inkplate.rtc.setEpoch(1762957188);
+    inkplate.rtc.setAlarmEpoch(inkplate.rtc.getEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
 
     // Attach interrupt
     attachInterrupt(39, alarmISR, FALLING);
@@ -88,15 +88,15 @@ void loop()
 // Update label text and check alarm status
 void updateTimeLabel(lv_obj_t *timeLabel, lv_obj_t *alarmLabel)
 {
-  inkplate.rtc.GetRtcData();
+  inkplate.rtc.getRtcData();
 
-  uint8_t hour = inkplate.rtc.GetHour();
-  uint8_t minute = inkplate.rtc.GetMinute();
-  uint8_t second = inkplate.rtc.GetSecond();
-  uint8_t day = inkplate.rtc.GetDay();
-  uint8_t weekday = inkplate.rtc.GetWeekday();
-  uint8_t month = inkplate.rtc.GetMonth();
-  uint16_t year = inkplate.rtc.GetYear();
+  uint8_t hour = inkplate.rtc.getHour();
+  uint8_t minute = inkplate.rtc.getMinute();
+  uint8_t second = inkplate.rtc.getSecond();
+  uint8_t day = inkplate.rtc.getDay();
+  uint8_t weekday = inkplate.rtc.getWeekday();
+  uint8_t month = inkplate.rtc.getMonth();
+  uint16_t year = inkplate.rtc.getYear();
 
   const char *wdayNames[] = {
       "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -113,7 +113,7 @@ void updateTimeLabel(lv_obj_t *timeLabel, lv_obj_t *alarmLabel)
   if (alarmFlag)
   {
       alarmFlag = false;
-      inkplate.rtc.ClearAlarmFlag();
+      inkplate.rtc.clearAlarmFlag();
       lv_label_set_text(alarmLabel, "ALARM!");
   }
   else

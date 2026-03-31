@@ -44,14 +44,14 @@ void setup()
 
   // If needed, set initial date/time (example values)
   // inkplate.rtc.reset(); // uncomment to clear RTC for demo
-  if (!inkplate.rtc.IsSet()) {
-    inkplate.rtc.SetTime(14, 30, 0);       // 14:30:00
-    inkplate.rtc.SetDate(3, 12, 11, 2025); // Wednesday, 12.11.2025 (weekday=3)
+  if (!inkplate.rtc.isSet()) {
+    inkplate.rtc.setTime(14, 30, 0);       // 14:30:00
+    inkplate.rtc.setDate(3, 12, 11, 2025); // Wednesday, 12.11.2025 (weekday=3)
   }
 
   // Configure RTC timer: 1 Hz source, N seconds, interrupt enabled, not periodic
   // (Set 'true, true' for periodic behavior if you want it to repeat.)
-  inkplate.rtc.TimerSet(RTC::TIMER_CLOCK_1HZ, countdown_time_sec, true, false);
+  inkplate.rtc.timerSet(RTC::TIMER_CLOCK_1HZ, countdown_time_sec, true, false);
 
   // White background
   lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
@@ -97,15 +97,15 @@ void loop()
 // Update label with current time/date and show "Timer!" if RTC timer fired
 static void updateTimeLabel()
 {
-  inkplate.rtc.GetRtcData();
+  inkplate.rtc.getRtcData();
 
-  uint8_t hour   = inkplate.rtc.GetHour();
-  uint8_t minute = inkplate.rtc.GetMinute();
-  uint8_t second = inkplate.rtc.GetSecond();
-  uint8_t day    = inkplate.rtc.GetDay();
-  uint8_t month  = inkplate.rtc.GetMonth();
-  uint16_t year  = inkplate.rtc.GetYear();
-  uint8_t weekday = inkplate.rtc.GetWeekday();
+  uint8_t hour   = inkplate.rtc.getHour();
+  uint8_t minute = inkplate.rtc.getMinute();
+  uint8_t second = inkplate.rtc.getSecond();
+  uint8_t day    = inkplate.rtc.getDay();
+  uint8_t month  = inkplate.rtc.getMonth();
+  uint16_t year  = inkplate.rtc.getYear();
+  uint8_t weekday = inkplate.rtc.getWeekday();
 
   const char *wdayNames[] = {
     "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
@@ -117,8 +117,8 @@ static void updateTimeLabel()
            hour, minute, second, wdayNames[weekday], day, month, year);
 
   // If the RTC timer event occurred, show a "Timer!" message
-  if (inkplate.rtc.CheckTimerFlag()) {
-    inkplate.rtc.ClearTimerFlag(); // clear the flag
+  if (inkplate.rtc.checkTimerFlag()) {
+    inkplate.rtc.clearTimerFlag(); // clear the flag
     // inkplate.rtc.disableTimer(); // uncomment for one-shot; leave enabled for repeat (if periodic)
     strlcat(buf, "\n\nTimer!", sizeof(buf));
   }

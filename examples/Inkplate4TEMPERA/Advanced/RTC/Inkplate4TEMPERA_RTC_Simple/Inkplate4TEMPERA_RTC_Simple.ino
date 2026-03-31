@@ -24,13 +24,13 @@ void setup()
 {
     // Initialize Inkplate with LVGL
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
-    inkplate.rtc.Reset(); // Reset RTC if any data present
+    inkplate.rtc.reset(); // Reset RTC if any data present
 
     // Set initial time and date
     // 14:30:00
-    inkplate.rtc.SetTime(14, 30, 0);
+    inkplate.rtc.setTime(14, 30, 0);
     // Wednesday, 12.11.2025.
-    inkplate.rtc.SetDate(3, 12, 11, 2025);
+    inkplate.rtc.setDate(3, 12, 11, 2025);
 
     // Background color
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
@@ -66,15 +66,15 @@ void loop()
 // Update LVGL label with current time and date
 void updateTimeLabel(lv_obj_t *label)
 {
-    inkplate.rtc.GetRtcData();
+    inkplate.rtc.getRtcData();
 
-    uint8_t hour = inkplate.rtc.GetHour();
-    uint8_t minute = inkplate.rtc.GetMinute();
-    uint8_t second = inkplate.rtc.GetSecond();
-    uint8_t day = inkplate.rtc.GetDay();
-    uint8_t weekday = inkplate.rtc.GetWeekday();
-    uint8_t month = inkplate.rtc.GetMonth();
-    uint16_t year = inkplate.rtc.GetYear();
+    uint8_t hour = inkplate.rtc.getHour();
+    uint8_t minute = inkplate.rtc.getMinute();
+    uint8_t second = inkplate.rtc.getSecond();
+    uint8_t day = inkplate.rtc.getDay();
+    uint8_t weekday = inkplate.rtc.getWeekday();
+    uint8_t month = inkplate.rtc.getMonth();
+    uint16_t year = inkplate.rtc.getYear();
 
     const char *wdayNames[] = {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};

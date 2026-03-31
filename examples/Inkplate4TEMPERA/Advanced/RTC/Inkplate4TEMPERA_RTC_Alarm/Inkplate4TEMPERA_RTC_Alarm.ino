@@ -27,17 +27,17 @@ void setup()
 {
     // Initialize Inkplate and LVGL
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
-    inkplate.rtc.Reset();
+    inkplate.rtc.reset();
 
     // Set time/date and alarm
     // Set initial time and date
     // 14:30:00
-    inkplate.rtc.SetTime(14, 30, 0);
+    inkplate.rtc.setTime(14, 30, 0);
     // Wednesday, 12.11.2025.
-    inkplate.rtc.SetDate(3, 12, 11, 2025);
+    inkplate.rtc.setDate(3, 12, 11, 2025);
 
     // Set the alarm 1 minute from now
-    inkplate.rtc.SetAlarm(0, 31, 14, 12, 3);
+    inkplate.rtc.setAlarm(0, 31, 14, 12, 3);
 
     // Set white background
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
@@ -85,15 +85,15 @@ void loop()
 // Update the main time label and show alarm status
 void updateTimeLabel(lv_obj_t *label, lv_obj_t *alarmLabel)
 {
-    inkplate.rtc.GetRtcData();
+    inkplate.rtc.getRtcData();
 
-    uint8_t hour = inkplate.rtc.GetHour();
-    uint8_t minute = inkplate.rtc.GetMinute();
-    uint8_t second = inkplate.rtc.GetSecond();
-    uint8_t day = inkplate.rtc.GetDay();
-    uint8_t weekday = inkplate.rtc.GetWeekday();
-    uint8_t month = inkplate.rtc.GetMonth();
-    uint16_t year = inkplate.rtc.GetYear();
+    uint8_t hour = inkplate.rtc.getHour();
+    uint8_t minute = inkplate.rtc.getMinute();
+    uint8_t second = inkplate.rtc.getSecond();
+    uint8_t day = inkplate.rtc.getDay();
+    uint8_t weekday = inkplate.rtc.getWeekday();
+    uint8_t month = inkplate.rtc.getMonth();
+    uint16_t year = inkplate.rtc.getYear();
 
     const char *wdayNames[] = {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -107,9 +107,9 @@ void updateTimeLabel(lv_obj_t *label, lv_obj_t *alarmLabel)
     lv_obj_align(label, LV_ALIGN_CENTER, 0, -30);
 
     // Check and display alarm status
-    if (inkplate.rtc.CheckAlarmFlag())
+    if (inkplate.rtc.checkAlarmFlag())
     {
-        inkplate.rtc.ClearAlarmFlag();
+        inkplate.rtc.clearAlarmFlag();
         lv_label_set_text(alarmLabel, "ALARM!");
     }
     else

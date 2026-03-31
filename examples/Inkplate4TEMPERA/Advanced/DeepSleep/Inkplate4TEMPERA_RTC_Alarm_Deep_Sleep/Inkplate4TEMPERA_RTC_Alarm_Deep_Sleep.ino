@@ -32,13 +32,13 @@ void setup()
 {
   // Init Inkplate + LVGL
   inkplate.begin(LV_DISP_RENDER_MODE_FULL);
-  inkplate.rtc.ClearAlarmFlag();
+  inkplate.rtc.clearAlarmFlag();
 
   // If RTC not set, initialize it
-  if (!inkplate.rtc.IsSet())
+  if (!inkplate.rtc.isSet())
   {
-    inkplate.rtc.SetTime(13, 30, 0);       // 13:30:00
-    inkplate.rtc.SetDate(3, 12, 11, 2025); // Monday, 12.11.2025
+    inkplate.rtc.setTime(13, 30, 0);       // 13:30:00
+    inkplate.rtc.setDate(3, 12, 11, 2025); // Monday, 12.11.2025
   }
 
   // Generate readable time text
@@ -60,7 +60,7 @@ void setup()
   inkplate.display();
 
   // Schedule RTC alarm 60 seconds ahead
-  inkplate.rtc.SetAlarmEpoch(inkplate.rtc.GetEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
+  inkplate.rtc.setAlarmEpoch(inkplate.rtc.getEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
 
   // Enable RTC interrupt as wake-up source (GPIO 39)
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_39, 0);
@@ -77,19 +77,19 @@ void loop()
 // Format RTC time into global buffer
 void buildCurrentTimeString()
 {
-  inkplate.rtc.GetRtcData();
+  inkplate.rtc.getRtcData();
 
   const char *weekdayNames[] = {
     "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
   };
 
-  uint8_t wd = inkplate.rtc.GetWeekday();
-  uint8_t day = inkplate.rtc.GetDay();
-  uint8_t month = inkplate.rtc.GetMonth();
-  uint16_t year = inkplate.rtc.GetYear();
-  uint8_t hour = inkplate.rtc.GetHour();
-  uint8_t minute = inkplate.rtc.GetMinute();
-  uint8_t second = inkplate.rtc.GetSecond();
+  uint8_t wd = inkplate.rtc.getWeekday();
+  uint8_t day = inkplate.rtc.getDay();
+  uint8_t month = inkplate.rtc.getMonth();
+  uint16_t year = inkplate.rtc.getYear();
+  uint8_t hour = inkplate.rtc.getHour();
+  uint8_t minute = inkplate.rtc.getMinute();
+  uint8_t second = inkplate.rtc.getSecond();
 
   snprintf(timeText, sizeof(timeText),
            "%s, %02d.%02d.%04d\n%02d:%02d:%02d",
