@@ -24,7 +24,7 @@ void setup()
     // Note: P0-0 is defined as 0, up to P1-7 which is defined as 15
     for(int i=0;i<16;i++)
     {
-        inkplate.externalIO.pinMode(i, OUTPUT);
+        inkplate.internalIO.pinMode(i, OUTPUT);
     }
 }
 
@@ -33,13 +33,13 @@ void loop()
     // Set all of the GPIO pins to LOW
     for(int i=0;i<16;i++)
     {
-        inkplate.externalIO.digitalWrite(i, LOW);
+        inkplate.internalIO.digitalWrite(i, LOW);
     }
     delay(1000);                           // Wait for one second
     // Set all of the GPIO pins to HIGH
     for(int i=0;i<16;i++)
     {
-        inkplate.externalIO.digitalWrite(i, HIGH);
+        inkplate.internalIO.digitalWrite(i, HIGH);
     }
     delay(1000);                           // Wait for one second
 }
