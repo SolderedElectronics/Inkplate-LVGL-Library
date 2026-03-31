@@ -50,6 +50,7 @@ class DitherAlgorithm
     void begin(Inkplate *inkplatePtr);
 
     void ditherFramebuffer(uint8_t *frameBuffer, int width, int height, uint8_t mode);
+
   private:
     Inkplate *_inkplate;
 };

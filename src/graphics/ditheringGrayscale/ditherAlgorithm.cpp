@@ -70,16 +70,18 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
         memset(errNext, 0, width * sizeof(int16_t));
 
         // Alternate scan direction each row for serpentine dithering
-        int dir    = (y & 1) ? -1 : 1;
+        int dir = (y & 1) ? -1 : 1;
         int xStart = (dir > 0) ? 0 : width - 1;
-        int xEnd   = (dir > 0) ? width : -1;
+        int xEnd = (dir > 0) ? width : -1;
 
         for (int x = xStart; x != xEnd; x += dir)
         {
             // Add the accumulated diffusion error to the raw luminance and clamp to [0, 255]
             int gray = (int)frameBuffer[y * width + x] + errCurr[x];
-            if (gray < 0)   gray = 0;
-            if (gray > 255) gray = 255;
+            if (gray < 0)
+                gray = 0;
+            if (gray > 255)
+                gray = 255;
 
             int quantLevel, quantGray;
 
@@ -87,7 +89,7 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
             {
                 // 1-bit mode: simple threshold at 128
                 quantLevel = (gray >= 128) ? 1 : 0;
-                quantGray  = quantLevel ? 255 : 0;
+                quantGray = quantLevel ? 255 : 0;
                 _inkplate->writePixelInternal(x, y, !quantLevel);
             }
             else
@@ -96,7 +98,8 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
                 // Using integer rounding: (gray * 7 + 127) / 255 gives the nearest level
                 // with no floating-point error and exact values at both endpoints.
                 quantLevel = (gray * 7 + 127) / 255;
-                if (quantLevel > 7) quantLevel = 7;
+                if (quantLevel > 7)
+                    quantLevel = 7;
 
                 // Reconstruct the brightness that level actually represents on the display.
                 // (quantLevel * 255 + 3) / 7 rounds to nearest, ensuring level 7 maps
@@ -111,7 +114,7 @@ void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int hei
 
             // Distribute the error to unprocessed neighbours using the Floyd-Steinberg kernel.
             // dir determines which neighbour is "forward" so the kernel mirrors on odd rows.
-            int xFwd  = x + dir;
+            int xFwd = x + dir;
             int xBack = x - dir;
 
             if (xFwd >= 0 && xFwd < width)

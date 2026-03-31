@@ -103,8 +103,8 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
     uint8_t best_idx = 0;
 
     // Precompute source brightness & saturation-ish
-    int srcY = 2 * _r + 5 * _g + _b;                        
-    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r); 
+    int srcY = 2 * _r + 5 * _g + _b;
+    int srcSat = abs(_r - _g) + abs(_g - _b) + abs(_b - _r);
 
     for (uint8_t j = 0; j < palette_size; j++)
     {
@@ -122,7 +122,7 @@ RGBTRIPLE DitherAlgorithm::map_pixel_fast(int _r, int _g, int _b)
         int palSat = abs(pr - pg) + abs(pg - pb) + abs(pb - pr);
 
         int brightnessErr = abs(srcY - palY);
-        int satDiff = srcSat - palSat; 
+        int satDiff = srcSat - palSat;
 
         bool better = false;
 
