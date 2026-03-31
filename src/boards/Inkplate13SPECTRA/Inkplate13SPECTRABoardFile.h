@@ -18,7 +18,7 @@
 #ifdef ARDUINO_INKPLATE13SPECTRA
 
 // Include Inkplate10 board header file.
-#include "Inkplate13Driver.h"
+#include "Inkplate13SPECTRADriver.h"
 
 // Wrapper for different Inkplate boards.
 class InkplateBoardClass : public EPDDriver

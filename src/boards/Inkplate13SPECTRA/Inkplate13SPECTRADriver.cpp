@@ -11,7 +11,7 @@
 
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATE13SPECTRA
-#include "Inkplate13Driver.h"
+#include "Inkplate13SPECTRADriver.h"
 #include "Inkplate-LVGL.h"
 
 // SPI used for the MicroSd card

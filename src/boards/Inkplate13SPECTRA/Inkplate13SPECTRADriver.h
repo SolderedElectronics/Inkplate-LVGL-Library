@@ -1,7 +1,7 @@
 /**
  **************************************************
  *
- * @file        Inkplate13Driver.h
+ * @file        Inkplate13SPECTRADriver.h
  * @brief       Low-level EPD driver class definition for Inkplate 13SPECTRA
  *
  *
