@@ -1,14 +1,14 @@
 /**
  **************************************************
  *
- * @file        Inkplate5BoardFile.h
- * @brief       Wrrapper for the different Inkplate boards and
- *              it's classes.
+ * @file        Inkplate4TEMPERABoardFile.h
+ * @brief       Board wrapper for Inkplate 4TEMPERA
  *
  *
  * @copyright   GNU General Public License v3.0
- * @authors     Borna Biro for soldered.com
+ * @authors     Borna Biro @ Soldered
  ***************************************************/
+
 
 // Header guard.
 #ifndef __INKPLATE4TEMPERA_BOARD_SELECT_H__

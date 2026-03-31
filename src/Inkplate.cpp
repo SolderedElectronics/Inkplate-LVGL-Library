@@ -2,20 +2,13 @@
  **************************************************
  *
  * @file        Inkplate.cpp
- * @brief       Basic funtions for controling inkplate
+ * @brief       Core Inkplate class implementation — LVGL initialisation and display control
  *
- *              https://github.com/e-radionicacom/Inkplate-Arduino-library
- *              For support, please reach over forums: forum.e-radionica.com/en
- *              For more info about the product, please check: www.inkplate.io
  *
- *              This code is released under the GNU Lesser General Public
- *              License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
- *              LICENSE file included with this example. If you have any questions about
- *              licensing, please contact techsupport@e-radionica.com Distributed as-is; no
- *              warranty is given.
- *
+ * @copyright   GNU General Public License v3.0
  * @authors     Josip Šimun Kuči @ Soldered
  ***************************************************/
+
 
 #include "Inkplate-LVGL.h"
 
@@ -32,7 +25,7 @@ Inkplate::Inkplate(uint8_t mode)
 }
 #else
 /**
- * @brief       Inkplate constructor for colour boards (e.g. Inkplate 13 Spectra).
+ * @brief       Inkplate constructor for colour boards (e.g. Inkplate 13SPECTRA).
  *              No mode argument is needed; the colour format is fixed for these panels.
  */
 Inkplate::Inkplate()
@@ -225,9 +218,11 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
     // Set flush callback
     lv_display_set_flush_cb(disp, display_flush_callback);
 
-    // Inkplate 2 doesn't have an SD Card reader
+    // Inkplate 2 doesn't have an SD Card reader.
+    // Pass 'this' so the FS driver can use the board's own SdFat volume
+    // directly instead of relying on the global FatVolume::cwv() pointer.
 #ifndef ARDUINO_INKPLATE2
-    lv_fs_init_sd();
+    lv_fs_init_sd(this);
 #endif
 
 }

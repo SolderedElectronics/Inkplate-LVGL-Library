@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 5V2
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATE5V2
 #ifndef __INKPLATE5V2_PINS_H__

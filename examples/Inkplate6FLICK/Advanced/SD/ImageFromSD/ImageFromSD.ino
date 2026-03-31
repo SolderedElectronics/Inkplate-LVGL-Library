@@ -35,19 +35,7 @@ void setup()
   }
   Serial.println("SD Card initialized");
 
-  // Register LVGL filesystem wrapper
-  lv_fs_init_sd();
-  Serial.println("LVGL filesystem driver registered");
-
-  // Check if the file exists
-  SdFile testFile;
-  if (testFile.open("cat.jpg", O_READ)) {
-    Serial.printf("File found, size: %lu bytes\n", testFile.fileSize());
-    testFile.close();
-  } else {
-    Serial.println("File NOT found on SD card!");
-    return;
-  }
+  // Note: the LVGL SD filesystem driver is registered automatically by begin().
 
   // Screen setup
   lv_obj_t *screen = lv_scr_act();
@@ -56,7 +44,7 @@ void setup()
 
   // Create LVGL image object
   lv_obj_t *img = lv_image_create(screen);
-  if (img) 
+  if (img)
   {
     lv_image_set_src(img, "S:/cat.jpg");   // Set SD image source
     lv_obj_center(img);
@@ -68,19 +56,13 @@ void setup()
   lv_label_set_text(label, "Image loaded from SD");
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
 
-  // Allow LVGL to render a few cycles
-  for (int i = 0; i < 5; i++) 
-  {
-    lv_timer_handler();
-    delay(10);
-  }
-
-  // Turn off SD card for power saving
-  inkplate.sdCardSleep();
-
   // Update e-paper display
   inkplate.display();
   Serial.println("Display updated");
+
+
+  // Turn off SD card for power saving
+  inkplate.sdCardSleep();
 }
 
 void loop() {

@@ -4,7 +4,7 @@
  * @file        ditherAlgorithm.h
  * @brief       Floyd-Steinberg dithering for colour EPD panels.
  *              Used by Inkplate boards that use a fixed colour palette
- *              (Inkplate 6COLOR, Inkplate 2, Inkplate 13 Spectra).
+ *              (Inkplate 6COLOR, Inkplate 2, Inkplate 13SPECTRA).
  *              Excluded from grayscale board builds, which use the
  *              ditheringGrayscale variant instead.
  *

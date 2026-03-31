@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate4TEMPERADriver.h
+ * @brief       Low-level EPD driver class definition for Inkplate 4TEMPERA
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATE4TEMPERA
 
@@ -127,7 +138,9 @@ class EPDDriver
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
     volatile bool _renderReady = false;
+    volatile bool _noRender    = false;
     static void _renderReadyCb(lv_event_t *e);
+    static void _refrReadyCb(lv_event_t *e);
     bool writeVCOMToPanelEEPROM(double vcom);
     void writeReg(uint8_t reg, float data);
     uint8_t readReg(uint8_t reg);

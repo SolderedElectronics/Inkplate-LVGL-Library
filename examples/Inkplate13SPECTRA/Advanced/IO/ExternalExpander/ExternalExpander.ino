@@ -2,7 +2,7 @@
  **************************************************
  *
  * @file        ExternalExpander.ino
- * @brief       Example showing how to use the IO expander on Inkplate 13 SPECTRA
+ * @brief       Example showing how to use the IO expander on Inkplate 13SPECTRA
  *              to blink an LED connected to pin P1-7.
  *
  * Connect a 330 Ohm resistor to pin P1-7 on the IO Expander header (IO Expander 2)
@@ -13,7 +13,7 @@
  *   P0-0 = IO_PIN_A0 = 0, ..., P0-7 = IO_PIN_A7 = 7
  *   P1-0 = IO_PIN_B0 = 8, ..., P1-7 = IO_PIN_B7 = 15
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

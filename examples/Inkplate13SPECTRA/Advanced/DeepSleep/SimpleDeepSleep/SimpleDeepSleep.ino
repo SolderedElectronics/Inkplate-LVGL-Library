@@ -2,10 +2,10 @@
  **************************************************
  *
  * @file        SimpleDeepSleep.ino
- * @brief       Example showing how to put the Inkplate 13 SPECTRA into deep sleep,
+ * @brief       Example showing how to put the Inkplate 13SPECTRA into deep sleep,
  *              wake it up every 30 seconds and display the wakeup count onto the screen
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

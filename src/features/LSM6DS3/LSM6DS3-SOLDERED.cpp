@@ -6,7 +6,7 @@
  *
  *
  * @copyright GNU General Public License v3.0
- * @authors     Karlo Leksic for soldered.com
+ * @authors     Karlo Leksic @ Soldered.com
  ***************************************************/
 
 

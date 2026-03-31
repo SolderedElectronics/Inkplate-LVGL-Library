@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 10
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE10V2_PINS_H__
 #define __INKPLATE10V2_PINS_H__
 // Board select check.

@@ -6,7 +6,7 @@
  *              an alarm. When the alarm is triggered, it displays on the screen
  *              along with the timestamp.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

@@ -4,7 +4,6 @@
  * @file        ImageFromSD.ino
  * @brief       Example showing how to read a jpg file from an SD card and display it
  *              using LVGL. The image must be located in the root of the SD card.
- *              To change the filename, modify lines 57 and 87.
  *
  * For setup instructions and more information about Inkplate 5V2 visit:
  * https://soldered.com/documentation/inkplate/5v2/overview/
@@ -14,7 +13,7 @@
  ***************************************************/
 #include <Inkplate-LVGL.h>
 
-// Inkplate instance (renamed from `display` → `inkplate`)
+// Inkplate instance
 Inkplate inkplate(INKPLATE_1BIT);
 
 void setup() {
@@ -34,19 +33,7 @@ void setup() {
   }
   Serial.println("SD Card initialized");
 
-  // Register LVGL filesystem wrapper
-  lv_fs_init_sd();
-  Serial.println("LVGL filesystem driver registered");
-
-  // Check if the file exists
-  SdFile testFile;
-  if (testFile.open("cat.jpg", O_READ)) {
-    Serial.printf("File found, size: %lu bytes\n", testFile.fileSize());
-    testFile.close();
-  } else {
-    Serial.println("File NOT found on SD card!");
-    return;
-  }
+  // Note: the LVGL SD filesystem driver is registered automatically by begin().
 
   // Screen setup
   lv_obj_t *screen = lv_scr_act();
@@ -66,18 +53,14 @@ void setup() {
   lv_label_set_text(label, "Image loaded from SD");
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
 
-  // Allow LVGL to render a few cycles
-  for (int i = 0; i < 5; i++) {
-    lv_timer_handler();
-    delay(10);
-  }
+  // Update e-paper display
+  inkplate.display();
+  Serial.println("Display updated");
+
 
   // Turn off SD card for power saving
   inkplate.sdCardSleep();
 
-  // Update e-paper display
-  inkplate.display();
-  Serial.println("Display updated");
 }
 
 void loop() {

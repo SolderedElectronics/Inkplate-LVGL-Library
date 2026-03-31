@@ -1,14 +1,14 @@
 /**
  **************************************************
  *
- * @file        Inkplate10BoardFile.h
- * @brief       Wrrapper for the different Inkplate boards and
- *              it's classes.
+ * @file        Inkplate13BoardFile.h
+ * @brief       Board wrapper for Inkplate 13SPECTRA
  *
  *
  * @copyright   GNU General Public License v3.0
- * @authors     Borna Biro for soldered.com
+ * @authors     Josip Šimun Kuči @ Soldered
  ***************************************************/
+
 
 // Header guard.
 #ifndef __INKPLATE13_BOARD_SELECT_H__

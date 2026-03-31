@@ -2,20 +2,13 @@
  **************************************************
  *
  * @file        Buzzer.cpp
- * @brief       Functions file for controlling Inkplate's buzzer.
+ * @brief       Functions for controlling the Inkplate 4TEMPERA buzzer
  *
- *              https://github.com/SolderedElectronics/Inkplate-Arduino-library
- *              For support, please reach over forums: forum.e-radionica.com/en
- *              For more info about the product, please check: www.inkplate.io
  *
- *              This code is released under the GNU Lesser General Public
- *License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
- *LICENSE file included with this example. If you have any questions about
- *licensing, please contact techsupport@e-radionica.com Distributed as-is; no
- *warranty is given.
- *
+ * @copyright   GNU General Public License v3.0
  * @authors     Robert @ Soldered
  ***************************************************/
+
 #ifdef ARDUINO_INKPLATE4TEMPERA
 #include "Buzzer.h"
 #include "Inkplate-LVGL.h"

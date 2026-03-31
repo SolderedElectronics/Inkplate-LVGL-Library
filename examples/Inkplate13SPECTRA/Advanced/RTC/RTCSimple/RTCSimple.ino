@@ -5,7 +5,7 @@
  * @brief       Example showing the functionalities of the onboard RTC by setting its
  *              date and time and refreshing the screen every minute
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

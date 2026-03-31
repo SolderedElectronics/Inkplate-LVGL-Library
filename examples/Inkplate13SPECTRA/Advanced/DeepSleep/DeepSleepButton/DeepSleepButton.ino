@@ -2,10 +2,10 @@
  **************************************************
  *
  * @file        DeepSleepButton.ino
- * @brief       Example showing how to wake up the Inkplate 13 SPECTRA from deep sleep
+ * @brief       Example showing how to wake up the Inkplate 13SPECTRA from deep sleep
  *              by pressing the wake button (GPIO 18), or automatically after 30 seconds.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

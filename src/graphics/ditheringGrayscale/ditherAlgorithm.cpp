@@ -31,110 +31,108 @@ void DitherAlgorithm::begin(Inkplate *inkplatePtr)
  * @brief   Apply Floyd-Steinberg serpentine dithering to the LVGL L8 framebuffer
  *          and write the result directly into the EPD framebuffer via writePixelInternal().
  *
- *          Algorithm overview:
- *            1. For each pixel, add the accumulated diffusion error to its raw value.
- *            2. Quantise the corrected value to the nearest available display level:
- *                 - mode 0 (1-bit): threshold at 128 → black (0) or white (1).
- *                 - mode 1 (3-bit): round to nearest of 8 levels (0–7).
- *            3. Compute the quantisation error (input − quantised output).
- *            4. Distribute the error to unprocessed neighbours using the
- *               Floyd-Steinberg kernel:
- *                           [  X  ] [7/16]
- *                   [3/16]  [5/16]  [1/16]
- *            5. Alternate scan direction each row (serpentine) to reduce
- *               directional banding artefacts.
+ *          For each pixel, the accumulated diffusion error is added to the raw
+ *          luminance value and the result is quantised to the nearest available
+ *          display level. The quantisation error is then spread to unprocessed
+ *          neighbours using the Floyd-Steinberg kernel:
  *
- *          Two PSRAM row-buffers (errCurr / errNext) hold the per-channel
- *          accumulated errors; they are swapped at the end of each row.
+ *                       [curr] [7/16]
+ *              [3/16] [5/16] [1/16]
  *
- * @param   frameBuffer
- *          Pointer to the LVGL L8 (8-bit grayscale) render buffer.
- * @param   width
- *          Buffer width in pixels.
- * @param   height
- *          Buffer height in pixels.
- * @param   mode
- *          0 = 1-bit (black & white only), 1 = 3-bit (8 grayscale levels).
+ *          The scan direction alternates every row (serpentine scan) to reduce
+ *          directional banding artefacts. On odd rows the kernel is mirrored
+ *          horizontally.
+ *
+ *          All arithmetic is integer-only to avoid floating-point rounding
+ *          errors that would cause systematic shade mismatches.
+ *
+ * @param   frameBuffer  Pointer to the LVGL L8 (8-bit grayscale) render buffer.
+ * @param   width        Buffer width in pixels.
+ * @param   height       Buffer height in pixels.
+ * @param   mode         0 = 1-bit (black and white), 1 = 3-bit (8 grayscale levels).
  */
 void DitherAlgorithm::ditherFramebuffer(uint8_t *frameBuffer, int width, int height, uint8_t mode)
 {
-    const int maxLevel = (mode == 0) ? 1 : 7;
-    const float scale = 255.0f / maxLevel;
-
+    // Allocate two row-sized error buffers in PSRAM. errCurr holds the errors
+    // being consumed on the current row; errNext accumulates errors for the row below.
     int16_t *errCurr = (int16_t *)ps_malloc(width * sizeof(int16_t));
     int16_t *errNext = (int16_t *)ps_malloc(width * sizeof(int16_t));
     if (!errCurr || !errNext)
+    {
+        free(errCurr);
+        free(errNext);
         return;
-
+    }
     memset(errCurr, 0, width * sizeof(int16_t));
 
     for (int y = 0; y < height; y++)
     {
         memset(errNext, 0, width * sizeof(int16_t));
 
-        int direction = (y & 1) ? -1 : 1; // serpentine pattern
-        int xStart = (direction == 1) ? 0 : (width - 1);
-        int xEnd = (direction == 1) ? width : -1;
+        // Alternate scan direction each row for serpentine dithering
+        int dir    = (y & 1) ? -1 : 1;
+        int xStart = (dir > 0) ? 0 : width - 1;
+        int xEnd   = (dir > 0) ? width : -1;
 
-        for (int x = xStart; x != xEnd; x += direction)
+        for (int x = xStart; x != xEnd; x += dir)
         {
-            int idx = y * width + x;
+            // Add the accumulated diffusion error to the raw luminance and clamp to [0, 255]
+            int gray = (int)frameBuffer[y * width + x] + errCurr[x];
+            if (gray < 0)   gray = 0;
+            if (gray > 255) gray = 255;
 
-            // Apply accumulated error
-            int gray = frameBuffer[idx] + errCurr[x];
-            if (gray < 0)
-                gray = 0;
-            if (gray > 255)
-                gray = 255;
+            int quantLevel, quantGray;
 
-            // Quantize depending on mode
-            int quantLevel;
             if (mode == 0)
             {
-                // --- 1-bit mode (black & white only) ---
+                // 1-bit mode: simple threshold at 128
                 quantLevel = (gray >= 128) ? 1 : 0;
+                quantGray  = quantLevel ? 255 : 0;
                 _inkplate->writePixelInternal(x, y, !quantLevel);
             }
             else
             {
-                // --- 3-bit mode (8 grayscale levels) ---
-                quantLevel = (int)roundf(gray / scale);
-                if (quantLevel < 0)
-                    quantLevel = 0;
-                if (quantLevel > maxLevel)
-                    quantLevel = maxLevel;
-                // Write quantized level (0–1 or 0–7)
+                // 3-bit mode: round gray (0-255) to the nearest of 8 EPD levels (0-7).
+                // Using integer rounding: (gray * 7 + 127) / 255 gives the nearest level
+                // with no floating-point error and exact values at both endpoints.
+                quantLevel = (gray * 7 + 127) / 255;
+                if (quantLevel > 7) quantLevel = 7;
+
+                // Reconstruct the brightness that level actually represents on the display.
+                // (quantLevel * 255 + 3) / 7 rounds to nearest, ensuring level 7 maps
+                // exactly to 255 (no off-by-one that would leave a persistent residual error).
+                quantGray = (quantLevel * 255 + 3) / 7;
+
                 _inkplate->writePixelInternal(x, y, quantLevel);
             }
 
+            // Quantisation error: positive means the chosen level was darker than the input
+            int err = gray - quantGray;
 
-            // Reconstruct quantized brightness for error calculation
-            int quantGray = (int)(quantLevel * scale);
+            // Distribute the error to unprocessed neighbours using the Floyd-Steinberg kernel.
+            // dir determines which neighbour is "forward" so the kernel mirrors on odd rows.
+            int xFwd  = x + dir;
+            int xBack = x - dir;
 
-            // Diffusion error
-            int error = gray - quantGray;
-
-            // Floyd–Steinberg diffusion
-            int xNext = x + direction;
-            if (xNext >= 0 && xNext < width)
-                errCurr[xNext] += (error * 7) / 16;
+            if (xFwd >= 0 && xFwd < width)
+                errCurr[xFwd] += (err * 7) / 16;
 
             if (y + 1 < height)
             {
-                int xBehind = x - direction;
-                int xAhead = x + direction;
+                if (xBack >= 0 && xBack < width)
+                    errNext[xBack] += (err * 3) / 16;
 
-                if (xBehind >= 0 && xBehind < width)
-                    errNext[xBehind] += (error * 3) / 16;
+                errNext[x] += (err * 5) / 16;
 
-                errNext[x] += (error * 5) / 16;
-
-                if (xAhead >= 0 && xAhead < width)
-                    errNext[xAhead] += (error * 1) / 16;
+                if (xFwd >= 0 && xFwd < width)
+                    errNext[xFwd] += (err * 1) / 16;
             }
         }
 
-        memcpy(errCurr, errNext, width * sizeof(int16_t));
+        // Swap the row buffers: the next row's accumulated errors become the current ones
+        int16_t *tmp = errCurr;
+        errCurr = errNext;
+        errNext = tmp;
     }
 
     free(errCurr);

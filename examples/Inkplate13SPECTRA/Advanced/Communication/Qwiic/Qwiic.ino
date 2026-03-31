@@ -2,23 +2,23 @@
  **************************************************
  *
  * @file        Qwiic.ino
- * @brief       Example demonstrating easyC (I2C) communication between Inkplate 13 SPECTRA
+ * @brief       Example demonstrating easyC (I2C) communication between Inkplate 13SPECTRA
  *              and a Soldered BME280 or BME680 environmental sensor, using the LVGL library
  *              for display rendering.
  *
  *              This example reads temperature, humidity, and pressure data from a
  *              Soldered BME280 sensor connected via the easyC interface and displays
- *              it on the Inkplate 13 SPECTRA e-paper screen using LVGL elements.
+ *              it on the Inkplate 13SPECTRA e-paper screen using LVGL elements.
  *
  *              Note: Both BME280 and BME680 sensors are supported by the same
  *              Soldered BME280/BME680 library. In this example, the BME280 is used,
  *              as defined in the code. The sensor communicates over easyC (I2C)
  *              using the default 0x76 address.
  *
- * For setup instructions and more information about Inkplate 13 SPECTRA, visit:
+ * For setup instructions and more information about Inkplate 13SPECTRA, visit:
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
- * @hardware    Inkplate 13 SPECTRA (ESP32-S3-based e-paper display)
+ * @hardware    Inkplate 13SPECTRA (ESP32-S3-based e-paper display)
  * @sensors     Soldered BME280 (or BME680) via easyC connector
  * @library     Soldered BME280/BME680 Gas Sensor Arduino Library
  *              https://github.com/SolderedElectronics/Soldered-BME280-BME680-Gas-Sensor-Arduino-Library

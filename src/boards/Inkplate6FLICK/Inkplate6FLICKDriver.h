@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate6FLICKDriver.h
+ * @brief       Low-level EPD driver class definition for Inkplate 6FLICK
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE6FLICKDRIVER_H__
 #define __INKPLATE6FLICKDRIVER_H__
 
@@ -27,7 +38,7 @@
 
 #include "../../system/defines.h"
 
-#include "../../system/esp32/Esp.h"
+#include "../../system/UtilI2S/UtilI2S.h"
 
 #include "../../graphics/ditheringGrayscale/ditherAlgorithm.h"
 
@@ -110,7 +121,9 @@ class EPDDriver : public Esp
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
     volatile bool _renderReady = false;
+    volatile bool _noRender    = false;
     static void _renderReadyCb(lv_event_t *e);
+    static void _refrReadyCb(lv_event_t *e);
 };
 
 #endif

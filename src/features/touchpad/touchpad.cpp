@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        touchpad.cpp
+ * @brief       Touchpad functionality for legacy Inkplate boards
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE6) || defined(ARDUINO_INKPLATE10)
 #include "Inkplate-LVGL.h"
 #include "touchpad.h"

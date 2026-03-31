@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        waveforms.h
+ * @brief       EPD waveform lookup tables for Inkplate 4TEMPERA
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifdef ARDUINO_INKPLATE4TEMPERA
 #ifndef __WAVEFROMS_INKPLATE_4TEMPERA_H__
 #define __WAVEFROMS_INKPLATE_4TEMPERA_H__

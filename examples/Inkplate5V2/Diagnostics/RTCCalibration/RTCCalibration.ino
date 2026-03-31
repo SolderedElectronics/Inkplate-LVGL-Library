@@ -2,11 +2,11 @@
  **************************************************
  *
  * @file        RTCCalibration.ino
- * @brief       Example showing how to Calibrate the RTC on Inkplate 5 V2
+ * @brief       Example showing how to Calibrate the RTC on Inkplate 5V2
  *              to be more precise and accurate.
  *              Uses LVGL in grayscale (L8) mode.
  *
- * For info on how to quickly get started with Inkplate 5 V2 visit
+ * For info on how to quickly get started with Inkplate 5V2 visit
  * https://soldered.com/documentation/inkplate/5/overview/
  *
  * @authors     Soldered
@@ -14,7 +14,7 @@
  ***************************************************/
 #include <Inkplate-LVGL.h>
 
-Inkplate inkplate(INKPLATE_1BIT); // LVGL-enabled Inkplate instance (Inkplate 5 V2, grayscale / L8)
+Inkplate inkplate(INKPLATE_1BIT); // LVGL-enabled Inkplate instance (Inkplate 5V2, grayscale / L8)
 
 #define REFRESH_DELAY 1000 // Read RTC every second
 unsigned long time1 = 0;
@@ -45,7 +45,7 @@ void setup()
     Serial.begin(115200);
 
     // Initialize Inkplate in LVGL FULL render mode
-    // (Inkplate 5 V2, grayscale / L8 handled by the Inkplate-LVGL library config)
+    // (Inkplate 5V2, grayscale / L8 handled by the Inkplate-LVGL library config)
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
 
     // White background (L8 grayscale: 0xFFFFFF is treated as white)
@@ -64,7 +64,7 @@ void setup()
              "at 115200 baud.");
 
     // Configure wake-up button input
-    // On Inkplate 5 V2 the “WAKE” button is connected to GPIO 36 (same as many examples)
+    // On Inkplate 5V2 the “WAKE” button is connected to GPIO 36 (same as many examples)
     pinMode(GPIO_NUM_36, INPUT);
 
     // Set internal RTC capacitor (12.5 pF recommended)

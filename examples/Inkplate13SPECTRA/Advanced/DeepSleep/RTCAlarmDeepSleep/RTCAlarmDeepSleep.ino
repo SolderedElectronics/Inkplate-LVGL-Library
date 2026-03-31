@@ -2,13 +2,13 @@
  **************************************************
  *
  * @file        RTCAlarmDeepSleep.ino
- * @brief       Example showing how to use an RTC alarm to wake the Inkplate 13 SPECTRA
+ * @brief       Example showing how to use an RTC alarm to wake the Inkplate 13SPECTRA
  *              from deep sleep every 60 seconds and display the current time.
  *
  *              The RTC interrupt is connected to GPIO 18, which is shared with the
- *              wake button on Inkplate 13 SPECTRA.
+ *              wake button on Inkplate 13SPECTRA.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

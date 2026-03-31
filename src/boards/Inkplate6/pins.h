@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 6
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE6V2_PINS_H__
 #define __INKPLATE6V2_PINS_H__
 #ifdef ARDUINO_INKPLATE6V2

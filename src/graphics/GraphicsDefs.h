@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        GraphicsDefs.h
+ * @brief       Graphics type definitions shared across all Inkplate boards
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef _GRAPHICSDEFS_H_
 #define _GRAPHICSDEFS_H_
 #include "../lvgl/lvgl.h"

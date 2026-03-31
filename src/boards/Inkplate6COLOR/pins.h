@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 6COLOR
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE6COLOR_PINS_H__
 #define __INKPLATE6COLOR_PINS_H__
 #include "soc/gpio_reg.h"

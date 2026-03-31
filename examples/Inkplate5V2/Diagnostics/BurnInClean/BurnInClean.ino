@@ -5,7 +5,7 @@
  * @brief       This example will try to remove heavy burn-in visible on the panel.
  *              Set number of refresh / clear cycles and upload the program.
  *
- * For info on how to quickly get started with Inkplate 5 V2 visit
+ * For info on how to quickly get started with Inkplate 5V2 visit
  * https://soldered.com/documentation/inkplate/5/overview/
  *
  * @authors     Soldered
@@ -14,7 +14,7 @@
 
 // Next 3 lines are a precaution, you can ignore those, and the example would also work without them
 #ifndef ARDUINO_INKPLATE5V2
-#error "Wrong board selection for this example, please select Soldered Inkplate 5 V2"
+#error "Wrong board selection for this example, please select Soldered Inkplate 5V2"
 #endif
 
 // Include the Inkplate LVGL Library

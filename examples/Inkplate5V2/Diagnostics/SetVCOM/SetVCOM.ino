@@ -5,7 +5,7 @@
  * @brief       WARNING! - VCOM voltage is written in EEPROM, which means it can be set a limited number of times,
  *              so don't run this sketch repeateadly! VCOM should be set once and then left as is.
  *
- * For info on how to quickly get started with Inkplate 5 V2 visit
+ * For info on how to quickly get started with Inkplate 5V2 visit
  * https://soldered.com/documentation/inkplate/5/overview/
  *
  * @authors     Soldered

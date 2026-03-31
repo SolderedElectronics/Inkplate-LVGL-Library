@@ -1,5 +1,5 @@
 /*
-   Inkplate2_Burn_In_Clean example for Soldered Inkplate 2
+   Inkplate2_Burn_In_Clean example @ Soldered Inkplate 2
    For this example you will need only USB cable and Inkplate 2.
    Select "Soldered Inkplate2" from Tools -> Board menu.
    Don't have "Soldered Inkplate2" option? Follow our tutorial and add it:

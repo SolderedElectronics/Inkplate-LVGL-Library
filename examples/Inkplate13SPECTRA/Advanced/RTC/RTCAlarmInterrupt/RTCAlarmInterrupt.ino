@@ -6,7 +6,7 @@
  *              on the RTC using Unix epoch time. When the alarm is triggered, an
  *              interrupt fires on GPIO 18 and "ALARM!" is displayed on screen.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
@@ -38,7 +38,7 @@ void setup()
 {
     Serial.begin(115200);
 
-    // RTC interrupt is on GPIO 18 on Inkplate 13 SPECTRA
+    // RTC interrupt is on GPIO 18 on Inkplate 13SPECTRA
     pinMode(18, INPUT_PULLUP);
 
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);

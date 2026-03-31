@@ -1,37 +1,37 @@
 /**
  **************************************************
- * @file        Esp.cpp
- * @brief       File for ESP, currently empty
- *
- *              https://github.com/e-radionicacom/Inkplate-Arduino-library
- *              For support, please reach over forums: forum.e-radionica.com/en
- *              For more info about the product, please check: www.inkplate.io
- *
- *              This code is released under the GNU Lesser General Public
- *License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
- *LICENSE file included with this example. If you have any questions about
- *licensing, please contact techsupport@e-radionica.com Distributed as-is; no
- *warranty is given.
+ * @file        UtilI2S.cpp
+ * @brief       File for utilizing the I2S peripheral to send data to the panel.
  *
  * @authors     Soldered
  ***************************************************/
 
-#include "Esp.h"
+#include "UtilI2S.h"
 #include "../../boardSelect.h"
 #ifdef USES_I2S
 /**
- * @brief       Function Intializes I2S driver of the ESP32
+ * @brief       Function Initializes I2S driver of the ESP32
  *
  * @param       i2s_dev_t *_i2sDev
  *              Pointer of the selected I2S driver
+ * @param       uint8_t _clockDivider
+ *              Clock divider for the I2S clock. Default is 5 (~16 MHz BCK).
  *
- * @note        Function must be declared static to fit into Instruction RAM of the ESP32.
+ * @note        Function must be declared IRAM_ATTR to fit into Instruction RAM of the ESP32.
  */
-void IRAM_ATTR I2SInit(i2s_dev_t *_i2sDev, uint8_t _clockDivider)
+void IRAM_ATTR UtilI2S::I2SInit(volatile i2s_dev_t *_i2sDev, uint8_t _clockDivider)
 {
-    // Enable I2S peripheral and reset it.
-    periph_module_enable(PERIPH_I2S1_MODULE);
-    periph_module_reset(PERIPH_I2S1_MODULE);
+    if (_i2sChanHandle == NULL)
+    {
+        i2s_chan_config_t chan_cfg = {
+            .id         = I2S_NUM_1,
+            .role       = I2S_ROLE_MASTER,
+            .dma_desc_num  = 2,
+            .dma_frame_num = 2,
+            .auto_clear = false,
+        };
+        i2s_new_channel(&chan_cfg, &_i2sChanHandle, NULL);
+    }
 
     // Reset the FIFO Buffer in I2S module.
     _i2sDev->conf.rx_fifo_reset = 1;
@@ -104,10 +104,10 @@ void IRAM_ATTR I2SInit(i2s_dev_t *_i2sDev, uint8_t _clockDivider)
  *              lldesc_s *_dmaDecs
  *              Pointer to the DMA descriptor.
  *
- * @note        Function must be declared static to fit into Instruction RAM of the ESP32. Also, DMA descriptor must be
- * already configured!
+ * @note        Function must be declared IRAM_ATTR to fit into Instruction RAM of the ESP32. Also, DMA descriptor must
+ * be already configured!
  */
-void IRAM_ATTR sendDataI2S(i2s_dev_t *_i2sDev, volatile lldesc_s *_dmaDecs)
+void IRAM_ATTR UtilI2S::sendDataI2S(i2s_dev_t *_i2sDev, volatile lldesc_s *_dmaDecs)
 {
     // Stop any on-going transmission (just in case).
     _i2sDev->out_link.stop = 1;
@@ -128,7 +128,7 @@ void IRAM_ATTR sendDataI2S(i2s_dev_t *_i2sDev, volatile lldesc_s *_dmaDecs)
 
     // Setup a DMA descriptor.
     _i2sDev->lc_conf.val = I2S_OUT_DATA_BURST_EN | I2S_OUTDSCR_BURST_EN;
-    _i2sDev->out_link.addr = (uint32_t)(_dmaDecs) & 0x000FFFFF;
+    _i2sDev->out_link.addr = (uint32_t)(_dmaDecs)&0x000FFFFF;
 
     // Start sending the data
     _i2sDev->out_link.start = 1;
@@ -153,7 +153,7 @@ void IRAM_ATTR sendDataI2S(i2s_dev_t *_i2sDev, volatile lldesc_s *_dmaDecs)
     _i2sDev->out_link.start = 0;
 }
 
-void IRAM_ATTR setI2S1pin(uint32_t _pin, uint32_t _function, uint32_t _inv)
+void IRAM_ATTR UtilI2S::setI2S1pin(uint32_t _pin, uint32_t _function, uint32_t _inv)
 {
     // Check if valid pin is selected
     if (_pin > 39)

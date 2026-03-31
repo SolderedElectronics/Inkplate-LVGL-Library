@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        featureSelect.h
+ * @brief       Compile-time feature enable/disable switches for Inkplate peripherals
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef _FEATURE_SELECT_H
 #define _FEATURE_SELECT_H
 

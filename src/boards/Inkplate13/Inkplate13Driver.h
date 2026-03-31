@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate13Driver.h
+ * @brief       Low-level EPD driver class definition for Inkplate 13SPECTRA
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE13DRIVER_H__
 #define __INKPLATE13DRIVER_H__
 
@@ -85,7 +96,9 @@ class EPDDriver
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
     volatile bool _renderReady = false;
+    volatile bool _noRender    = false;
     static void _renderReadyCb(lv_event_t *e);
+    static void _refrReadyCb(lv_event_t *e);
 
 
     // Color display of the spectra panel

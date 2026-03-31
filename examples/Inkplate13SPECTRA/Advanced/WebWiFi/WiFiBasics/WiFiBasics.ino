@@ -2,10 +2,10 @@
  **************************************************
  *
  * @file        WiFiBasics.ino
- * @brief       Example showing how to connect to WiFi on the Inkplate 13 SPECTRA and print the status on
+ * @brief       Example showing how to connect to WiFi on the Inkplate 13SPECTRA and print the status on
  *              the serial monitor
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
  * @date        March 2026
@@ -34,7 +34,7 @@ void setup()
     Serial.println("Inkplate WiFi connection example using LVGL...");
 
     /* Initialize the Inkplate display and LVGL in FULL render mode.
-       - LV_DISP_RENDER_MODE_FULL : full refresh (required for Inkplate 13 SPECTRA)
+       - LV_DISP_RENDER_MODE_FULL : full refresh (required for Inkplate 13SPECTRA)
        - LV_DISP_RENDER_MODE_PARTIAL : partial updates (not supported on this display)
        Dithering is enabled to extend the visible color range. */
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);

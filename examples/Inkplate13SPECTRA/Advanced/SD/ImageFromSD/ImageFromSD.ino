@@ -3,14 +3,14 @@
  *
  * @file        ImageFromSD.ino
  * @brief       Example showing how to read jpg files from an SD card and display them on
- *              Inkplate 13 SPECTRA using LVGL. Image files (picture1.jpg, picture2.jpg) can
+ *              Inkplate 13SPECTRA using LVGL. Image files (picture1.jpg, picture2.jpg) can
  *              be found in the folder of this example sketch — copy them to the root of your
  *              SD card. Format your SD card using the standard FAT format.
  *
  *              The example displays picture1.jpg for 5 seconds, then switches to picture2.jpg.
  *              To use different images, change the filenames in the lv_image_set_src() calls below.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
  * @date        March 2026

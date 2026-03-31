@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 6FLICK
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE6FLICK_PINS_H__
 #define __INKPLATE6FLICK_PINS_H__
 #ifdef ARDUINO_INKPLATE6FLICK

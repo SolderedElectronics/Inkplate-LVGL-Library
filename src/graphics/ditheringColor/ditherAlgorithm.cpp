@@ -3,7 +3,7 @@
  *
  * @file        ditherAlgorithm.cpp
  * @brief       Floyd-Steinberg serpentine dithering implementation for
- *              colour EPD panels (Inkplate 6COLOR, Inkplate 2, Inkplate 13 Spectra).
+ *              colour EPD panels (Inkplate 6COLOR, Inkplate 2, Inkplate 13SPECTRA).
  *
  *              Pixels are read from the LVGL RGB565 framebuffer, mapped to the
  *              nearest panel palette entry, and written to the EPD framebuffer.

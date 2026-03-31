@@ -5,7 +5,7 @@
  * @brief       Example showing how to set the RTC timer and display "Timer!" along
  *              with the current date and time when it triggers.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
@@ -37,7 +37,7 @@ void setup()
     inkplate.enableDithering(true);
     inkplate.rtc.Reset();
 
-    // RTC INT pin on GPIO 18 on Inkplate 13 SPECTRA
+    // RTC INT pin on GPIO 18 on Inkplate 13SPECTRA
     pinMode(18, INPUT_PULLUP);
 
     // Set initial time: 14:30:00

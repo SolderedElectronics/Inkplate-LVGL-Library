@@ -7,11 +7,11 @@
  *
  *
  * @copyright   GNU General Public License v3.0
- * @authors     Borna Biro for soldered.com
+ * @authors     Josip Šimun Kuči @ Soldered
  ***************************************************/
 
-#ifndef __MY_TEST_LIBRARY_BOARD_SELECT_H__
-#define __MY_TEST_LIBRARY_BOARD_SELECT_H__
+#ifndef __BOARD_SELECT_H__
+#define __BOARD_SELECT_H__
 
 #include <Arduino.h>
 

@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        waveforms.h
+ * @brief       EPD waveform lookup tables for Inkplate 6FLICK
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __WAVEFROMS_INKPLATE_6FLICK_H__
 #define __WAVEFROMS_INKPLATE_6FLICK_H__
 

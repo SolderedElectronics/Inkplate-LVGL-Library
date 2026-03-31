@@ -2,12 +2,12 @@
  **************************************************
  *
  * @file        ColorPalette.ino
- * @brief       Example showing 7 vertical colored rectangles on the Inkplate 13 SPECTRA
+ * @brief       Example showing 7 vertical colored rectangles on the Inkplate 13SPECTRA
  *
- * The Inkplate 13 SPECTRA supports full RGB565 color with dithering.
+ * The Inkplate 13SPECTRA supports full RGB565 color with dithering.
  * This example demonstrates the 7 base colors available on the display.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit:
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit:
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
@@ -46,7 +46,7 @@ void setup()
     const int NUM_RECTS = 6;
     const int RECT_WIDTH = screen_w / NUM_RECTS;
 
-    // Colors in RGB888 - the 6 native colors of the Inkplate 13 SPECTRA
+    // Colors in RGB888 - the 6 native colors of the Inkplate 13SPECTRA
     uint32_t colors[NUM_RECTS] = {
         0x000000, // Black
         0xFFFFFF, // White

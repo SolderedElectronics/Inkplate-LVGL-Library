@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate5V2Driver.cpp
+ * @brief       Low-level EPD driver implementation for Inkplate 5V2
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATE5V2
 #include "Inkplate5V2Driver.h"
@@ -233,6 +244,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     I2SInit(myI2S);
 
     lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
+    lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
     _beginDone = 1;
     return 1;
 }
@@ -343,15 +355,32 @@ void EPDDriver::_renderReadyCb(lv_event_t *e)
     self->_renderReady = true;
 }
 
+/**
+ * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
+ *          If RENDER_READY was not set during this cycle, there were no dirty areas —
+ *          set _noRender so display() can exit without waiting for the full timeout.
+ */
+void EPDDriver::_refrReadyCb(lv_event_t *e)
+{
+    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
+    if (!self->_renderReady) {
+        self->_noRender = true;
+    }
+}
+
 void EPDDriver::display(bool _leaveOn)
 {
-    _renderReady = false; // Discard any render that completed before this call
+    // Reset the flag so we wait for the render that reflects the current UI state,
+    // not a stale render from before the user set up the screen content.
+    _renderReady = false;
+    _noRender    = false;
     uint32_t _renderTimeout = millis();
-    while (!_renderReady && (millis() - _renderTimeout) < 1000)
+    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
     {
         delay(1);
     }
     _renderReady = false;
+    _noRender    = false;
 
     if (_displayMode == 0)
     {
@@ -1035,6 +1064,8 @@ int16_t EPDDriver::sdCardInit()
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
+    // Small delay to init the SD card
+    delay(10);
     return getSdCardOk();
 }
 

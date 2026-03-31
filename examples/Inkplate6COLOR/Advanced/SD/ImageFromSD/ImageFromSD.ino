@@ -35,21 +35,7 @@ void setup() {
   }
   Serial.println("SD Card initialized");
 
-  // Register file system driver FIRST
-  lv_fs_init_sd();
-  Serial.println("File system driver registered");
-
-
-
-  // See if the image exists
-  SdFile testFile;
-  if (testFile.open("cat.jpg", O_READ)) {
-    Serial.printf("File found, size: %lu bytes\n", testFile.fileSize());
-    testFile.close();
-  } else {
-    Serial.println("File NOT found on SD card!");
-    return;
-  }
+  // Note: the LVGL SD filesystem driver is registered automatically by begin().
 
   // Create the screen and color it white
   lv_obj_t *screen = lv_scr_act();
@@ -72,18 +58,12 @@ void setup() {
   lv_label_set_text(label, "Image loaded from SD");
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
 
-  // Force initial render
-  for (int i = 0; i < 5; i++) {
-    lv_timer_handler();
-    delay(10);
-  }
-
-  // Turn off the SD card to save power
-  inkplate.sdCardSleep();
-
   // Display the image
   inkplate.display();
   Serial.println("Display updated");
+
+  // Turn off the SD card to save power
+  inkplate.sdCardSleep();
 }
 
 

@@ -2,9 +2,9 @@
  **************************************************
  *
  * @file        HelloWorld.ino
- * @brief       Example showing how to display a simple LVGL label on the Inkplate 13 SPECTRA
+ * @brief       Example showing how to display a simple LVGL label on the Inkplate 13SPECTRA
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

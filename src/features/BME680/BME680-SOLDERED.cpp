@@ -2,11 +2,11 @@
  **************************************************
  *
  * @file        BME680-SOLDERED.cpp
- * @brief       Simplified BME680 board for soldered board
+ * @brief       Simplified BME680 board @ Soldered board
  *
  *
  * @copyright GNU General Public License v3.0
- * @authors     Zvonimir Haramustek for Soldered.com
+ * @authors     Zvonimir Haramustek @ Soldered.com
  ***************************************************/
 
 #ifdef ARDUINO_INKPLATE4TEMPERA

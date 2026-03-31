@@ -2,9 +2,9 @@
  **************************************************
  *
  * @file        HTTPGETRequest.ino
- * @brief       Example showing how to make an HTTP GET request and display the response on Inkplate 13 SPECTRA
+ * @brief       Example showing how to make an HTTP GET request and display the response on Inkplate 13SPECTRA
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * This example connects to WiFi, fetches data from example.com,
  * and prints part of the response text on the e-paper screen.
@@ -36,7 +36,7 @@ void setup()
     Serial.println("Inkplate HTTP GET request example using LVGL...");
 
     // Initialize Inkplate display in FULL render mode
-    // - FULL: required for Inkplate 13 SPECTRA, refreshes the entire screen
+    // - FULL: required for Inkplate 13SPECTRA, refreshes the entire screen
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);  // Enable dithering to extend visible color range
 

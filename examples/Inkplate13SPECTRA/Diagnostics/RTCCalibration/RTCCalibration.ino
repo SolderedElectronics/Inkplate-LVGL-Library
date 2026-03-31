@@ -7,7 +7,7 @@
  *              capacitor value and set the clock offset. Please follow the instructions
  *              below carefully.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered
  * @date        March 2026
@@ -66,7 +66,7 @@ void setup()
              "Open Serial Monitor\n"
              "at 115200 baud.");
 
-    // Configure wake button input (GPIO 18 on Inkplate 13 SPECTRA)
+    // Configure wake button input (GPIO 18 on Inkplate 13SPECTRA)
     pinMode(GPIO_NUM_18, INPUT);
 
     // Set internal RTC capacitor (12.5 pF recommended)

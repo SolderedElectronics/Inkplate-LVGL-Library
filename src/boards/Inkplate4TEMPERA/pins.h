@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        pins.h
+ * @brief       Pin definitions for Inkplate 4TEMPERA
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATE4TEMPERA
 #ifndef __INKPLATE4TEMPERA_PINS_H__

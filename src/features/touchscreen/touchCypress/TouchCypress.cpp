@@ -1,20 +1,15 @@
 /**
  **************************************************
- * @file        TouchCypress.h
- * @brief       Touch screen functionality for panels that support touch
  *
- *              https://github.com/e-radionicacom/Inkplate-Arduino-library
- *              For support, please reach over forums: forum.e-radionica.com/en
- *              For more info about the product, please check: www.inkplate.io
+ * @file        TouchCypress.cpp
+ * @brief       Cypress touchscreen controller implementation,
+ *              used by the 6FLICK device
  *
- *              This code is released under the GNU Lesser General Public
- *License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
- *LICENSE file included with this example. If you have any questions about
- *licensing, please contact techsupport@e-radionica.com Distributed as-is; no
- *warranty is given.
  *
- * @authors     Borna Biro for Soldered
+ * @copyright   GNU General Public License v3.0
+ * @authors     Borna Biro @ Soldered
  ***************************************************/
+
 
 #include "TouchCypress.h"
 #include "Inkplate-LVGL.h"
@@ -728,8 +723,6 @@ bool Touch::ping(int _retries)
     // Got here? Not good, TSC not found, return error.
     return false;
 }
-
-// -----------------------------LOW level I2C functions-----------------------------
 
 /**
  * @brief       Method sends I2C command to the Touchscreen Controller IC.

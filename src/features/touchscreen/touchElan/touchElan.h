@@ -1,20 +1,15 @@
 /**
  **************************************************
- * @file        TouchElan.h
- * @brief       Touch screen functionality for panels that support touch
  *
- *              https://github.com/e-radionicacom/Inkplate-Arduino-library
- *              For support, please reach over forums: forum.e-radionica.com/en
- *              For more info about the product, please check: www.inkplate.io
+ * @file        touchElan.h
+ * @brief       Elan touchscreen controller interface,
+ *              used by 4TEMPERA and 6PLUS devices
  *
- *              This code is released under the GNU Lesser General Public
- *License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
- *LICENSE file included with this example. If you have any questions about
- *licensing, please contact techsupport@e-radionica.com Distributed as-is; no
- *warranty is given.
  *
- * @authors     @ Soldered
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
  ***************************************************/
+
 
 #ifndef __TOUCH_ELAN_H__
 #define __TOUCH_ELAN_H__

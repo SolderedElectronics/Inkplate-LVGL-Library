@@ -6,7 +6,7 @@
  *
  *
  * @copyright GNU General Public License v3.0
- * @authors     Zvonimir Haramustek for Soldered.com
+ * @authors     Zvonimir Haramustek @ Soldered.com
  ***************************************************/
 
 #ifdef ARDUINO_INKPLATE4TEMPERA

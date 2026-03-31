@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        custom_allocation_algorithm.h
+ * @brief       Custom memory allocation hooks used by LVGL
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #pragma once
 #include <stddef.h>
 #ifdef __cplusplus

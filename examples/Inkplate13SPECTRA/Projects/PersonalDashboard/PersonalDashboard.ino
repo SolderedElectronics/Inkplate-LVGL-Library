@@ -2,7 +2,7 @@
  **************************************************
  *
  * @file        PersonalDashboard.ino
- * @brief       A personal dashboard for Inkplate 13 SPECTRA showing live weather,
+ * @brief       A personal dashboard for Inkplate 13SPECTRA showing live weather,
  *              Google Calendar events, a random Pokemon, and a day/night cycle arc.
  *
  * SETUP:
@@ -15,7 +15,7 @@
  *
  * The board wakes from deep sleep every 30 minutes and refreshes all data.
  *
- * For info on how to quickly get started with Inkplate 13 SPECTRA visit
+ * For info on how to quickly get started with Inkplate 13SPECTRA visit
  * https://soldered.com/documentation/inkplate/13-spectra/overview/
  *
  * @authors     Soldered

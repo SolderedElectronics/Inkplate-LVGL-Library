@@ -2,14 +2,14 @@
  **************************************************
  *
  * @file        InternalExpander.ino
- * @brief       Example showing how to use the *internal* IO expander on Inkplate 5 V2
+ * @brief       Example showing how to use the *internal* IO expander on Inkplate 5V2
  *              to blink an LED on pin P1-7.
  *
- * For info on how to quickly get started with Inkplate 5 V2 visit
+ * For info on how to quickly get started with Inkplate 5V2 visit
  * https://soldered.com/documentation/inkplate/5/overview/
  * 
  * For this example you will need:
- *  - Inkplate 5 V2
+ *  - Inkplate 5V2
  *  - USB-C cable
  *  - 330 Ohm resistor
  *  - LED diode

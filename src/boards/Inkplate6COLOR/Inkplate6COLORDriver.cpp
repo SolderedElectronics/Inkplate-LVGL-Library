@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate6COLORDriver.cpp
+ * @brief       Low-level EPD driver implementation for Inkplate 6COLOR
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 // Header guard for the Arduino include
 #ifdef ARDUINO_INKPLATECOLOR
 #include "Inkplate6COLORDriver.h"
@@ -234,6 +245,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         memset(DMemory4Bit, INKPLATE_WHITE | (INKPLATE_WHITE << 4), E_INK_WIDTH * E_INK_HEIGHT / 2);
 
         lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
+        lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
         _beginDone = true;
     }
 
@@ -276,15 +288,32 @@ void EPDDriver::_renderReadyCb(lv_event_t *e)
     self->_renderReady = true;
 }
 
+/**
+ * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
+ *          If RENDER_READY was not set during this cycle, there were no dirty areas —
+ *          set _noRender so display() can exit without waiting for the full timeout.
+ */
+void EPDDriver::_refrReadyCb(lv_event_t *e)
+{
+    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
+    if (!self->_renderReady) {
+        self->_noRender = true;
+    }
+}
+
 void EPDDriver::display(bool _leaveOn)
 {
-    _renderReady = false; // Discard any render that completed before this call
+    // Reset the flag so we wait for the render that reflects the current UI state,
+    // not a stale render from before the user set up the screen content.
+    _renderReady = false;
+    _noRender    = false;
     uint32_t _renderTimeout = millis();
-    while (!_renderReady && (millis() - _renderTimeout) < 1000)
+    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
     {
         delay(1);
     }
     _renderReady = false;
+    _noRender    = false;
 
     // Wake the panel back up
     setPanelDeepSleep(false);
@@ -549,48 +578,48 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
 void EPDDriver::setIOExpanderForLowPower()
 {
     Wire.begin();
-    externalIO.begin(IO_INT_ADDR);
+    internalIO.begin(IO_INT_ADDR);
 
     // TOUCHPAD PINS
-    externalIO.pinMode(IO_PIN_B2, OUTPUT);
-    externalIO.pinMode(IO_PIN_B3, OUTPUT);
-    externalIO.pinMode(IO_PIN_B4, OUTPUT);
+    internalIO.pinMode(IO_PIN_B2, OUTPUT);
+    internalIO.pinMode(IO_PIN_B3, OUTPUT);
+    internalIO.pinMode(IO_PIN_B4, OUTPUT);
 
-    externalIO.digitalWrite(IO_PIN_B2, LOW);
-    externalIO.digitalWrite(IO_PIN_B3, LOW);
-    externalIO.digitalWrite(IO_PIN_B4, LOW);
+    internalIO.digitalWrite(IO_PIN_B2, LOW);
+    internalIO.digitalWrite(IO_PIN_B3, LOW);
+    internalIO.digitalWrite(IO_PIN_B4, LOW);
 
     // Battery voltage Switch MOSFET
-    externalIO.pinMode(IO_PIN_B1, OUTPUT);
-    externalIO.digitalWrite(IO_PIN_B1, LOW);
+    internalIO.pinMode(IO_PIN_B1, OUTPUT);
+    internalIO.digitalWrite(IO_PIN_B1, LOW);
 
     // Rest of pins go to OUTPUT LOW state because in deepSleep mode they are
     // using least amount of power
-    externalIO.pinMode(IO_PIN_A0, OUTPUT);
-    externalIO.pinMode(IO_PIN_A1, OUTPUT);
-    externalIO.pinMode(IO_PIN_A2, OUTPUT);
-    externalIO.pinMode(IO_PIN_A3, OUTPUT);
-    externalIO.pinMode(IO_PIN_A4, OUTPUT);
-    externalIO.pinMode(IO_PIN_A5, OUTPUT);
-    externalIO.pinMode(IO_PIN_A6, OUTPUT);
-    externalIO.pinMode(IO_PIN_A7, OUTPUT);
-    externalIO.pinMode(IO_PIN_B0, OUTPUT);
-    externalIO.pinMode(IO_PIN_B5, OUTPUT);
-    externalIO.pinMode(IO_PIN_B6, OUTPUT);
-    externalIO.pinMode(IO_PIN_B7, OUTPUT);
+    internalIO.pinMode(IO_PIN_A0, OUTPUT);
+    internalIO.pinMode(IO_PIN_A1, OUTPUT);
+    internalIO.pinMode(IO_PIN_A2, OUTPUT);
+    internalIO.pinMode(IO_PIN_A3, OUTPUT);
+    internalIO.pinMode(IO_PIN_A4, OUTPUT);
+    internalIO.pinMode(IO_PIN_A5, OUTPUT);
+    internalIO.pinMode(IO_PIN_A6, OUTPUT);
+    internalIO.pinMode(IO_PIN_A7, OUTPUT);
+    internalIO.pinMode(IO_PIN_B0, OUTPUT);
+    internalIO.pinMode(IO_PIN_B5, OUTPUT);
+    internalIO.pinMode(IO_PIN_B6, OUTPUT);
+    internalIO.pinMode(IO_PIN_B7, OUTPUT);
 
-    externalIO.digitalWrite(IO_PIN_A0, LOW);
-    externalIO.digitalWrite(IO_PIN_A1, LOW);
-    externalIO.digitalWrite(IO_PIN_A2, LOW);
-    externalIO.digitalWrite(IO_PIN_A3, LOW);
-    externalIO.digitalWrite(IO_PIN_A4, LOW);
-    externalIO.digitalWrite(IO_PIN_A5, LOW);
-    externalIO.digitalWrite(IO_PIN_A6, LOW);
-    externalIO.digitalWrite(IO_PIN_A7, LOW);
-    externalIO.digitalWrite(IO_PIN_B0, LOW);
-    externalIO.digitalWrite(IO_PIN_B5, LOW);
-    externalIO.digitalWrite(IO_PIN_B6, LOW);
-    externalIO.digitalWrite(IO_PIN_B7, LOW);
+    internalIO.digitalWrite(IO_PIN_A0, LOW);
+    internalIO.digitalWrite(IO_PIN_A1, LOW);
+    internalIO.digitalWrite(IO_PIN_A2, LOW);
+    internalIO.digitalWrite(IO_PIN_A3, LOW);
+    internalIO.digitalWrite(IO_PIN_A4, LOW);
+    internalIO.digitalWrite(IO_PIN_A5, LOW);
+    internalIO.digitalWrite(IO_PIN_A6, LOW);
+    internalIO.digitalWrite(IO_PIN_A7, LOW);
+    internalIO.digitalWrite(IO_PIN_B0, LOW);
+    internalIO.digitalWrite(IO_PIN_B5, LOW);
+    internalIO.digitalWrite(IO_PIN_B6, LOW);
+    internalIO.digitalWrite(IO_PIN_B7, LOW);
 }
 
 
@@ -601,8 +630,8 @@ void EPDDriver::setIOExpanderForLowPower()
  */
 int16_t EPDDriver::sdCardInit()
 {
-    externalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    externalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
+    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
@@ -621,7 +650,7 @@ void EPDDriver::sdCardSleep()
     pinMode(15, INPUT);
 
     // And also disable uSD card supply
-    externalIO.pinMode(SD_PMOS_PIN, INPUT);
+    internalIO.pinMode(SD_PMOS_PIN, INPUT);
 }
 
 /**
@@ -676,19 +705,19 @@ double EPDDriver::readBattery()
 {
     // Read the pin on the battery MOSFET. If is high, that means is older version of the board
     // that uses PMOS only. If it's low, newer board with both PMOS and NMOS.
-    externalIO.pinMode(9, INPUT);
-    int state = externalIO.digitalRead(9);
-    externalIO.pinMode(9, OUTPUT);
+    internalIO.pinMode(9, INPUT);
+    int state = internalIO.digitalRead(9);
+    internalIO.pinMode(9, OUTPUT);
 
     // If the input is pulled high, it's PMOS only.
     // If it's pulled low, it's PMOS and NMOS.
     if (state)
     {
-        externalIO.digitalWrite(9, LOW);
+        internalIO.digitalWrite(9, LOW);
     }
     else
     {
-        externalIO.digitalWrite(9, HIGH);
+        internalIO.digitalWrite(9, HIGH);
     }
 
     // Wait a little bit after a MOSFET enable.
@@ -701,11 +730,11 @@ double EPDDriver::readBattery()
     // Turn off the MOSFET (and voltage divider).
     if (state)
     {
-        externalIO.digitalWrite(9, HIGH);
+        internalIO.digitalWrite(9, HIGH);
     }
     else
     {
-        externalIO.digitalWrite(9, LOW);
+        internalIO.digitalWrite(9, LOW);
     }
 
     // Calculate the voltage at the battery terminal (voltage is divided in half by voltage divider).

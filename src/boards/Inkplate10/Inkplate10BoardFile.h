@@ -7,7 +7,7 @@
  *
  *
  * @copyright   GNU General Public License v3.0
- * @authors     Borna Biro for soldered.com
+ * @authors     Josip Šimun Kuči @ Soldered
  ***************************************************/
 
 // Header guard.

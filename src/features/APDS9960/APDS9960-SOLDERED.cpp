@@ -6,7 +6,7 @@
  *
  *
  * @copyright GNU General Public License v3.0
- * @authors     Zvonimir Haramustek for soldered.com
+ * @authors     Zvonimir Haramustek @ Soldered.com
  ***************************************************/
 
 

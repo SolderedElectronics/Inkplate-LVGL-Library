@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        waveforms.h
+ * @brief       EPD waveform lookup tables for Inkplate 5V2
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifdef ARDUINO_INKPLATE5V2
 #ifndef __WAVEFROMS_INKPLATE_5V2_H__
 #define __WAVEFROMS_INKPLATE_5V2_H__

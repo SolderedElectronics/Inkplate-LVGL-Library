@@ -1,3 +1,14 @@
+/**
+ **************************************************
+ *
+ * @file        Inkplate6COLORDriver.h
+ * @brief       Low-level EPD driver class definition for Inkplate 6COLOR
+ *
+ *
+ * @copyright   GNU General Public License v3.0
+ * @authors     Soldered
+ ***************************************************/
+
 #ifndef __INKPLATE6COLORDRIVER_H__
 #define __INKPLATE6COLORDRIVER_H__
 
@@ -55,7 +66,7 @@ class EPDDriver
     void clean();
 
 
-    IOExpander externalIO;
+    IOExpander internalIO;
 
     uint8_t _beginDone = 0;
     uint8_t _displayMode;
@@ -82,7 +93,9 @@ class EPDDriver
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
     volatile bool _renderReady = false;
+    volatile bool _noRender    = false;
     static void _renderReadyCb(lv_event_t *e);
+    static void _refrReadyCb(lv_event_t *e);
 
     // Color palette of the 6COLOR screen.
     uint16_t _paletteIdeal[7] = {0x0000, 0xFFFF, 0x07E0, 0x001F, 0xF800, 0xFFE0, 0xFBE0};
