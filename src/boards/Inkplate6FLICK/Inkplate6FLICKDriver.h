@@ -46,7 +46,7 @@
 class Inkplate;
 
 
-class EPDDriver : public Esp
+class EPDDriver : public UtilI2S
 {
   public:
     int initDriver(Inkplate *_inkplatePtr);
