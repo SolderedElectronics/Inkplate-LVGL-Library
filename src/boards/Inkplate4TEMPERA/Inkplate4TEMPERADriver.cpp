@@ -194,7 +194,6 @@ void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
 }
 
 
-
 /**
  * @brief       begin function initialize Inkplate object with predefined
  * settings
