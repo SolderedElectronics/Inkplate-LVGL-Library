@@ -33,12 +33,12 @@ void setup()
 {
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtc.Reset();
+    inkplate.rtcreset();
 
     // Set initial time: 14:30:00
-    inkplate.rtc.SetTime(14, 30, 0);
+    inkplate.rtc.setTime(14, 30, 0);
     // Wednesday, 12.11.2025
-    inkplate.rtc.SetDate(3, 12, 11, 2025);
+    inkplate.rtc.setDate(3, 12, 11, 2025);
 
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 
@@ -69,7 +69,7 @@ void loop()
 
 void updateTimeLabel(lv_obj_t *label)
 {
-    inkplate.rtc.GetRtcData();
+    inkplate.rtc.getRtcData();
 
     const char *wdayNames[] = {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -77,9 +77,9 @@ void updateTimeLabel(lv_obj_t *label)
     char timeText[128];
     snprintf(timeText, sizeof(timeText),
              "%02d:%02d:%02d\n%s, %02d/%02d/%04d",
-             inkplate.rtc.GetHour(), inkplate.rtc.GetMinute(), inkplate.rtc.GetSecond(),
-             wdayNames[inkplate.rtc.GetWeekday()],
-             inkplate.rtc.GetDay(), inkplate.rtc.GetMonth(), inkplate.rtc.GetYear());
+             inkplate.rtc.getHour(), inkplate.rtc.getMinute(), inkplate.rtc.getSecond(),
+             wdayNames[inkplate.rtc.getWeekday()],
+             inkplate.rtc.getDay(), inkplate.rtc.getMonth(), inkplate.rtc.getYear());
 
     lv_label_set_text(label, timeText);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);

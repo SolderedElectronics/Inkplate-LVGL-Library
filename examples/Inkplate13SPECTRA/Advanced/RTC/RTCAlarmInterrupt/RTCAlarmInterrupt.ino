@@ -43,11 +43,11 @@ void setup()
 
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtc.Reset();
+    inkplate.rtcreset();
 
     // Set RTC to a known epoch and set an alarm 60s later
-    inkplate.rtc.SetEpoch(1762957188);
-    inkplate.rtc.SetAlarmEpoch(inkplate.rtc.GetEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
+    inkplate.rtc.setEpoch(1762957188);
+    inkplate.rtc.setAlarmEpoch(inkplate.rtc.getEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
 
     // Attach interrupt on GPIO 18 (RTC INT, active low)
     attachInterrupt(18, alarmISR, FALLING);
@@ -91,7 +91,7 @@ void loop()
 
 void updateTimeLabel(lv_obj_t *timeLabel, lv_obj_t *alarmLabel)
 {
-    inkplate.rtc.GetRtcData();
+    inkplate.rtc.getRtcData();
 
     const char *wdayNames[] = {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -99,9 +99,9 @@ void updateTimeLabel(lv_obj_t *timeLabel, lv_obj_t *alarmLabel)
     char timeText[128];
     snprintf(timeText, sizeof(timeText),
              "%02d:%02d:%02d\n%s, %02d/%02d/%04d",
-             inkplate.rtc.GetHour(), inkplate.rtc.GetMinute(), inkplate.rtc.GetSecond(),
-             wdayNames[inkplate.rtc.GetWeekday()],
-             inkplate.rtc.GetDay(), inkplate.rtc.GetMonth(), inkplate.rtc.GetYear());
+             inkplate.rtc.getHour(), inkplate.rtc.getMinute(), inkplate.rtc.getSecond(),
+             wdayNames[inkplate.rtc.getWeekday()],
+             inkplate.rtc.getDay(), inkplate.rtc.getMonth(), inkplate.rtc.getYear());
 
     lv_label_set_text(timeLabel, timeText);
     lv_obj_align(timeLabel, LV_ALIGN_CENTER, 0, -30);
@@ -109,7 +109,7 @@ void updateTimeLabel(lv_obj_t *timeLabel, lv_obj_t *alarmLabel)
     if (alarmFlag)
     {
         alarmFlag = false;
-        inkplate.rtc.ClearAlarmFlag();
+        inkplate.rtc.clearAlarmFlag();
         lv_label_set_text(alarmLabel, "ALARM!");
     }
     else

@@ -36,12 +36,12 @@ void setup()
     // Initialize Inkplate and LVGL in FULL render mode
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtc.ClearAlarmFlag();
+    inkplate.rtc.clearAlarmFlag();
 
-    if (!inkplate.rtc.IsSet())
+    if (!inkplate.rtc.isSet())
     {
-        inkplate.rtc.SetTime(13, 30, 0);      // 13:30:00
-        inkplate.rtc.SetDate(3, 12, 11, 2025); // Wednesday, 12.11.2025
+        inkplate.rtc.setTime(13, 30, 0);      // 13:30:00
+        inkplate.rtc.setDate(3, 12, 11, 2025); // Wednesday, 12.11.2025
     }
 
     // Build time string and display it
@@ -63,7 +63,7 @@ void setup()
     inkplate.display();
 
     // Set RTC alarm to trigger after 60 seconds
-    inkplate.rtc.SetAlarmEpoch(inkplate.rtc.GetEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
+    inkplate.rtc.setAlarmEpoch(inkplate.rtc.getEpoch() + 60, RTC_ALARM_MATCH_DHHMMSS);
 
     // Enable wake-up on GPIO 18 (RTC interrupt, active low)
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_18, 0);
@@ -78,18 +78,18 @@ void loop()
 // Build formatted time string into global 'timeText' buffer
 void buildCurrentTimeString()
 {
-    inkplate.rtc.GetRtcData();
+    inkplate.rtc.getRtcData();
 
     const char *weekdayNames[] = {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-    uint8_t wd     = inkplate.rtc.GetWeekday();
-    uint8_t day    = inkplate.rtc.GetDay();
-    uint8_t month  = inkplate.rtc.GetMonth();
-    uint16_t year  = inkplate.rtc.GetYear();
-    uint8_t hour   = inkplate.rtc.GetHour();
-    uint8_t minute = inkplate.rtc.GetMinute();
-    uint8_t second = inkplate.rtc.GetSecond();
+    uint8_t wd     = inkplate.rtc.getWeekday();
+    uint8_t day    = inkplate.rtc.getDay();
+    uint8_t month  = inkplate.rtc.getMonth();
+    uint16_t year  = inkplate.rtc.getYear();
+    uint8_t hour   = inkplate.rtc.getHour();
+    uint8_t minute = inkplate.rtc.getMinute();
+    uint8_t second = inkplate.rtc.getSecond();
 
     snprintf(timeText, sizeof(timeText),
              "%s, %02d.%02d.%04d\n%02d:%02d:%02d",

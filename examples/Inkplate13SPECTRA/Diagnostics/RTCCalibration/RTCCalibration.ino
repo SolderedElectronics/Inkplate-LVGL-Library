@@ -70,12 +70,12 @@ void setup()
     pinMode(GPIO_NUM_18, INPUT);
 
     // Set internal RTC capacitor (12.5 pF recommended)
-    inkplate.rtc.SetInternalCapacitor(RTC_12_5PF);
+    inkplate.rtc.setInternalCapacitor(RTC_12_5PF);
 
     // Set RTC frequency offset
     // Mode 1 (course): offset every 4 minutes, 4.069 ppm per LSB, range -64 to +63
     // Mode 0 (normal): offset every 2 hours,  4.34  ppm per LSB, range -64 to +63
-    inkplate.rtc.SetClockOffset(1, -63);
+    inkplate.rtc.setClockOffset(1, -63);
 
     Serial.println("Press the wake-up button to start RTC");
 
@@ -89,7 +89,7 @@ void setup()
     }
 
     // Initialize RTC time
-    inkplate.rtc.SetTime(hours, minutes, seconds);
+    inkplate.rtc.setTime(hours, minutes, seconds);
 
     setLabel("RTC started.\n"
              "Tracking time...\n"
@@ -101,11 +101,11 @@ void loop()
     // Print new time every second
     if (millis() - time1 > REFRESH_DELAY)
     {
-        inkplate.rtc.GetRtcData();
+        inkplate.rtc.getRtcData();
 
-        seconds = inkplate.rtc.GetSecond();
-        minutes = inkplate.rtc.GetMinute();
-        hours   = inkplate.rtc.GetHour();
+        seconds = inkplate.rtc.getSecond();
+        minutes = inkplate.rtc.getMinute();
+        hours   = inkplate.rtc.getHour();
 
         Serial.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
 
