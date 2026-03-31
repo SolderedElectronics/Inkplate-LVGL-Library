@@ -1,0 +1,124 @@
+/**
+ **************************************************
+ *
+ * @file        SimpleTouchscreen.ino
+ * @brief       This example shows you how to use Inkplate4TEMPERA touchscreen.
+ *              Once the code is uploaded, try to touch the rectangles on the screen :)
+ *
+ * For info on how to quickly get started with Inkplate4TEMPERA visit https://soldered.com/documentation/inkplate/6flick/overview/
+ *
+ * @authors     Soldered
+ * @date        November 2025
+ ***************************************************/
+
+// Include the Inkplate LVGL Library
+#include <Inkplate-LVGL.h>
+
+// Create an instance of Inkplate display in 1-bit mode (change to INKPLATE_3BIT if you want grayscale)
+Inkplate inkplate(INKPLATE_1BIT);
+
+// Initialize global lvgl rectangle object
+static lv_obj_t *rect = NULL;
+
+// Touch detect flag
+bool isRectangleClicked = false;
+
+// Rectangle coordinates
+int x_position = 50;
+int y_position = 50;
+
+static void btn_event_cb(lv_event_t *e)
+{
+    // Get the event code
+    lv_event_code_t code = lv_event_get_code(e);
+
+    // If click event detected, update the position
+    if (code == LV_EVENT_CLICKED) 
+    {
+        if (rect)
+        {
+            // Update coordinates
+            x_position += 100;
+            y_position += 100;
+            
+            if (y_position < 600) 
+            {
+                // Set new position of an object
+                lv_obj_set_pos(rect, x_position, y_position);
+                // Mark the object to redraw it in next refresh
+                lv_obj_invalidate(rect);
+                isRectangleClicked = true;
+            }
+            else
+            {
+                x_position = 50;
+                y_position = 50;
+            }
+        }
+    }
+}
+
+void setup()
+{
+    Serial.begin(115200);
+    Serial.println("Inkplate 6 FLICK Touchscreen Example.");
+
+    inkplate.begin(LV_DISPLAY_RENDER_MODE_PARTIAL);
+
+    if (inkplate.touchscreen.init(true))
+    {
+        Serial.println("Touchscreen initialized.");
+    }
+    else
+    {
+        Serial.println("Touchscreen initialization failed.");
+        while (true);
+    }
+
+    /* Create a black label, set its text and font and align it to the center */
+    lv_obj_t *label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "Touch the rectangles on screen!");
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_text_font(label,  &lv_font_montserrat_20, 0);
+    lv_obj_center(label);
+
+    // Render text on screen
+    lv_timer_handler();
+    inkplate.display();
+
+    // Wait for 2 seconds
+    delay(2000);
+    
+    // Delete the label object and clear the display
+    lv_obj_del(label);
+    label = NULL;
+    inkplate.clearDisplay();
+    
+    /* Create a black rectangle and add a callback event function to it */
+    rect = lv_obj_create(lv_scr_act());
+    lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);
+    lv_obj_set_size(rect, 100, 50);
+    lv_obj_set_pos(rect, x_position, y_position);
+
+    // Add event callback function
+    lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
+
+    // Force initial render
+    for (int i = 0; i < 5; i++) 
+    {
+        lv_timer_handler();
+        delay(10);
+    }
+
+    // Display content from buffer
+    inkplate.display();
+}
+
+void loop()
+{
+    if (isRectangleClicked)
+    {
+        inkplate.partialUpdate(0, 1);
+        isRectangleClicked = false;
+    }
+}

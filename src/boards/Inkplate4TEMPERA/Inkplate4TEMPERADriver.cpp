@@ -182,7 +182,6 @@ void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
 }
 
 
-
 /**
  * @brief       begin function initialize Inkplate object with predefined
  * settings
@@ -220,8 +219,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev, touchscreen_read);
 
-    Serial.println("Touch callback init done");
-
 
     if (!initializeFramebuffers())
     {
@@ -242,7 +239,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
     _beginDone = 1;
 
-    Serial.println("Begin done");
     return 1;
 }
 
