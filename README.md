@@ -1,6 +1,7 @@
 # Soldered Inkplate LVGL library
 
-[![Compile Sketches](https://github.com/e-radionicacom/Inkplate-Arduino-library/actions/workflows/compile.yml/badge.svg?branch=master)](https://github.com/e-radionicacom/Inkplate-Arduino-library/actions/workflows/compile.yml)
+[![Compile Examples](https://github.com/SolderedElectronics/Inkplate-LVGL-Library/actions/workflows/compile.yml/badge.svg)](https://github.com/SolderedElectronics/Inkplate-LVGL-Library/actions/workflows/compile.yml)
+[![Arduino Library Manager Compatibility](https://github.com/SolderedElectronics/Inkplate-LVGL-Library/actions/workflows/arduinoCompatibility.yml/badge.svg)](https://github.com/SolderedElectronics/Inkplate-LVGL-Library/actions/workflows/arduinoCompatibility.yml)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Arduino-library/master/extras/InkplateImage.jpg">
