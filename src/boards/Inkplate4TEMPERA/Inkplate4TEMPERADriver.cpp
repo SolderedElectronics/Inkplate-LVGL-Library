@@ -151,8 +151,7 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                     int x_byte = epd_x / 8;
                     int x_sub = epd_x % 8;
                     uint8_t temp = buffer1b[width_bytes_1b * epd_y + x_byte];
-                    buffer1b[width_bytes_1b * epd_y + x_byte] =
-                        (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
+                    buffer1b[width_bytes_1b * epd_y + x_byte] = (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
                 }
             }
         }
