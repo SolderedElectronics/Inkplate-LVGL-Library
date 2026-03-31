@@ -196,11 +196,11 @@ void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
     Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
     if (self->touchscreen.available())
     {
-        uint16_t x, y;
-        self->touchscreen.getData(&x, &y);
+        uint16_t x[2], y[2];
+        self->touchscreen.getData(x, y);
         data->state = LV_INDEV_STATE_PRESSED;
-        data->point.x = x;
-        data->point.y = y;
+        data->point.x = x[0];
+        data->point.y = y[0];
     }
     else
     {

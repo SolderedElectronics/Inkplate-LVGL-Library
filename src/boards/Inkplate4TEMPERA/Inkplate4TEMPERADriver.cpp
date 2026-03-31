@@ -123,48 +123,36 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
         for (int32_t y = 0; y < h; y++)
         {
-            int32_t screen_y = area->y1 + y;
+            int32_t lv_y = area->y1 + y;
             const uint8_t *src_row = px_map + (y * w);
 
-            if (is3bit)
+            for (int32_t x = 0; x < w; x++)
             {
-                uint8_t *dst_row = buffer3b + (width_bytes_3b * screen_y);
+                int32_t lv_x = area->x1 + x;
 
-                for (int32_t x = 0; x < w; x++)
+                // 90° CW rotation: map LVGL (lv_x, lv_y) → EPD (epd_x, epd_y)
+                int32_t epd_x = (E_INK_HEIGHT - 1) - lv_y;
+                int32_t epd_y = lv_x;
+
+                uint8_t gray = src_row[x];
+
+                if (is3bit)
                 {
-                    int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH)
-                        break;
-
-                    uint8_t gray3 = src_row[x] >> 5;
-                    int x_byte = screen_x / 2;
-                    int x_sub = screen_x % 2;
-
-                    uint8_t temp = dst_row[x_byte];
-                    uint8_t newv = (maskGLUT[x_sub] & temp) | (x_sub ? gray3 : (gray3 << 4));
-
-                    dst_row[x_byte] = newv;
+                    uint8_t gray3 = gray >> 5;
+                    int x_byte = epd_x / 2;
+                    int x_sub = epd_x % 2;
+                    uint8_t temp = buffer3b[width_bytes_3b * epd_y + x_byte];
+                    buffer3b[width_bytes_3b * epd_y + x_byte] =
+                        (maskGLUT[x_sub] & temp) | (x_sub ? gray3 : (gray3 << 4));
                 }
-            }
-            else
-            {
-                uint8_t *dst_row = buffer1b + (width_bytes_1b * screen_y);
-
-                for (int32_t x = 0; x < w; x++)
+                else
                 {
-                    int32_t screen_x = area->x1 + x;
-                    if (screen_x >= E_INK_WIDTH)
-                        break;
-
-                    uint8_t gray = src_row[x];
                     uint8_t bit = (gray < 128) ? 1 : 0;
-
-                    int x_byte = screen_x / 8;
-                    int x_sub = screen_x % 8;
-
-                    uint8_t temp = dst_row[x_byte];
-                    // Preserve other bits using original mask logic
-                    dst_row[x_byte] = (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
+                    int x_byte = epd_x / 8;
+                    int x_sub = epd_x % 8;
+                    uint8_t temp = buffer1b[width_bytes_1b * epd_y + x_byte];
+                    buffer1b[width_bytes_1b * epd_y + x_byte] =
+                        (~maskLUT[x_sub] & temp) | (bit ? maskLUT[x_sub] : 0);
                 }
             }
         }
@@ -173,6 +161,26 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     lv_display_flush_ready(disp);
 }
+
+// Touchscreen read callback
+void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
+{
+    lv_display_t *disp = (lv_display_t *)lv_indev_get_display(indev);
+    Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
+    if (self->touchscreen.available())
+    {
+        uint16_t x[2], y[2];
+        self->touchscreen.getData(x, y);
+        data->state = LV_INDEV_STATE_PRESSED;
+        data->point.x = x[0];
+        data->point.y = y[0];
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+}
+
 
 
 /**
@@ -208,6 +216,12 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // Block using pins connected to the panel by the user
     blockGpioPins();
 
+    lv_indev_t *indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, touchscreen_read);
+
+    Serial.println("Touch callback init done");
+
 
     if (!initializeFramebuffers())
     {
@@ -227,6 +241,8 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
     lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
     _beginDone = 1;
+
+    Serial.println("Begin done");
     return 1;
 }
 

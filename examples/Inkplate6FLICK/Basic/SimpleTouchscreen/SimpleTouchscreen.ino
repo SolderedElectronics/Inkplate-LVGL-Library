@@ -82,18 +82,17 @@ void setup()
     lv_obj_set_style_text_font(label,  &lv_font_montserrat_48, 0);
     lv_obj_center(label);
 
-    // Render text on screen
-    lv_timer_handler();
+    // Display text on screen
     inkplate.display();
 
     // Wait for 2 seconds
     delay(2000);
-    
+
     // Delete the label object and clear the display
     lv_obj_del(label);
     label = NULL;
     inkplate.clearDisplay();
-    
+
     /* Create a black rectangle and add a callback event function to it */
     rect = lv_obj_create(lv_scr_act());
     lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);
@@ -102,13 +101,6 @@ void setup()
 
     // Add event callback function
     lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
-
-    // Force initial render
-    for (int i = 0; i < 5; i++) 
-    {
-        lv_timer_handler();
-        delay(10);
-    }
 
     // Display content from buffer
     inkplate.display();

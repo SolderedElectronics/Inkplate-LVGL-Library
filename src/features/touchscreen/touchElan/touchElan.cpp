@@ -268,6 +268,9 @@ uint8_t Touch::getData(uint16_t *xPos, uint16_t *yPos)
             fingers++;
     }
 
+    if (_tsXResolution == 0 || _tsYResolution == 0)
+        return fingers;
+
     for (int i = 0; i < 2; i++)
     {
         tsGetXY((_raw + 1) + (i * 3), &xRaw[i], &yRaw[i]);
@@ -397,16 +400,32 @@ void Touch::power(bool _pwr)
 {
     if (_pwr)
     {
+#ifdef ARDUINO_INKPLATE4TEMPERA
+        _inkplate->externalIO.digitalWrite(TOUCHSCREEN_EN, LOW);
+#else
         _inkplate->internalIO.digitalWrite(TOUCHSCREEN_EN, LOW);
+#endif
         delay(50);
+#ifdef ARDUINO_INKPLATE4TEMPERA
+        _inkplate->externalIO.digitalWrite(TOUCHSCREEN_RST, HIGH);
+#else
         _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, HIGH);
+#endif
         delay(50);
     }
     else
     {
+#ifdef ARDUINO_INKPLATE4TEMPERA
+        _inkplate->externalIO.digitalWrite(TOUCHSCREEN_EN, HIGH);
+#else
         _inkplate->internalIO.digitalWrite(TOUCHSCREEN_EN, HIGH);
+#endif
         delay(50);
+#ifdef ARDUINO_INKPLATE4TEMPERA
+        _inkplate->externalIO.digitalWrite(TOUCHSCREEN_RST, LOW);
+#else
         _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, LOW);
+#endif
     }
 }
 
