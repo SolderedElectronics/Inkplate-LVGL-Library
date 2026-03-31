@@ -189,7 +189,21 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 }
 
 
-// Touchscreen read callback
+/**
+ * @brief       touchscreen_read is the LVGL input-device callback for the Cypress
+ *              capacitive touchscreen. Called by lv_timer_handler() on every LVGL
+ *              tick to report the current touch state to the LVGL input system.
+ *
+ * @param       lv_indev_t *indev
+ *              Pointer to the LVGL input device registered for this touchscreen.
+ *
+ * @param       lv_indev_data_t *data
+ *              Pointer to the LVGL input data structure to be filled in.
+ *              data->state is set to LV_INDEV_STATE_PRESSED when a touch is
+ *              detected and LV_INDEV_STATE_RELEASED otherwise.
+ *              data->point.x and data->point.y are set to the first touch
+ *              contact position in screen coordinates.
+ */
 void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     lv_display_t *disp = (lv_display_t *)lv_indev_get_display(indev);
