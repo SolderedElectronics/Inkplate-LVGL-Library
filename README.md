@@ -82,10 +82,10 @@ Inkplate-LVGL-Library/
    |      |      |      +--- pins.h
    |      |      |      `--- waveforms.h
    |      |      |
-   |      |      `--- Inkplate13/
-   |      |             +--- Inkplate13BoardFile.h
-   |      |             +--- Inkplate13Driver.cpp
-   |      |             +--- Inkplate13Driver.h
+   |      |      `--- Inkplate13SPECTRA/
+   |      |             +--- Inkplate13SPECTRABoardFile.h
+   |      |             +--- Inkplate13SPECTRADriver.cpp
+   |      |             +--- Inkplate13SPECTRADriver.h
    |      |             `--- pins.h
    |      |
    |      +--- features/               <-- Optional on-board peripherals
