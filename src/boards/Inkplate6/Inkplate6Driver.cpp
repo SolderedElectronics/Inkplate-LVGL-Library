@@ -380,7 +380,8 @@ void EPDDriver::_renderReadyCb(lv_event_t *e)
 void EPDDriver::_refrReadyCb(lv_event_t *e)
 {
     EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    if (!self->_renderReady) {
+    if (!self->_renderReady)
+    {
         self->_noRender = true;
     }
 }
@@ -390,14 +391,14 @@ void EPDDriver::display(bool _leaveOn)
     // Reset the flag so we wait for the render that reflects the current UI state,
     // not a stale render from before the user set up the screen content.
     _renderReady = false;
-    _noRender    = false;
+    _noRender = false;
     uint32_t _renderTimeout = millis();
     while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
     {
         delay(1);
     }
     _renderReady = false;
-    _noRender    = false;
+    _noRender = false;
 
     if (_displayMode == 0)
     {

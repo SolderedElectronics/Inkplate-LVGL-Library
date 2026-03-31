@@ -224,7 +224,6 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 #ifndef ARDUINO_INKPLATE2
     lv_fs_init_sd(this);
 #endif
-
 }
 
 /**
