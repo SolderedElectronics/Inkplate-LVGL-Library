@@ -33,7 +33,7 @@ void setup()
 {
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtcreset();
+    inkplate.rtc.reset();
 
     // Set initial time: 14:30:00
     inkplate.rtc.setTime(14, 30, 0);

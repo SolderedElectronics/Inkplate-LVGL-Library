@@ -35,7 +35,7 @@ void setup()
 {
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtcreset();
+    inkplate.rtc.reset();
 
     // RTC INT pin on GPIO 18 on Inkplate 13SPECTRA
     pinMode(18, INPUT_PULLUP);

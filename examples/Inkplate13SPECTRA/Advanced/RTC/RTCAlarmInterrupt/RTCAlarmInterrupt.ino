@@ -43,7 +43,7 @@ void setup()
 
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
     inkplate.enableDithering(true);
-    inkplate.rtcreset();
+    inkplate.rtc.reset();
 
     // Set RTC to a known epoch and set an alarm 60s later
     inkplate.rtc.setEpoch(1762957188);
