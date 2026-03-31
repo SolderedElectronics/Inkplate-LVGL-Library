@@ -63,56 +63,56 @@
 #define WAKEUP 3
 #define WAKEUP_SET                                                                                                     \
     {                                                                                                                  \
-        expander1.digitalWrite(WAKEUP, HIGH, true);                                                                   \
+        expander1.digitalWrite(WAKEUP, HIGH, true);                                                                    \
     }
 #define WAKEUP_CLEAR                                                                                                   \
     {                                                                                                                  \
-        expander1.digitalWrite(WAKEUP, LOW, true);                                                                    \
+        expander1.digitalWrite(WAKEUP, LOW, true);                                                                     \
     }
 #define PWRUP 4
 #define PWRUP_SET                                                                                                      \
     {                                                                                                                  \
-        expander1.digitalWrite(PWRUP, HIGH, true);                                                                    \
+        expander1.digitalWrite(PWRUP, HIGH, true);                                                                     \
     }
 #define PWRUP_CLEAR                                                                                                    \
     {                                                                                                                  \
-        expander1.digitalWrite(PWRUP, LOW, true);                                                                     \
+        expander1.digitalWrite(PWRUP, LOW, true);                                                                      \
     }
 #define VCOM 5
 #define VCOM_SET                                                                                                       \
     {                                                                                                                  \
-        expander1.digitalWrite(VCOM, HIGH, true);                                                                     \
+        expander1.digitalWrite(VCOM, HIGH, true);                                                                      \
     }
 #define VCOM_CLEAR                                                                                                     \
     {                                                                                                                  \
-        expander1.digitalWrite(VCOM, LOW, true);                                                                      \
+        expander1.digitalWrite(VCOM, LOW, true);                                                                       \
     }
 #define OE 0
 #define OE_SET                                                                                                         \
     {                                                                                                                  \
-        expander1.digitalWrite(OE, HIGH, true);                                                                       \
+        expander1.digitalWrite(OE, HIGH, true);                                                                        \
     }
 #define OE_CLEAR                                                                                                       \
     {                                                                                                                  \
-        expander1.digitalWrite(OE, LOW, true);                                                                        \
+        expander1.digitalWrite(OE, LOW, true);                                                                         \
     }
 #define GMOD 1
 #define GMOD_SET                                                                                                       \
     {                                                                                                                  \
-        expander1.digitalWrite(GMOD, HIGH, true);                                                                     \
+        expander1.digitalWrite(GMOD, HIGH, true);                                                                      \
     }
 #define GMOD_CLEAR                                                                                                     \
     {                                                                                                                  \
-        expander1.digitalWrite(GMOD, LOW, true);                                                                      \
+        expander1.digitalWrite(GMOD, LOW, true);                                                                       \
     }
 #define SPV 2
 #define SPV_SET                                                                                                        \
     {                                                                                                                  \
-        expander1.digitalWrite(SPV, HIGH, true);                                                                      \
+        expander1.digitalWrite(SPV, HIGH, true);                                                                       \
     }
 #define SPV_CLEAR                                                                                                      \
     {                                                                                                                  \
-        expander1.digitalWrite(SPV, LOW, true);                                                                       \
+        expander1.digitalWrite(SPV, LOW, true);                                                                        \
     }
 #define CL 0x01
 #define CL_SET                                                                                                         \
