@@ -66,7 +66,7 @@ class EPDDriver
     void clean();
 
 
-    IOExpander internalIO;
+    IOExpander expander1;
 
     uint8_t _beginDone = 0;
     uint8_t _displayMode;

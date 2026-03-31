@@ -72,16 +72,16 @@ void setup()
 
     // Set P1-7 (GPB7) as output on the *internal* IO expander
     // Only pins 9–15 are safe to use on the internal expander.
-    inkplate.internalIO.pinMode(LED_PIN, OUTPUT);
+    inkplate.expander1.pinMode(LED_PIN, OUTPUT);
 }
 
 void loop()
 {
     // Set output to LOW (LED off)
-    inkplate.internalIO.digitalWrite(LED_PIN, LOW);
+    inkplate.expander1.digitalWrite(LED_PIN, LOW);
     delay(1000); // Wait for one second
 
     // Set output to HIGH (LED on)
-    inkplate.internalIO.digitalWrite(LED_PIN, HIGH);
+    inkplate.expander1.digitalWrite(LED_PIN, HIGH);
     delay(1000); // Wait for one second
 }

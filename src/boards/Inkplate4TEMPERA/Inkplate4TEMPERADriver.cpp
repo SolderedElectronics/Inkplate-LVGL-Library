@@ -811,9 +811,9 @@ void EPDDriver::pinsAsOutputs()
     pinMode(2, OUTPUT);
     pinMode(32, OUTPUT);
     pinMode(33, OUTPUT);
-    internalIO.pinMode(OE, OUTPUT, true);
-    internalIO.pinMode(GMOD, OUTPUT, true);
-    internalIO.pinMode(SPV, OUTPUT, true);
+    expander1.pinMode(OE, OUTPUT, true);
+    expander1.pinMode(GMOD, OUTPUT, true);
+    expander1.pinMode(SPV, OUTPUT, true);
     pinMode(0, OUTPUT);
     pinMode(4, OUTPUT);
     pinMode(5, OUTPUT);
@@ -868,9 +868,9 @@ void EPDDriver::pinsZstate()
     pinMode(2, INPUT);
     pinMode(32, INPUT);
     pinMode(33, INPUT);
-    internalIO.pinMode(OE, INPUT, true);
-    internalIO.pinMode(GMOD, INPUT, true);
-    internalIO.pinMode(SPV, INPUT, true);
+    expander1.pinMode(OE, INPUT, true);
+    expander1.pinMode(GMOD, INPUT, true);
+    expander1.pinMode(SPV, INPUT, true);
 
     // Set up the EPD Data and CL pins for I2S .
     pinMode(0, INPUT);
@@ -977,22 +977,22 @@ uint8_t EPDDriver::getDisplayMode()
  */
 void EPDDriver::gpioInit()
 {
-    internalIO.begin(IO_INT_ADDR);
-    externalIO.begin(IO_EXT_ADDR);
+    expander1.begin(IO_INT_ADDR);
+    expander2.begin(IO_EXT_ADDR);
 
     for (uint32_t i = 0; i < 256; ++i)
         pinLUT[i] = ((i & B00000011) << 4) | (((i & B00001100) >> 2) << 18) | (((i & B00010000) >> 4) << 23) |
                     (((i & B11100000) >> 5) << 25);
 
     // Set all IO expander registers to 0
-    memset(internalIO._ioExpanderRegs, 0, 22);
-    memset(externalIO._ioExpanderRegs, 0, 22);
+    memset(expander1._ioExpanderRegs, 0, 22);
+    memset(expander2._ioExpanderRegs, 0, 22);
 
-    internalIO.pinMode(VCOM, OUTPUT, true);
-    internalIO.pinMode(PWRUP, OUTPUT, true);
-    internalIO.pinMode(WAKEUP, OUTPUT, true);
-    internalIO.pinMode(GPIO0_ENABLE, OUTPUT);
-    internalIO.digitalWrite(GPIO0_ENABLE, 1);
+    expander1.pinMode(VCOM, OUTPUT, true);
+    expander1.pinMode(PWRUP, OUTPUT, true);
+    expander1.pinMode(WAKEUP, OUTPUT, true);
+    expander1.pinMode(GPIO0_ENABLE, OUTPUT);
+    expander1.digitalWrite(GPIO0_ENABLE, 1);
 
     pmicBegin();
 
@@ -1004,16 +1004,16 @@ void EPDDriver::gpioInit()
     pinMode(15, INPUT_PULLDOWN);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    expander1.pinMode(SD_PMOS_PIN, INPUT);
 
     // CONTROL PINS
     pinMode(0, OUTPUT);
     pinMode(2, OUTPUT);
     pinMode(32, OUTPUT);
     pinMode(33, OUTPUT);
-    internalIO.pinMode(OE, OUTPUT, true);
-    internalIO.pinMode(GMOD, OUTPUT, true);
-    internalIO.pinMode(SPV, OUTPUT, true);
+    expander1.pinMode(OE, OUTPUT, true);
+    expander1.pinMode(GMOD, OUTPUT, true);
+    expander1.pinMode(SPV, OUTPUT, true);
 
     // DATA PINS
     pinMode(4, OUTPUT); // D0
@@ -1026,30 +1026,30 @@ void EPDDriver::gpioInit()
     pinMode(27, OUTPUT); // D7
 
     // Set the rest of the internal GPIO expander pins
-    internalIO.pinMode(INT_APDS, INPUT_PULLUP); // Gesture interrupt pin
+    expander1.pinMode(INT_APDS, INPUT_PULLUP); // Gesture interrupt pin
 
     // LSM interrupt pins. Pins must be set as inputs, since the default state of the INT pin on LSM is push-pull.
-    internalIO.pinMode(INT2_LSM, INPUT);
-    internalIO.pinMode(INT1_LSM, INPUT);
+    expander1.pinMode(INT2_LSM, INPUT);
+    expander1.pinMode(INT1_LSM, INPUT);
 
     // Turn off the buzzer so it doesn't beep
-    internalIO.pinMode(BUZZ_EN, OUTPUT);
-    internalIO.digitalWrite(BUZZ_EN, HIGH);
+    expander1.pinMode(BUZZ_EN, OUTPUT);
+    expander1.digitalWrite(BUZZ_EN, HIGH);
 
     // Disable microSD card.
-    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    internalIO.digitalWrite(SD_PMOS_PIN, HIGH);
+    expander1.pinMode(SD_PMOS_PIN, OUTPUT);
+    expander1.digitalWrite(SD_PMOS_PIN, HIGH);
 
     // Disable frontlight at start.
-    internalIO.pinMode(FRONTLIGHT_EN, OUTPUT);
-    internalIO.digitalWrite(FRONTLIGHT_EN, LOW);
+    expander1.pinMode(FRONTLIGHT_EN, OUTPUT);
+    expander1.digitalWrite(FRONTLIGHT_EN, LOW);
 
     // Disable touchscreen.
-    externalIO.pinMode(TOUCHSCREEN_EN, OUTPUT);
-    externalIO.digitalWrite(TOUCHSCREEN_EN, HIGH);
+    expander2.pinMode(TOUCHSCREEN_EN, OUTPUT);
+    expander2.digitalWrite(TOUCHSCREEN_EN, HIGH);
 
     // Set Fuel Gauge GPOUT to input with pull up enabled.
-    internalIO.pinMode(FG_GPOUT, INPUT_PULLUP);
+    expander1.pinMode(FG_GPOUT, INPUT_PULLUP);
 
     // Disable SPI pins on microSD card.
     sdCardSleep();
@@ -1057,8 +1057,8 @@ void EPDDriver::gpioInit()
     // Set the rest of the IO Expander pins to low to reduce power in deep sleep.
     for (int i = 2; i < 16; i++)
     {
-        externalIO.pinMode(i, OUTPUT);
-        externalIO.digitalWrite(i, LOW);
+        expander2.pinMode(i, OUTPUT);
+        expander2.digitalWrite(i, LOW);
     }
 }
 
@@ -1098,8 +1098,8 @@ uint8_t EPDDriver::initializeFramebuffers()
  */
 int16_t EPDDriver::sdCardInit()
 {
-    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    expander1.pinMode(SD_PMOS_PIN, OUTPUT);
+    expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
@@ -1120,7 +1120,7 @@ void EPDDriver::sdCardSleep()
     pinMode(15, INPUT);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    expander1.pinMode(SD_PMOS_PIN, INPUT);
 }
 
 /**
@@ -1258,7 +1258,7 @@ bool EPDDriver::setVCOM(double vcom)
 
 bool EPDDriver::writeVCOMToPanelEEPROM(double v)
 {
-    internalIO.pinMode(6, INPUT_PULLUP);
+    expander1.pinMode(6, INPUT_PULLUP);
     int raw = abs((int)(v * 100.0)) & 0x1FF;
 
     uint8_t vcomL = (uint8_t)(raw & 0xFF);
@@ -1285,7 +1285,7 @@ bool EPDDriver::writeVCOMToPanelEEPROM(double v)
 
     // Wait until EEPROM has been programmed (INT goes LOW)
     // Make sure INT pin is configured correctly elsewhere (usually input pullup).
-    while (internalIO.digitalRead(6))
+    while (expander1.digitalRead(6))
     {
         delay(1);
     }
@@ -1408,7 +1408,7 @@ void EPDDriver::wakePeripheral(uint8_t _peripheral)
     if (_peripheral & INKPLATE_FUEL_GAUGE)
     {
         // To wake up fuel gauge, just create rising edge signal on GPOUT pin.
-        internalIO.pinMode(FG_GPOUT, INPUT_PULLUP);
+        expander1.pinMode(FG_GPOUT, INPUT_PULLUP);
 
         // Wait a little bit.
         delayMicroseconds(250);
@@ -1450,7 +1450,7 @@ void EPDDriver::sleepPeripheral(uint8_t _peripheral)
     if (_peripheral & INKPLATE_FUEL_GAUGE)
     {
         // First, set the GPOUT pin of the Fuel Gauge to pull down.
-        internalIO.pinMode(FG_GPOUT, INPUT_PULLDOWN);
+        expander1.pinMode(FG_GPOUT, INPUT_PULLDOWN);
 
         // Issue a shutdown command.
         battery.shutdown();
@@ -1465,12 +1465,12 @@ void EPDDriver::sleepPeripheral(uint8_t _peripheral)
  */
 void EPDDriver::blockGpioPins()
 {
-    internalIO.blockPinUsage(WAKEUP);
-    internalIO.blockPinUsage(PWRUP);
-    internalIO.blockPinUsage(VCOM);
-    internalIO.blockPinUsage(OE);
-    internalIO.blockPinUsage(GMOD);
-    internalIO.blockPinUsage(SPV);
+    expander1.blockPinUsage(WAKEUP);
+    expander1.blockPinUsage(PWRUP);
+    expander1.blockPinUsage(VCOM);
+    expander1.blockPinUsage(OE);
+    expander1.blockPinUsage(GMOD);
+    expander1.blockPinUsage(SPV);
 }
 
 #endif

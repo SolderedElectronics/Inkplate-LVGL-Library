@@ -814,9 +814,9 @@ void EPDDriver::pinsAsOutputs()
     pinMode(2, OUTPUT);
     pinMode(32, OUTPUT);
     pinMode(33, OUTPUT);
-    internalIO.pinMode(OE, OUTPUT);
-    internalIO.pinMode(GMOD, OUTPUT);
-    internalIO.pinMode(SPV, OUTPUT);
+    expander1.pinMode(OE, OUTPUT);
+    expander1.pinMode(GMOD, OUTPUT);
+    expander1.pinMode(SPV, OUTPUT);
     // Set up the EPD Data and CL pins for I2S.
     setI2S1pin(0, I2S1O_BCK_OUT_IDX, 0);
     setI2S1pin(4, I2S1O_DATA_OUT0_IDX, 0);
@@ -865,9 +865,9 @@ void EPDDriver::pinsZstate()
     pinMode(2, INPUT);
     pinMode(32, INPUT);
     pinMode(33, INPUT);
-    internalIO.pinMode(OE, INPUT);
-    internalIO.pinMode(GMOD, INPUT);
-    internalIO.pinMode(SPV, INPUT);
+    expander1.pinMode(OE, INPUT);
+    expander1.pinMode(GMOD, INPUT);
+    expander1.pinMode(SPV, INPUT);
 
     // Set up the EPD Data and CL pins for I2S .
     pinMode(0, INPUT);
@@ -966,33 +966,33 @@ uint8_t EPDDriver::getDisplayMode()
  */
 void EPDDriver::gpioInit()
 {
-    internalIO.begin(IO_INT_ADDR);
+    expander1.begin(IO_INT_ADDR);
 
-    internalIO.digitalWrite(9, LOW);
+    expander1.digitalWrite(9, LOW);
 
     // Set all IO expander registers to 0
-    memset(internalIO._ioExpanderRegs, 0, 22);
+    memset(expander1._ioExpanderRegs, 0, 22);
 
-    internalIO.pinMode(VCOM, OUTPUT);
-    internalIO.pinMode(PWRUP, OUTPUT);
-    internalIO.pinMode(WAKEUP, OUTPUT);
-    internalIO.pinMode(GPIO0_ENABLE, OUTPUT);
-    internalIO.digitalWrite(GPIO0_ENABLE, 1);
+    expander1.pinMode(VCOM, OUTPUT);
+    expander1.pinMode(PWRUP, OUTPUT);
+    expander1.pinMode(WAKEUP, OUTPUT);
+    expander1.pinMode(GPIO0_ENABLE, OUTPUT);
+    expander1.digitalWrite(GPIO0_ENABLE, 1);
 
     pmicBegin();
 
     // For same reason, unused pins of first I/O expander have to be also set as
     // outputs, low.
-    internalIO.pinMode(11, OUTPUT);
-    internalIO.pinMode(12, OUTPUT);
-    internalIO.pinMode(13, OUTPUT);
-    internalIO.pinMode(14, OUTPUT);
-    internalIO.pinMode(15, OUTPUT);
-    internalIO.digitalWrite(11, LOW);
-    internalIO.digitalWrite(12, LOW);
-    internalIO.digitalWrite(13, LOW);
-    internalIO.digitalWrite(14, LOW);
-    internalIO.digitalWrite(15, LOW);
+    expander1.pinMode(11, OUTPUT);
+    expander1.pinMode(12, OUTPUT);
+    expander1.pinMode(13, OUTPUT);
+    expander1.pinMode(14, OUTPUT);
+    expander1.pinMode(15, OUTPUT);
+    expander1.digitalWrite(11, LOW);
+    expander1.digitalWrite(12, LOW);
+    expander1.digitalWrite(13, LOW);
+    expander1.digitalWrite(14, LOW);
+    expander1.digitalWrite(15, LOW);
 
     // Set SPI pins to input to reduce power consumption in deep sleep
     pinMode(12, INPUT_PULLDOWN);
@@ -1001,19 +1001,19 @@ void EPDDriver::gpioInit()
     pinMode(15, INPUT_PULLDOWN);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    expander1.pinMode(SD_PMOS_PIN, INPUT);
 
     // CONTROL PINS
     pinMode(2, OUTPUT);
     pinMode(32, OUTPUT);
     pinMode(33, OUTPUT);
-    internalIO.pinMode(OE, OUTPUT);
-    internalIO.pinMode(GMOD, OUTPUT);
-    internalIO.pinMode(SPV, OUTPUT);
+    expander1.pinMode(OE, OUTPUT);
+    expander1.pinMode(GMOD, OUTPUT);
+    expander1.pinMode(SPV, OUTPUT);
 
     // Battery voltage Switch MOSFET
-    internalIO.pinMode(9, OUTPUT);
-    internalIO.digitalWrite(9, LOW);
+    expander1.pinMode(9, OUTPUT);
+    expander1.digitalWrite(9, LOW);
 
     // Set all pins of seconds I/O expander to outputs, low.
     // For some reason, it draw more current in deep sleep when pins are set as
@@ -1060,8 +1060,8 @@ uint8_t EPDDriver::initializeFramebuffers()
  */
 int16_t EPDDriver::sdCardInit()
 {
-    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    expander1.pinMode(SD_PMOS_PIN, OUTPUT);
+    expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
@@ -1082,7 +1082,7 @@ void EPDDriver::sdCardSleep()
     pinMode(15, INPUT);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    expander1.pinMode(SD_PMOS_PIN, INPUT);
 }
 
 /**
@@ -1137,19 +1137,19 @@ double EPDDriver::readBattery()
 {
     // Read the pin on the battery MOSFET. If is high, that means is older version of the board
     // that uses PMOS only. If it's low, newer board with both PMOS and NMOS.
-    internalIO.pinMode(9, INPUT);
-    int state = internalIO.digitalRead(9);
-    internalIO.pinMode(9, OUTPUT);
+    expander1.pinMode(9, INPUT);
+    int state = expander1.digitalRead(9);
+    expander1.pinMode(9, OUTPUT);
 
     // If the input is pulled high, it's PMOS only.
     // If it's pulled low, it's PMOS and NMOS.
     if (state)
     {
-        internalIO.digitalWrite(9, LOW);
+        expander1.digitalWrite(9, LOW);
     }
     else
     {
-        internalIO.digitalWrite(9, HIGH);
+        expander1.digitalWrite(9, HIGH);
     }
 
     // Wait a little bit after a MOSFET enable.
@@ -1162,11 +1162,11 @@ double EPDDriver::readBattery()
     // Turn off the MOSFET (and voltage divider).
     if (state)
     {
-        internalIO.digitalWrite(9, HIGH);
+        expander1.digitalWrite(9, HIGH);
     }
     else
     {
-        internalIO.digitalWrite(9, LOW);
+        expander1.digitalWrite(9, LOW);
     }
 
     // Calculate the voltage at the battery terminal (voltage is divided in half by voltage divider).

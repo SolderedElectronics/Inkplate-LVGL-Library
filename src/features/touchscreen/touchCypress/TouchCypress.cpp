@@ -98,8 +98,8 @@ bool Touch::init(uint8_t _pwrState)
 {
 
 
-    _inkplate->internalIO.pinMode(TOUCHSCREEN_EN, OUTPUT);
-    _inkplate->internalIO.pinMode(TOUCHSCREEN_RST, OUTPUT);
+    _inkplate->expander1.pinMode(TOUCHSCREEN_EN, OUTPUT);
+    _inkplate->expander1.pinMode(TOUCHSCREEN_RST, OUTPUT);
 
     // Check power state.
     if (_pwrState)
@@ -464,13 +464,13 @@ void Touch::power(bool _pwr)
     if (_pwr)
     {
         // Enable the power MOSFET.
-        _inkplate->internalIO.digitalWrite(TOUCHSCREEN_EN, HIGH);
+        _inkplate->expander1.digitalWrite(TOUCHSCREEN_EN, HIGH);
 
         // Wait a little bit before proceeding any further.
         delay(50);
 
         // Set reset pin to high.
-        _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, HIGH);
+        _inkplate->expander1.digitalWrite(TOUCHSCREEN_RST, HIGH);
 
         // Wait a little bit.
         delay(50);
@@ -478,13 +478,13 @@ void Touch::power(bool _pwr)
     else
     {
         // Disable the power MOSFET switch.
-        _inkplate->internalIO.digitalWrite(TOUCHSCREEN_EN, LOW);
+        _inkplate->expander1.digitalWrite(TOUCHSCREEN_EN, LOW);
 
         // Wait a bit to discharge caps.
         delay(50);
 
         // Set reset pin to low.
-        _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, LOW);
+        _inkplate->expander1.digitalWrite(TOUCHSCREEN_RST, LOW);
     }
 }
 
@@ -516,11 +516,11 @@ void Touch::end()
 void Touch::reset()
 {
     // Toggle RST line. Loggic low must be at least 1ms, re-init after reset not specified, 10 ms (from Linux kernel).
-    _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, HIGH);
+    _inkplate->expander1.digitalWrite(TOUCHSCREEN_RST, HIGH);
     delay(10);
-    _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, LOW);
+    _inkplate->expander1.digitalWrite(TOUCHSCREEN_RST, LOW);
     delay(2);
-    _inkplate->internalIO.digitalWrite(TOUCHSCREEN_RST, HIGH);
+    _inkplate->expander1.digitalWrite(TOUCHSCREEN_RST, HIGH);
     delay(10);
 }
 

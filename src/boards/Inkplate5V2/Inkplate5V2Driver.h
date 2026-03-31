@@ -75,7 +75,7 @@ class EPDDriver : public UtilI2S
     double readBattery();
 
 
-    IOExpander internalIO;
+    IOExpander expander1;
 
     RTC rtc;
 

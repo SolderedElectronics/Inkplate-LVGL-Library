@@ -24,56 +24,56 @@
 #define WAKEUP 3
 #define WAKEUP_SET                                                                                                     \
     {                                                                                                                  \
-        internalIO.digitalWrite(WAKEUP, HIGH);                                                                         \
+        expander1.digitalWrite(WAKEUP, HIGH);                                                                         \
     }
 #define WAKEUP_CLEAR                                                                                                   \
     {                                                                                                                  \
-        internalIO.digitalWrite(WAKEUP, LOW);                                                                          \
+        expander1.digitalWrite(WAKEUP, LOW);                                                                          \
     }
 #define PWRUP 4
 #define PWRUP_SET                                                                                                      \
     {                                                                                                                  \
-        internalIO.digitalWrite(PWRUP, HIGH);                                                                          \
+        expander1.digitalWrite(PWRUP, HIGH);                                                                          \
     }
 #define PWRUP_CLEAR                                                                                                    \
     {                                                                                                                  \
-        internalIO.digitalWrite(PWRUP, LOW);                                                                           \
+        expander1.digitalWrite(PWRUP, LOW);                                                                           \
     }
 #define VCOM 5
 #define VCOM_SET                                                                                                       \
     {                                                                                                                  \
-        internalIO.digitalWrite(VCOM, HIGH);                                                                           \
+        expander1.digitalWrite(VCOM, HIGH);                                                                           \
     }
 #define VCOM_CLEAR                                                                                                     \
     {                                                                                                                  \
-        internalIO.digitalWrite(VCOM, LOW);                                                                            \
+        expander1.digitalWrite(VCOM, LOW);                                                                            \
     }
 #define OE 0
 #define OE_SET                                                                                                         \
     {                                                                                                                  \
-        internalIO.digitalWrite(OE, HIGH);                                                                             \
+        expander1.digitalWrite(OE, HIGH);                                                                             \
     }
 #define OE_CLEAR                                                                                                       \
     {                                                                                                                  \
-        internalIO.digitalWrite(OE, LOW);                                                                              \
+        expander1.digitalWrite(OE, LOW);                                                                              \
     }
 #define GMOD 1
 #define GMOD_SET                                                                                                       \
     {                                                                                                                  \
-        internalIO.digitalWrite(GMOD, HIGH);                                                                           \
+        expander1.digitalWrite(GMOD, HIGH);                                                                           \
     }
 #define GMOD_CLEAR                                                                                                     \
     {                                                                                                                  \
-        internalIO.digitalWrite(GMOD, LOW);                                                                            \
+        expander1.digitalWrite(GMOD, LOW);                                                                            \
     }
 #define SPV 2
 #define SPV_SET                                                                                                        \
     {                                                                                                                  \
-        internalIO.digitalWrite(SPV, HIGH);                                                                            \
+        expander1.digitalWrite(SPV, HIGH);                                                                            \
     }
 #define SPV_CLEAR                                                                                                      \
     {                                                                                                                  \
-        internalIO.digitalWrite(SPV, LOW);                                                                             \
+        expander1.digitalWrite(SPV, LOW);                                                                             \
     }
 #define CL 0x01
 #define CL_SET                                                                                                         \

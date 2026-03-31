@@ -63,7 +63,7 @@ class EPDDriver
 
     DitherAlgorithm dither;
 
-    IOExpander internalIO;
+    IOExpander expander1;
 
     RTC rtc;
 

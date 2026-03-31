@@ -579,48 +579,48 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
 void EPDDriver::setIOExpanderForLowPower()
 {
     Wire.begin();
-    internalIO.begin(IO_INT_ADDR);
+    expander1.begin(IO_INT_ADDR);
 
     // TOUCHPAD PINS
-    internalIO.pinMode(IO_PIN_B2, OUTPUT);
-    internalIO.pinMode(IO_PIN_B3, OUTPUT);
-    internalIO.pinMode(IO_PIN_B4, OUTPUT);
+    expander1.pinMode(IO_PIN_B2, OUTPUT);
+    expander1.pinMode(IO_PIN_B3, OUTPUT);
+    expander1.pinMode(IO_PIN_B4, OUTPUT);
 
-    internalIO.digitalWrite(IO_PIN_B2, LOW);
-    internalIO.digitalWrite(IO_PIN_B3, LOW);
-    internalIO.digitalWrite(IO_PIN_B4, LOW);
+    expander1.digitalWrite(IO_PIN_B2, LOW);
+    expander1.digitalWrite(IO_PIN_B3, LOW);
+    expander1.digitalWrite(IO_PIN_B4, LOW);
 
     // Battery voltage Switch MOSFET
-    internalIO.pinMode(IO_PIN_B1, OUTPUT);
-    internalIO.digitalWrite(IO_PIN_B1, LOW);
+    expander1.pinMode(IO_PIN_B1, OUTPUT);
+    expander1.digitalWrite(IO_PIN_B1, LOW);
 
     // Rest of pins go to OUTPUT LOW state because in deepSleep mode they are
     // using least amount of power
-    internalIO.pinMode(IO_PIN_A0, OUTPUT);
-    internalIO.pinMode(IO_PIN_A1, OUTPUT);
-    internalIO.pinMode(IO_PIN_A2, OUTPUT);
-    internalIO.pinMode(IO_PIN_A3, OUTPUT);
-    internalIO.pinMode(IO_PIN_A4, OUTPUT);
-    internalIO.pinMode(IO_PIN_A5, OUTPUT);
-    internalIO.pinMode(IO_PIN_A6, OUTPUT);
-    internalIO.pinMode(IO_PIN_A7, OUTPUT);
-    internalIO.pinMode(IO_PIN_B0, OUTPUT);
-    internalIO.pinMode(IO_PIN_B5, OUTPUT);
-    internalIO.pinMode(IO_PIN_B6, OUTPUT);
-    internalIO.pinMode(IO_PIN_B7, OUTPUT);
+    expander1.pinMode(IO_PIN_A0, OUTPUT);
+    expander1.pinMode(IO_PIN_A1, OUTPUT);
+    expander1.pinMode(IO_PIN_A2, OUTPUT);
+    expander1.pinMode(IO_PIN_A3, OUTPUT);
+    expander1.pinMode(IO_PIN_A4, OUTPUT);
+    expander1.pinMode(IO_PIN_A5, OUTPUT);
+    expander1.pinMode(IO_PIN_A6, OUTPUT);
+    expander1.pinMode(IO_PIN_A7, OUTPUT);
+    expander1.pinMode(IO_PIN_B0, OUTPUT);
+    expander1.pinMode(IO_PIN_B5, OUTPUT);
+    expander1.pinMode(IO_PIN_B6, OUTPUT);
+    expander1.pinMode(IO_PIN_B7, OUTPUT);
 
-    internalIO.digitalWrite(IO_PIN_A0, LOW);
-    internalIO.digitalWrite(IO_PIN_A1, LOW);
-    internalIO.digitalWrite(IO_PIN_A2, LOW);
-    internalIO.digitalWrite(IO_PIN_A3, LOW);
-    internalIO.digitalWrite(IO_PIN_A4, LOW);
-    internalIO.digitalWrite(IO_PIN_A5, LOW);
-    internalIO.digitalWrite(IO_PIN_A6, LOW);
-    internalIO.digitalWrite(IO_PIN_A7, LOW);
-    internalIO.digitalWrite(IO_PIN_B0, LOW);
-    internalIO.digitalWrite(IO_PIN_B5, LOW);
-    internalIO.digitalWrite(IO_PIN_B6, LOW);
-    internalIO.digitalWrite(IO_PIN_B7, LOW);
+    expander1.digitalWrite(IO_PIN_A0, LOW);
+    expander1.digitalWrite(IO_PIN_A1, LOW);
+    expander1.digitalWrite(IO_PIN_A2, LOW);
+    expander1.digitalWrite(IO_PIN_A3, LOW);
+    expander1.digitalWrite(IO_PIN_A4, LOW);
+    expander1.digitalWrite(IO_PIN_A5, LOW);
+    expander1.digitalWrite(IO_PIN_A6, LOW);
+    expander1.digitalWrite(IO_PIN_A7, LOW);
+    expander1.digitalWrite(IO_PIN_B0, LOW);
+    expander1.digitalWrite(IO_PIN_B5, LOW);
+    expander1.digitalWrite(IO_PIN_B6, LOW);
+    expander1.digitalWrite(IO_PIN_B7, LOW);
 }
 
 
@@ -631,8 +631,8 @@ void EPDDriver::setIOExpanderForLowPower()
  */
 int16_t EPDDriver::sdCardInit()
 {
-    internalIO.pinMode(SD_PMOS_PIN, OUTPUT);
-    internalIO.digitalWrite(SD_PMOS_PIN, LOW);
+    expander1.pinMode(SD_PMOS_PIN, OUTPUT);
+    expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
@@ -651,7 +651,7 @@ void EPDDriver::sdCardSleep()
     pinMode(15, INPUT);
 
     // And also disable uSD card supply
-    internalIO.pinMode(SD_PMOS_PIN, INPUT);
+    expander1.pinMode(SD_PMOS_PIN, INPUT);
 }
 
 /**
@@ -706,19 +706,19 @@ double EPDDriver::readBattery()
 {
     // Read the pin on the battery MOSFET. If is high, that means is older version of the board
     // that uses PMOS only. If it's low, newer board with both PMOS and NMOS.
-    internalIO.pinMode(9, INPUT);
-    int state = internalIO.digitalRead(9);
-    internalIO.pinMode(9, OUTPUT);
+    expander1.pinMode(9, INPUT);
+    int state = expander1.digitalRead(9);
+    expander1.pinMode(9, OUTPUT);
 
     // If the input is pulled high, it's PMOS only.
     // If it's pulled low, it's PMOS and NMOS.
     if (state)
     {
-        internalIO.digitalWrite(9, LOW);
+        expander1.digitalWrite(9, LOW);
     }
     else
     {
-        internalIO.digitalWrite(9, HIGH);
+        expander1.digitalWrite(9, HIGH);
     }
 
     // Wait a little bit after a MOSFET enable.
@@ -731,11 +731,11 @@ double EPDDriver::readBattery()
     // Turn off the MOSFET (and voltage divider).
     if (state)
     {
-        internalIO.digitalWrite(9, HIGH);
+        expander1.digitalWrite(9, HIGH);
     }
     else
     {
-        internalIO.digitalWrite(9, LOW);
+        expander1.digitalWrite(9, LOW);
     }
 
     // Calculate the voltage at the battery terminal (voltage is divided in half by voltage divider).

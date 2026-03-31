@@ -41,16 +41,16 @@ void setup()
     inkplate.begin(LV_DISP_RENDER_MODE_PARTIAL);
 
     // Set LED pin (P1-7 / GPB7 / 15) as output
-    inkplate.externalIO.pinMode(LED_PIN, OUTPUT);
+    inkplate.expander2.pinMode(LED_PIN, OUTPUT);
 }
 
 void loop()
 {
     // Turn LED off (set output LOW)
-    inkplate.externalIO.digitalWrite(LED_PIN, LOW);
+    inkplate.expander2.digitalWrite(LED_PIN, LOW);
     delay(1000); // Wait for one second
 
     // Turn LED on (set output HIGH)
-    inkplate.externalIO.digitalWrite(LED_PIN, HIGH);
+    inkplate.expander2.digitalWrite(LED_PIN, HIGH);
     delay(1000); // Wait for one second
 }

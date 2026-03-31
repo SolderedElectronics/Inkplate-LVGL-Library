@@ -41,13 +41,13 @@ void setup()
     inkplate.begin(LV_DISP_RENDER_MODE_FULL);
 
     // Set P1-7 to output
-    inkplate.internalIO.pinMode(LED_PIN, OUTPUT);
+    inkplate.expander1.pinMode(LED_PIN, OUTPUT);
 }
 
 void loop()
 {
-    inkplate.internalIO.digitalWrite(LED_PIN, LOW);  // LED off
+    inkplate.expander1.digitalWrite(LED_PIN, LOW);  // LED off
     delay(1000);
-    inkplate.internalIO.digitalWrite(LED_PIN, HIGH); // LED on
+    inkplate.expander1.digitalWrite(LED_PIN, HIGH); // LED on
     delay(1000);
 }

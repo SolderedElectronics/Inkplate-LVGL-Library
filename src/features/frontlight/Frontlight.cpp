@@ -43,11 +43,11 @@ void Frontlight::setState(bool _e)
 {
     if (_e)
     {
-        _inkplate->internalIO.digitalWrite(FRONTLIGHT_EN, HIGH);
+        _inkplate->expander1.digitalWrite(FRONTLIGHT_EN, HIGH);
     }
     else
     {
-        _inkplate->internalIO.digitalWrite(FRONTLIGHT_EN, LOW);
+        _inkplate->expander1.digitalWrite(FRONTLIGHT_EN, LOW);
     }
 }
 

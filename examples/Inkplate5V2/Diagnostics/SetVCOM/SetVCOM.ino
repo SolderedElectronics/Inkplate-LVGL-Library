@@ -56,7 +56,7 @@ void loop()
     }while(vcomVoltage <-5.0 || vcomVoltage > 0.0);
 
     //Program the panel EEPROM
-    inkplate.internalIO.pinMode(6, INPUT_PULLUP);
+    inkplate.expander1.pinMode(6, INPUT_PULLUP);
     if(writeVCOMToEEPROM(vcomVoltage)){
       EEPROM.put(EEPROMAddress, vcomVoltage);
       EEPROM.commit();
@@ -111,7 +111,7 @@ uint8_t writeVCOMToEEPROM(double v)
   uint8_t r4=readReg(0x04)&~0x01;
   writeReg(0x04, r4 | msb);
   writeReg(0x04, (r4 | msb) | (1 << 6));
-  while ( inkplate.internalIO.digitalRead(6) ) {
+  while ( inkplate.expander1.digitalRead(6) ) {
     delay(1);
   }
   readReg(0x07);  // clear interrupt flag
