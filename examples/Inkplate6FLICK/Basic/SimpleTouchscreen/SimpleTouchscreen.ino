@@ -21,7 +21,7 @@ Inkplate inkplate(INKPLATE_1BIT);
 static lv_obj_t *rect = NULL;
 
 // Touch detect flag
-bool isRectangleClicked = false;
+volatile bool isRectangleClicked = false;
 
 // Rectangle coordinates
 int x_position = 50;

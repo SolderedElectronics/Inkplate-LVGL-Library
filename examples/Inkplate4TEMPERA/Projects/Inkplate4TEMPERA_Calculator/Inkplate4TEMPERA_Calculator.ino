@@ -16,7 +16,6 @@
 
 Inkplate inkplate(INKPLATE_1BIT);
 
-
 String leftInput = "";
 String rightInput = "";
 char currentOp = '\0';
@@ -30,15 +29,16 @@ int numOfDigitsEntered = 0;
 int partialRefreshCount = 0;
 #define NUM_PARTIAL_UPDATES_BEFORE_FULL_REFRESH 12
 
+bool needsRefresh = false;
+bool forceFullRefresh = false;
 
 static lv_obj_t *lblHistory = nullptr;
 static lv_obj_t *lblExpression = nullptr;
 static lv_obj_t *lblStatus = nullptr;
 
-
 void createUI();
-void createButton(lv_obj_t *parent, const char *txt, int x, int y, int w, int h, lv_event_cb_t cb);
-void refreshDisplay(bool forceFull = false);
+void createButton(lv_obj_t *parent, const char *txt, int x, int y, int w, int h, lv_event_cb_t cb, const lv_font_t *font = &lv_font_montserrat_32);
+void requestRefresh(bool forceFull = false);
 void resetCurrentEntryTracking();
 void clearInputOnly();
 void clearHistoryOnly();
@@ -56,22 +56,10 @@ void onClearInputButton(lv_event_t *e);
 void onClearHistoryButton(lv_event_t *e);
 void onRefreshButton(lv_event_t *e);
 
-
-void refreshDisplay(bool forceFull)
+void requestRefresh(bool forceFull)
 {
-    lv_tick_inc(20);
-    lv_timer_handler();
-
-    if (forceFull || partialRefreshCount >= NUM_PARTIAL_UPDATES_BEFORE_FULL_REFRESH)
-    {
-        inkplate.display();
-        partialRefreshCount = 0;
-    }
-    else
-    {
-        inkplate.partialUpdate(false, true);
-        partialRefreshCount++;
-    }
+    needsRefresh = true;
+    if (forceFull) forceFullRefresh = true;
 }
 
 void resetCurrentEntryTracking()
@@ -149,7 +137,7 @@ void appendDigit(char digit)
 
     lv_label_set_text(lblStatus, "");
     updateDisplayText();
-    refreshDisplay();
+    requestRefresh();
 }
 
 void appendDecimalPoint()
@@ -183,7 +171,7 @@ void appendDecimalPoint()
 
     lv_label_set_text(lblStatus, "");
     updateDisplayText();
-    refreshDisplay();
+    requestRefresh();
 }
 
 void appendOperator(char op)
@@ -200,7 +188,7 @@ void appendOperator(char op)
 
     lv_label_set_text(lblStatus, "");
     updateDisplayText();
-    refreshDisplay();
+    requestRefresh();
 }
 
 void performCalculation()
@@ -214,7 +202,7 @@ void performCalculation()
     if (currentOp == '/' && rightNumber == 0.0)
     {
         lv_label_set_text(lblStatus, "Division by zero is not allowed");
-        refreshDisplay();
+        requestRefresh();
         return;
     }
 
@@ -222,7 +210,6 @@ void performCalculation()
 
     String resultString = String(result, 4);
 
-    // Trim trailing zeroes
     while (resultString.endsWith("0"))
     {
         resultString.remove(resultString.length() - 1);
@@ -242,9 +229,8 @@ void performCalculation()
 
     lv_label_set_text(lblStatus, "");
     updateDisplayText();
-    refreshDisplay();
+    requestRefresh();
 }
-
 
 void onDigitButton(lv_event_t *e)
 {
@@ -288,14 +274,14 @@ void onClearInputButton(lv_event_t *e)
 {
     (void)e;
     clearInputOnly();
-    refreshDisplay();
+    requestRefresh();
 }
 
 void onClearHistoryButton(lv_event_t *e)
 {
     (void)e;
     clearHistoryOnly();
-    refreshDisplay();
+    requestRefresh();
 }
 
 void onRefreshButton(lv_event_t *e)
@@ -303,11 +289,10 @@ void onRefreshButton(lv_event_t *e)
     (void)e;
     lv_label_set_text(lblStatus, "");
     updateDisplayText();
-    refreshDisplay(true);
+    requestRefresh(true);
 }
 
-
-void createButton(lv_obj_t *parent, const char *txt, int x, int y, int w, int h, lv_event_cb_t cb)
+void createButton(lv_obj_t *parent, const char *txt, int x, int y, int w, int h, lv_event_cb_t cb, const lv_font_t *font)
 {
     lv_obj_t *btn = lv_btn_create(parent);
     lv_obj_set_size(btn, w, h);
@@ -319,13 +304,17 @@ void createButton(lv_obj_t *parent, const char *txt, int x, int y, int w, int h,
     lv_obj_set_style_border_color(btn, lv_color_black(), 0);
     lv_obj_set_style_border_width(btn, 2, 0);
     lv_obj_set_style_shadow_width(btn, 0, 0);
+    lv_obj_set_style_pad_all(btn, 4, 0);
 
     lv_obj_add_event_cb(btn, cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *label = lv_label_create(btn);
     lv_label_set_text(label, txt);
+    lv_obj_set_width(label, w - 10);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(label, lv_color_black(), 0);
-    lv_obj_set_style_text_font(label, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_font(label, font, 0);
     lv_obj_center(label);
 }
 
@@ -337,7 +326,6 @@ void createUI()
     lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
 
-    // Result/history area
     lv_obj_t *historyBox = lv_obj_create(screen);
     lv_obj_set_size(historyBox, 370, 75);
     lv_obj_set_pos(historyBox, 200, 30);
@@ -355,7 +343,6 @@ void createUI()
     lv_obj_set_style_text_font(lblHistory, &lv_font_montserrat_16, 0);
     lv_obj_align(lblHistory, LV_ALIGN_LEFT_MID, 0, 0);
 
-    // Expression area
     lv_obj_t *exprBox = lv_obj_create(screen);
     lv_obj_set_size(exprBox, 370, 75);
     lv_obj_set_pos(exprBox, 200, 105);
@@ -376,12 +363,10 @@ void createUI()
     lv_obj_set_style_text_font(lblExpression, &lv_font_montserrat_22, 0);
     lv_obj_align(lblExpression, LV_ALIGN_RIGHT_MID, 0, 0);
 
-    // Left-side controls
-    createButton(screen, "Clear result", 30, 30, 170, 50, onClearHistoryButton);
-    createButton(screen, "Clear Input", 30, 80, 170, 50, onClearInputButton);
-    createButton(screen, "Refresh", 30, 130, 170, 50, onRefreshButton);
+    createButton(screen, "Clear result", 30, 30, 170, 50, onClearHistoryButton, &lv_font_montserrat_16);
+    createButton(screen, "Clear input",  30, 80, 170, 50, onClearInputButton,   &lv_font_montserrat_16);
+    createButton(screen, "Refresh",      30, 130, 170, 50, onRefreshButton,     &lv_font_montserrat_16);
 
-    // Keypad buttons
     createButton(screen, "7",  30, 180, 135, 97, onDigitButton);
     createButton(screen, "8", 165, 180, 135, 97, onDigitButton);
     createButton(screen, "9", 300, 180, 135, 97, onDigitButton);
@@ -402,16 +387,14 @@ void createUI()
     createButton(screen, "=", 300, 471, 135, 97, onEqualsButton);
     createButton(screen, "+", 435, 471, 135, 97, onOperatorButton);
 
-    // Status line
     lblStatus = lv_label_create(screen);
     lv_label_set_text(lblStatus, "");
     lv_obj_set_style_text_color(lblStatus, lv_color_black(), 0);
     lv_obj_set_style_text_font(lblStatus, &lv_font_montserrat_16, 0);
-    lv_obj_set_pos(lblStatus, 30, 575);
+    lv_obj_set_pos(lblStatus, 30, 565);
 
     updateDisplayText();
 }
-
 
 void setup()
 {
@@ -435,12 +418,31 @@ void setup()
     createUI();
 
     lv_timer_handler();
+    delay(10);
+    lv_timer_handler();
     inkplate.display();
 }
 
 void loop()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
-    delay(20);
+
+    if (needsRefresh)
+    {
+        if (forceFullRefresh || partialRefreshCount >= NUM_PARTIAL_UPDATES_BEFORE_FULL_REFRESH)
+        {
+            inkplate.display();
+            partialRefreshCount = 0;
+            forceFullRefresh = false;
+        }
+        else
+        {
+            inkplate.partialUpdate(false, true);
+            partialRefreshCount++;
+        }
+
+        needsRefresh = false;
+    }
+
+    delay(10);
 }

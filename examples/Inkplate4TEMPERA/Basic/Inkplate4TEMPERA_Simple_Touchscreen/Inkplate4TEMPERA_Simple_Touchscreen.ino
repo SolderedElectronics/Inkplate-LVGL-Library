@@ -2,10 +2,10 @@
  **************************************************
  *
  * @file        SimpleTouchscreen.ino
- * @brief       This example shows you how to use Inkplate4TEMPERA touchscreen.
+ * @brief       This example shows you how to use Inkplate 6 FLICK touchscreen.
  *              Once the code is uploaded, try to touch the rectangles on the screen :)
  *
- * For info on how to quickly get started with Inkplate4TEMPERA visit https://soldered.com/documentation/inkplate/6flick/overview/
+ * For info on how to quickly get started with Inkplate 6FLICK visit https://soldered.com/documentation/inkplate/6flick/overview/
  *
  * @authors     Soldered
  * @date        November 2025
@@ -21,7 +21,7 @@ Inkplate inkplate(INKPLATE_1BIT);
 static lv_obj_t *rect = NULL;
 
 // Touch detect flag
-bool isRectangleClicked = false;
+volatile bool isRectangleClicked = false;
 
 // Rectangle coordinates
 int x_position = 50;
@@ -41,7 +41,7 @@ static void btn_event_cb(lv_event_t *e)
             x_position += 100;
             y_position += 100;
             
-            if (y_position < 600) 
+            if (y_position < 660) 
             {
                 // Set new position of an object
                 lv_obj_set_pos(rect, x_position, y_position);
@@ -61,7 +61,7 @@ static void btn_event_cb(lv_event_t *e)
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("Inkplate 6 FLICK Touchscreen Example.");
+    Serial.println("Inkplate4TEMPERA Touchscreen Example.");
 
     inkplate.begin(LV_DISPLAY_RENDER_MODE_PARTIAL);
 
@@ -79,21 +79,21 @@ void setup()
     lv_obj_t *label = lv_label_create(lv_screen_active());
     lv_label_set_text(label, "Touch the rectangles on screen!");
     lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
-    lv_obj_set_style_text_font(label,  &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(label,  &lv_font_montserrat_48, 0);
     lv_obj_center(label);
 
-    // Render text on screen
-    lv_timer_handler();
+    // Display text on screen
     inkplate.display();
 
     // Wait for 2 seconds
     delay(2000);
-    
+
     // Delete the label object and clear the display
     lv_obj_del(label);
     label = NULL;
     inkplate.clearDisplay();
-    
+    delay(100);
+
     /* Create a black rectangle and add a callback event function to it */
     rect = lv_obj_create(lv_scr_act());
     lv_obj_set_style_bg_color(rect, lv_color_hex(0x000000), 0);
@@ -102,13 +102,6 @@ void setup()
 
     // Add event callback function
     lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
-
-    // Force initial render
-    for (int i = 0; i < 5; i++) 
-    {
-        lv_timer_handler();
-        delay(10);
-    }
 
     // Display content from buffer
     inkplate.display();
