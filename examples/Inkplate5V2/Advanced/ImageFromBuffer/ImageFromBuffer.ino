@@ -74,6 +74,7 @@ void setup() {
     }
 
     // Refresh Inkplate screen
+    lv_timer_handler();
     inkplate.display();
     Serial.println("Display updated with 8-bit grayscale (L8) image");
 }

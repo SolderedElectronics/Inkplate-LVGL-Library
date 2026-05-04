@@ -48,7 +48,6 @@ void setup()
   lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
   // Render & show
-  lv_tick_inc(50);
   lv_timer_handler();
   inkplate.display();
 

@@ -49,7 +49,6 @@ void setup()
     lv_obj_set_style_text_font(label, &lv_font_montserrat_28, 0);  // Medium-sized font
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);                    // Center align label
 
-    lv_tick_inc(50);
     lv_timer_handler();  // Process LVGL tasks and render
 
     // Start WiFi connection process
@@ -62,7 +61,6 @@ void setup()
 
     // Once connected, update both serial and display
     Serial.println("\nConnected to WiFi!");
-    lv_tick_inc(50);
     lv_timer_handler();
 
     // Create HTTPClient instance
@@ -88,7 +86,6 @@ void setup()
         lv_obj_set_style_text_font(responseLabel, &lv_font_montserrat_22, 0);  // Font for long text
         lv_obj_align(responseLabel, LV_ALIGN_TOP_LEFT, 20, 20);            // Place label near top-left
 
-        lv_tick_inc(50);
         lv_timer_handler();    // Process LVGL updates
         inkplate.display();    // Full update for clean final text
     }
@@ -97,7 +94,6 @@ void setup()
         // If request fails, show error message
         Serial.printf("HTTP GET failed, code: %d\n", httpCode);
         lv_label_set_text(label, "HTTP GET failed!");
-        lv_tick_inc(50);
         lv_timer_handler();
         inkplate.display();  // Full update for clear message
     }

@@ -49,7 +49,6 @@ void setup()
     lv_obj_set_style_text_font(label, &lv_font_montserrat_28, 0);     // Medium font size
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);                       // Center label on screen
 
-    lv_tick_inc(50);
     lv_timer_handler();  // Process LVGL drawing tasks
 
     // Wi-Fi Connection Section
@@ -63,13 +62,11 @@ void setup()
     Serial.println("\nConnected!");  // Connected successfully
 
     Serial.println("Connected to WiFi!");
-    lv_tick_inc(50);
     lv_timer_handler();
     delay(1000);  // Small pause before making POST request
 
     // Begin HTTP POST request
     Serial.println("Sending POST request...");
-    lv_tick_inc(50);
     lv_timer_handler();
 
     HTTPClient http;  // Create HTTPClient instance
@@ -101,7 +98,6 @@ void setup()
         lv_obj_set_style_text_font(respLabel, &lv_font_montserrat_22, 0);  // Font for response text
         lv_obj_align(respLabel, LV_ALIGN_TOP_LEFT, 20, 20);         // Align text near top-left corner
 
-        lv_tick_inc(50);
         lv_timer_handler();  // Process LVGL updates
         inkplate.display();  // Perform full refresh for clean final screen
     }
@@ -110,7 +106,6 @@ void setup()
         // If POST failed, show error message on both Serial and display
         Serial.printf("POST failed, code: %d\n", httpCode);
         lv_label_set_text(label, "POST failed!");
-        lv_tick_inc(50);
         lv_timer_handler();
         inkplate.display();
     }

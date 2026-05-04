@@ -36,7 +36,6 @@ static lv_obj_t *lbl_text = nullptr;
 // Helper function to force LVGL redraw
 static void refreshLVGL()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
 }
 

@@ -61,7 +61,6 @@ void setup()
     lv_label_set_text(lbl_temp, buf);
 
     // Update LVGL + first FULL refresh
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();
 }
@@ -76,7 +75,6 @@ void loop()
     lv_obj_center(lbl_temp);
 
     // Update LVGL state
-    lv_tick_inc(20);
     lv_timer_handler();
 
     // Partial refresh (fast)

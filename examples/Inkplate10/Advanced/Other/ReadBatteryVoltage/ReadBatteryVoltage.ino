@@ -53,7 +53,6 @@ void setup()
     snprintf(buf, sizeof(buf), "%.2f V", voltage);
     lv_label_set_text(lbl_voltage, buf);
 
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();   // First refresh is FULL
 }
@@ -68,7 +67,6 @@ void loop()
     lv_obj_center(lbl_voltage);
 
     // Update LVGL internal buffer
-    lv_tick_inc(20);
     lv_timer_handler();
 
     // Fast partial update

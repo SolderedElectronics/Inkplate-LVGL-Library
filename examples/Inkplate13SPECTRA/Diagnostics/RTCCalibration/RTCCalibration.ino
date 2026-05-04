@@ -40,7 +40,6 @@ void setLabel(const char *text)
     lv_label_set_text(mainLabel, text);
     lv_obj_align(mainLabel, LV_ALIGN_CENTER, 0, 0);
 
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 }

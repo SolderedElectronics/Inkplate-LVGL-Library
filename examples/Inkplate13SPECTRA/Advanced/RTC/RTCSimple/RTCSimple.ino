@@ -48,7 +48,6 @@ void setup()
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
     updateTimeLabel(label);
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 
@@ -60,7 +59,6 @@ void loop()
     if (millis() - lastRefresh > REFRESH_DELAY)
     {
         updateTimeLabel(lv_obj_get_child(lv_screen_active(), 0));
-        lv_tick_inc(50);
         lv_timer_handler();
         inkplate.display();
         lastRefresh = millis();

@@ -144,7 +144,6 @@ void setup()
     scan_i2c_devices();
 
     // Initial full refresh
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();
 
@@ -155,16 +154,15 @@ void loop()
 {
     scan_i2c_devices();
 
-    lv_tick_inc(10);
-    lv_timer_handler();
-
     if (partialCount >= FULL_REFRESH_EVERY)
     {
+        lv_timer_handler();
         inkplate.display();   // full refresh
         partialCount = 0;
     }
     else
     {
+        lv_timer_handler();
         inkplate.partialUpdate();
         partialCount++;
     }

@@ -139,7 +139,6 @@ void setup() {
   update_readings();
 
   // Initial FULL refresh
-  lv_tick_inc(20);
   lv_timer_handler();
   inkplate.display();
 }
@@ -147,13 +146,12 @@ void setup() {
 void loop() {
   update_readings();
 
-  lv_tick_inc(10);
-  lv_timer_handler();
-
   if (partialCount >= FULL_REFRESH_EVERY) {
+    lv_timer_handler();
     inkplate.display();   // FULL
     partialCount = 0;
   } else {
+    lv_timer_handler();
     inkplate.partialUpdate();
     partialCount++;
   }

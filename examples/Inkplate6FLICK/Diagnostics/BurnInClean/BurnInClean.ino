@@ -61,7 +61,6 @@ void setup()
   lv_obj_align(label, LV_ALIGN_CENTER, 0, 10);
 
   // Tick the LVGL timer by 50 
-  lv_tick_inc(50);
 
   // Handle the new label and write it into the framebuffer
   lv_timer_handler();

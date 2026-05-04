@@ -35,7 +35,6 @@ void setLabel(const char *text)
 
     // Let LVGL process timers and internal state,
     // then push a full grayscale (L8) frame to the Inkplate
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 }

@@ -65,6 +65,7 @@ void setup() {
     delay(10);
   }
 
+  lv_timer_handler();
   inkplate.display();
   Serial.println("Display updated");
 }

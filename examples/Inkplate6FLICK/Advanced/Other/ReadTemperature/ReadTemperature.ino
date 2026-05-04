@@ -47,7 +47,6 @@ void setup()
     snprintf(buf, sizeof(buf), "%d C", t);
     lv_label_set_text(lbl_temp, buf);
 
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();   // Full refresh on first draw
 }
@@ -62,7 +61,6 @@ void loop()
     lv_obj_center(lbl_temp);
 
     // Let LVGL update internal buffer
-    lv_tick_inc(20);
     lv_timer_handler();
 
     // Partial update for faster refresh

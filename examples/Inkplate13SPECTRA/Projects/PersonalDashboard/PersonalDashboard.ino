@@ -61,7 +61,6 @@ void setup()
     {
         Serial.println("WiFi failed!");
         gui.showWifiError();
-        lv_tick_inc(50);
         lv_timer_handler();
         inkplate.display();
 
@@ -91,7 +90,6 @@ void setup()
     // Render dashboard
     Serial.println("Rendering...");
     gui.render(weather, events, eventCount, pokemon, quote);
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 

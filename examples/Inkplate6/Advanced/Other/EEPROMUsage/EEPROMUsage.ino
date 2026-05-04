@@ -45,7 +45,6 @@ static void showText(const char *text)
     lv_label_set_text(lbl_text, text);
     lv_obj_align(lbl_text, LV_ALIGN_TOP_LEFT, 8, 8);
 
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();   // FULL refresh (done only a few times)
 }

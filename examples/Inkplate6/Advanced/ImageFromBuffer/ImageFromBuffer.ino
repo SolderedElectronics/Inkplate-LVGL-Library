@@ -70,6 +70,7 @@ void setup() {
     }
 
     // Send framebuffer to Inkplate 6
+    lv_timer_handler();
     inkplate.display();
     Serial.println("Display updated with 8-bit grayscale (L8) image");
 }

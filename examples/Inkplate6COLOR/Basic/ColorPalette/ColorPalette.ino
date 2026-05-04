@@ -52,7 +52,6 @@ void setup() {
     }
 
     // Render once
-    lv_tick_inc(50);
     lv_timer_handler();
 
     // Display result

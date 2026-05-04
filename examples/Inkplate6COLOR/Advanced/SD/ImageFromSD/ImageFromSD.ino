@@ -59,6 +59,7 @@ void setup() {
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
 
   // Display the image
+  lv_timer_handler();
   inkplate.display();
   Serial.println("Display updated");
 

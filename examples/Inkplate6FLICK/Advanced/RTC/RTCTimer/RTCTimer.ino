@@ -64,7 +64,6 @@ void setup()
 
   // Initial draw
   updateTimeLabel();
-  lv_tick_inc(20);
   lv_timer_handler();
   inkplate.display(); // initial FULL to start clean
 
@@ -77,14 +76,13 @@ void loop()
   if (millis() - lastRefresh >= REFRESH_DELAY_MS) {
     updateTimeLabel();
 
-    lv_tick_inc(10);
-    lv_timer_handler();
-
     // Do fast partials most of the time; occasional FULL to reduce ghosting
     if (++partialCount >= FULL_REFRESH_EVERY) {
+      lv_timer_handler();
       inkplate.display();      // FULL
       partialCount = 0;
     } else {
+      lv_timer_handler();
       inkplate.partialUpdate(); // PARTIAL
     }
 
