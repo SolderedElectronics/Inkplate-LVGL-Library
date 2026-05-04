@@ -13,6 +13,10 @@
 #ifdef ARDUINO_INKPLATE13SPECTRA
 #include "Inkplate13SPECTRADriver.h"
 #include "Inkplate-LVGL.h"
+#include "../../system/inkplateSemaphore.h"
+
+SemaphoreHandle_t mutexI2C;
+SemaphoreHandle_t mutexSPI;
 
 // SPI used for the MicroSd card
 SPIClass spi1(1);
@@ -203,6 +207,8 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // buffer and clear frame buffer
     if (!_beginDone)
     {
+        mutexI2C = xSemaphoreCreateRecursiveMutex();
+        mutexSPI = xSemaphoreCreateRecursiveMutex();
 
         setPanelPinsToLow();
 
@@ -229,8 +235,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Color whole frame buffer in white color
         memset(DMemory4Bit, INKPLATE_WHITE | (INKPLATE_WHITE << 4), E_INK_WIDTH * E_INK_HEIGHT / 2);
 
-        lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
-        lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
+        
         _beginDone = true;
     }
 
@@ -250,29 +255,7 @@ void EPDDriver::clearDisplay()
 }
 
 
-/**
- * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
- *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
- */
-void EPDDriver::_renderReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    self->_renderReady = true;
-}
 
-/**
- * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
- *          If RENDER_READY was not set during this cycle, there were no dirty areas —
- *          set _noRender so display() can exit without waiting for the full timeout.
- */
-void EPDDriver::_refrReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    if (!self->_renderReady)
-    {
-        self->_noRender = true;
-    }
-}
 
 /**
  * @brief       display function update display with new data from buffer
@@ -284,18 +267,7 @@ void EPDDriver::_refrReadyCb(lv_event_t *e)
  */
 void EPDDriver::display(bool _leaveOn)
 {
-    // Reset the flag so we wait for the render that reflects the current UI state,
-    // not a stale render from before the user set up the screen content.
-    _renderReady = false;
-    _noRender = false;
-    uint32_t _renderTimeout = millis();
-    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
-    {
-        delay(1);
-    }
-    _renderReady = false;
-    _noRender = false;
-
+    spiStart();
     // Power up the screen (if is not already powered on).
     setPanelState(true);
 
@@ -344,6 +316,7 @@ void EPDDriver::display(bool _leaveOn)
     // Disable power to the display (if needed).
     if (!_leaveOn)
         setPanelState(false);
+    spiEnd();
 }
 
 /**
@@ -543,8 +516,10 @@ int16_t EPDDriver::sdCardInit()
     expander1.pinMode(SD_PMOS_PIN, OUTPUT);
     expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(200);
+    spiStart();
     spi1.begin(12, 13, 11, 10);
     setSdCardOk(sd.begin(SdSpiConfig(10, SHARED_SPI, SD_SCK_MHZ(25), &spi1)));
+    spiEnd();
     // Small delay to init the SD card
     delay(100);
     return getSdCardOk();
@@ -555,6 +530,8 @@ int16_t EPDDriver::sdCardInit()
  */
 void EPDDriver::sdCardSleep()
 {
+    spiStart();
+    spiEnd();
     // Set SPI pins to input to reduce power consumption in deep sleep
     pinMode(10, INPUT);
     pinMode(11, INPUT);

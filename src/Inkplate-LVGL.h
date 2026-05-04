@@ -25,6 +25,7 @@
 #include "system/InkplateBoards.h"
 #include "system/NetworkController/NetworkController.h"
 #include "system/defines.h"
+#include "system/inkplateSemaphore.h"
 
 
 void display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);

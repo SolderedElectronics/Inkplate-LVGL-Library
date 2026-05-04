@@ -41,12 +41,16 @@ static void * sd_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
 
   SdFile *f = new SdFile();
   oflag_t flags = (mode == LV_FS_MODE_WR) ? (O_WRITE | O_CREAT | O_TRUNC) : O_READ;
+  spiStart();
   bool ok = f->open(&sd, path, flags);
+  spiEnd();
 
   static const uint16_t retryDelaysMs[] = {10, 50, 100};
   for (int i = 0; !ok && i < 3; i++) {
     vTaskDelay(pdMS_TO_TICKS(retryDelaysMs[i]));
+    spiStart();
     ok = f->open(&sd, path, flags);
+    spiEnd();
   }
 
   if (!ok) {
@@ -98,7 +102,9 @@ static lv_fs_res_t sd_close(lv_fs_drv_t *drv, void *file_p) {
  */
 static lv_fs_res_t sd_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br) {
   SdFile *f = static_cast<SdFile*>(file_p);
+  spiStart();
   int32_t res = f->read(buf, btr);
+  spiEnd();
 
   if (res < 0) {
     *br = 0;
@@ -129,17 +135,20 @@ static lv_fs_res_t sd_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t b
  */
 static lv_fs_res_t sd_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence) {
   SdFile *f = static_cast<SdFile*>(file_p);
-
+  spiStart();
+  lv_fs_res_t result;
   switch (whence) {
     case LV_FS_SEEK_SET:
-      return f->seekSet(pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
+      result = f->seekSet(pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN; break;
     case LV_FS_SEEK_CUR:
-      return f->seekCur((int32_t)pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
+      result = f->seekCur((int32_t)pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN; break;
     case LV_FS_SEEK_END:
-      return f->seekEnd((int32_t)pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
+      result = f->seekEnd((int32_t)pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN; break;
     default:
-      return LV_FS_RES_UNKNOWN;
+      result = LV_FS_RES_UNKNOWN; break;
   }
+  spiEnd();
+  return result;
 }
 
 /**

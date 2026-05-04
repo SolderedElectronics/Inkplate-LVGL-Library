@@ -13,6 +13,10 @@
 #ifdef ARDUINO_INKPLATECOLOR
 #include "Inkplate6COLORDriver.h"
 #include "Inkplate-LVGL.h"
+#include "../../system/inkplateSemaphore.h"
+
+SemaphoreHandle_t mutexI2C;
+SemaphoreHandle_t mutexSPI;
 
 SPIClass spi2(2);
 SdFat sd;
@@ -227,6 +231,9 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // buffer and clear frame buffer
     if (!_beginDone)
     {
+        mutexI2C = xSemaphoreCreateRecursiveMutex();
+        mutexSPI = xSemaphoreCreateRecursiveMutex();
+
         Wire.begin();
 
         // Save the given inkplate pointer for internal use
@@ -244,8 +251,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Color whole frame buffer in white color
         memset(DMemory4Bit, INKPLATE_WHITE | (INKPLATE_WHITE << 4), E_INK_WIDTH * E_INK_HEIGHT / 2);
 
-        lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
-        lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
+        
         _beginDone = true;
     }
 
@@ -278,44 +284,11 @@ void EPDDriver::clearDisplay()
  *              display update in order to save some time needed for power supply
  *              to save some time at next display update or increase refreshing speed
  */
-/**
- * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
- *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
- */
-void EPDDriver::_renderReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    self->_renderReady = true;
-}
 
-/**
- * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
- *          If RENDER_READY was not set during this cycle, there were no dirty areas —
- *          set _noRender so display() can exit without waiting for the full timeout.
- */
-void EPDDriver::_refrReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    if (!self->_renderReady)
-    {
-        self->_noRender = true;
-    }
-}
 
 void EPDDriver::display(bool _leaveOn)
 {
-    // Reset the flag so we wait for the render that reflects the current UI state,
-    // not a stale render from before the user set up the screen content.
-    _renderReady = false;
-    _noRender = false;
-    uint32_t _renderTimeout = millis();
-    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
-    {
-        delay(1);
-    }
-    _renderReady = false;
-    _noRender = false;
-
+    spiStart();
     // Wake the panel back up
     setPanelDeepSleep(false);
 
@@ -346,6 +319,7 @@ void EPDDriver::display(bool _leaveOn)
 
     // Put the panel to sleep again
     setPanelDeepSleep(true);
+    spiEnd();
 }
 
 
@@ -375,7 +349,7 @@ void EPDDriver::setPanelState(uint8_t state)
  */
 void EPDDriver::clean()
 {
-
+    spiStart();
     // Set resolution setting
     uint8_t res_set_data[] = {0x02, 0x58, 0x01, 0xc0};
     sendCommand(0x61);
@@ -403,6 +377,7 @@ void EPDDriver::clean()
     while (digitalRead(EPAPER_BUSY_PIN))
         ; // Wait for busy low signal
     delay(200);
+    spiEnd();
 }
 
 /**
@@ -478,6 +453,7 @@ void EPDDriver::sendData(uint8_t _data)
  */
 bool EPDDriver::setPanelDeepSleep(bool _state)
 {
+    spiStart();
     if (!_state)
     {
         // _state is false? Wake the panel!
@@ -508,7 +484,10 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
             ;
 
         if (!digitalRead(EPAPER_BUSY_PIN))
+        {
+            spiEnd();
             return false;
+        }
 
         // Send whole bunch of commands and data
         uint8_t panel_set_data[] = {0xEF, 0x08};
@@ -546,6 +525,7 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
         sendCommand(VCOM_DATA_INTERVAL_REGISTER);
         sendData(0x37);
 
+        spiEnd();
         return true;
     }
     else
@@ -567,6 +547,7 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
         digitalWrite(EPAPER_CLK, LOW);
         digitalWrite(EPAPER_DIN, LOW);
 
+        spiEnd();
         return true;
     }
 }
@@ -634,8 +615,10 @@ int16_t EPDDriver::sdCardInit()
     expander1.pinMode(SD_PMOS_PIN, OUTPUT);
     expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
+    spiStart();
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
+    spiEnd();
     return getSdCardOk();
 }
 
@@ -644,6 +627,8 @@ int16_t EPDDriver::sdCardInit()
  */
 void EPDDriver::sdCardSleep()
 {
+    spiStart();
+    spiEnd();
     // Set SPI pins to input to reduce power consumption in deep sleep
     pinMode(12, INPUT);
     pinMode(13, INPUT);

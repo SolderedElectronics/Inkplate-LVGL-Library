@@ -76,10 +76,6 @@ class EPDDriver
     bool setPanelDeepSleep(bool _state);
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
-    volatile bool _renderReady = false;
-    volatile bool _noRender = false;
-    static void _renderReadyCb(lv_event_t *e);
-    static void _refrReadyCb(lv_event_t *e);
 };
 
 #endif

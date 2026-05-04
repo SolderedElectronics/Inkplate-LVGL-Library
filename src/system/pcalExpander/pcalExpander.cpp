@@ -11,6 +11,7 @@
 
 
 #include "pcalExpander.h"
+#include "../inkplateSemaphore.h"
 
 /**
  * @brief       ioBegin function starts pcal expander and sets registers values
@@ -25,8 +26,10 @@ bool IOExpander::begin(uint8_t _addr)
     // Copy the address into local variable.
     _ioExpanderI2CAddress = _addr;
 
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     int error = Wire.endTransmission();
+    i2cEnd();
     if (error)
         return false;
     readPCALRegisters();
@@ -40,6 +43,7 @@ bool IOExpander::begin(uint8_t _addr)
  */
 void IOExpander::readPCALRegisters()
 {
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     Wire.write(0x00);
     Wire.endTransmission();
@@ -48,6 +52,7 @@ void IOExpander::readPCALRegisters()
     {
         _ioExpanderRegs[i] = Wire.read();
     }
+    i2cEnd();
 }
 
 /**
@@ -61,6 +66,7 @@ void IOExpander::readPCALRegisters()
  */
 void IOExpander::readPCALRegisters(uint8_t _regIndex, uint8_t _n)
 {
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     Wire.write(regAddresses[_regIndex]);
     Wire.endTransmission();
@@ -69,6 +75,7 @@ void IOExpander::readPCALRegisters(uint8_t _regIndex, uint8_t _n)
     {
         _ioExpanderRegs[_regIndex + i] = Wire.read();
     }
+    i2cEnd();
 }
 
 /**
@@ -80,11 +87,13 @@ void IOExpander::readPCALRegisters(uint8_t _regIndex, uint8_t _n)
  */
 void IOExpander::readPCALRegister(uint8_t _regIndex)
 {
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     Wire.write(regAddresses[_regIndex]);
     Wire.endTransmission();
     Wire.requestFrom(_ioExpanderI2CAddress, (uint8_t)1);
     _ioExpanderRegs[_regIndex] = Wire.read();
+    i2cEnd();
 }
 
 /**
@@ -94,6 +103,7 @@ void IOExpander::readPCALRegister(uint8_t _regIndex)
  */
 void IOExpander::updatePCALAllRegisters()
 {
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     Wire.write(0x00);
     for (int i = 0; i < 23; i++)
@@ -101,6 +111,7 @@ void IOExpander::updatePCALAllRegisters()
         Wire.write(_ioExpanderRegs[i]);
     }
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -113,10 +124,12 @@ void IOExpander::updatePCALAllRegisters()
  */
 void IOExpander::updatePCALRegister(uint8_t _regIndex, uint8_t _d)
 {
+    i2cStart();
     Wire.beginTransmission(_ioExpanderI2CAddress);
     Wire.write(regAddresses[_regIndex]);
     Wire.write(_d);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**

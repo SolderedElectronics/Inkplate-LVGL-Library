@@ -16,6 +16,8 @@
 
 SPIClass spi2(2);
 SdFat sd;
+SemaphoreHandle_t mutexI2C;
+SemaphoreHandle_t mutexSPI;
 
 /**
  *
@@ -182,11 +184,13 @@ void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
     Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
     if (self->touchscreen.available())
     {
+        
         uint16_t x[2], y[2];
         self->touchscreen.getData(x, y);
         data->state = LV_INDEV_STATE_PRESSED;
         data->point.x = x[0];
         data->point.y = y[0];
+        Serial.println("Pritisnut na: "+String(data->point.x)+", "+String(data->point.y));
     }
     else
     {
@@ -212,6 +216,9 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // If the driver was already initialized, skip current initialization
     if (_beginDone == 1)
         return 0;
+
+    mutexI2C = xSemaphoreCreateRecursiveMutex();
+    mutexSPI = xSemaphoreCreateRecursiveMutex();
 
     // Save the given inkplate pointer for internal use
     _inkplate = _inkplatePtr;
@@ -248,8 +255,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 
     dither.begin(_inkplatePtr);
 
-    lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
-    lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
+    
     _beginDone = 1;
 
     return 1;
@@ -355,44 +361,10 @@ void EPDDriver::clearDisplay()
  *              display update in order to save some time needed for power supply
  *              to save some time at next display update or increase refreshing speed
  */
-/**
- * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
- *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
- */
-void EPDDriver::_renderReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    self->_renderReady = true;
-}
 
-/**
- * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
- *          If RENDER_READY was not set during this cycle, there were no dirty areas —
- *          set _noRender so display() can exit without waiting for the full timeout.
- */
-void EPDDriver::_refrReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    if (!self->_renderReady)
-    {
-        self->_noRender = true;
-    }
-}
 
 void EPDDriver::display(bool _leaveOn)
 {
-    // Reset the flag so we wait for the render that reflects the current UI state,
-    // not a stale render from before the user set up the screen content.
-    _renderReady = false;
-    _noRender = false;
-    uint32_t _renderTimeout = millis();
-    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
-    {
-        delay(1);
-    }
-    _renderReady = false;
-    _noRender = false;
-
     if (_displayMode == 0)
     {
         display1b(_leaveOn);
@@ -707,23 +679,28 @@ int EPDDriver::einkOn()
     WAKEUP_SET;
     delay(5);
     // Enable all rails
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x01);
     Wire.write(B00100000);
     Wire.endTransmission();
-
+    i2cEnd();
 
     // Modify power up sequence.
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x09);
     Wire.write(B11100100);
     Wire.endTransmission();
+    i2cEnd();
 
     // Modify power down sequence  (VEE and VNEG are swapped)
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x0b);
     Wire.write(B00011011);
     Wire.endTransmission();
+    i2cEnd();
 
 
     pinsAsOutputs();
@@ -778,10 +755,12 @@ void EPDDriver::einkOff()
     } while ((readPowerGood() != 0) && (millis() - timer) < 250);
 
     WAKEUP_CLEAR; // Disable 3V3 Switch for ePaper.
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x01);
     Wire.write(B00000000);
     Wire.endTransmission();
+    i2cEnd();
     pinsZstate();
     setPanelState(0);
 }
@@ -790,6 +769,7 @@ void EPDDriver::pmicBegin()
 {
     WAKEUP_SET;
     delay(1);
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x09);
     Wire.write(B00011011); // Power up seq.
@@ -797,6 +777,7 @@ void EPDDriver::pmicBegin()
     Wire.write(B00011011); // Power down seq.
     Wire.write(B00000000); // Power down delay (6mS per rail)
     Wire.endTransmission();
+    i2cEnd();
     delay(1);
     WAKEUP_CLEAR;
 }
@@ -840,11 +821,14 @@ void EPDDriver::setPanelState(uint8_t state)
  */
 uint8_t EPDDriver::readPowerGood()
 {
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x0F);
     Wire.endTransmission();
     Wire.requestFrom(0x48, 1);
-    return Wire.read();
+    uint8_t result = Wire.read();
+    i2cEnd();
+    return result;
 }
 
 /**
@@ -1100,8 +1084,10 @@ int16_t EPDDriver::sdCardInit()
     expander1.pinMode(SD_PMOS_PIN, OUTPUT);
     expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(50);
+    spiStart();
     spi2.begin(14, 12, 13, 15);
     setSdCardOk(sd.begin(SdSpiConfig(15, SHARED_SPI, SD_SCK_MHZ(25), &spi2)));
+    spiEnd();
     // Small delay to init the SD card
     delay(50);
     return getSdCardOk();
@@ -1112,6 +1098,11 @@ int16_t EPDDriver::sdCardInit()
  */
 void EPDDriver::sdCardSleep()
 {
+    // Wait for any in-flight SPI transaction (e.g. SD read from LVGL task) to finish
+    // before pulling power and setting pins to input.
+    spiStart();
+    spiEnd();
+
     // Set SPI pins to input to reduce power consumption in deep sleep
     pinMode(12, INPUT);
     pinMode(13, INPUT);
@@ -1180,18 +1171,21 @@ int8_t EPDDriver::readTemperature()
         PWRUP_SET;
         delay(5);
     }
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x0D);
     Wire.write(B10000000);
     Wire.endTransmission();
+    i2cEnd();
     delay(5);
 
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(0x00);
     Wire.endTransmission();
-
     Wire.requestFrom(0x48, 1);
     temp = Wire.read();
+    i2cEnd();
     if (getPanelState() == 0)
     {
         PWRUP_CLEAR;
@@ -1329,10 +1323,12 @@ double EPDDriver::getVCOMValue()
 void EPDDriver::writeReg(uint8_t _reg, float _data)
 {
     Serial.printf("value that will be stored: %d", _data);
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(_reg);
     Wire.write((uint8_t)_data);
     uint8_t err = Wire.endTransmission();
+    i2cEnd();
     Serial.printf("W reg 0x%02X = 0x%02X, endTx=%u\n", _reg, _data, err);
 }
 
@@ -1344,12 +1340,14 @@ void EPDDriver::writeReg(uint8_t _reg, float _data)
  */
 uint8_t EPDDriver::readReg(uint8_t _reg)
 {
+    i2cStart();
     Wire.beginTransmission(0x48);
     Wire.write(_reg);
     uint8_t err = Wire.endTransmission(false);
     Wire.endTransmission(false);
     uint8_t got = Wire.requestFrom(0x48, (uint8_t)1);
     uint8_t v = got ? Wire.read() : 0xFF;
+    i2cEnd();
 
     Serial.printf("R reg 0x%02X, endTx=%u, got=%u, val=0x%02X\n", _reg, err, got, v);
     return v;
@@ -1394,9 +1392,13 @@ void EPDDriver::wakePeripheral(uint8_t _peripheral)
     if (_peripheral & INKPLATE_BME688)
     {
         // Wake BME
+        i2cStart();
         uint8_t bmeControlReg = bme688.readByte(BME_CONTROL_ADDR);
         bme688.putData(BME_CONTROL_ADDR, bmeControlReg | 0x01);
+        i2cEnd();
+        i2cStart();
         bme688.begin();
+        i2cEnd();
     }
 
     if (_peripheral & INKPLATE_APDS9960)
@@ -1435,10 +1437,12 @@ void EPDDriver::sleepPeripheral(uint8_t _peripheral)
 
     if (_peripheral & INKPLATE_BME688)
     {
-        // Put BME in sleep mode
+        // Put BME in sleep mode — read-modify-write held under one lock for atomicity
+        i2cStart();
         uint8_t bmeControlReg = bme688.readByte(BME_CONTROL_ADDR);
         bmeControlReg &= ~(0b00000011);
         bme688.putData(BME_CONTROL_ADDR, bmeControlReg);
+        i2cEnd();
     }
 
     if (_peripheral & INKPLATE_APDS9960)
