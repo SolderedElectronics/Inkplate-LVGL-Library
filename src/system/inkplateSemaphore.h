@@ -31,4 +31,3 @@ extern SemaphoreHandle_t mutexSPI;
 #define i2cEnd()   xSemaphoreGiveRecursive(mutexI2C)
 #define spiStart() xSemaphoreTakeRecursive(mutexSPI, portMAX_DELAY)
 #define spiEnd()   xSemaphoreGiveRecursive(mutexSPI)
-

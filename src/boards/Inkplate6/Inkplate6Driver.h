@@ -115,8 +115,6 @@ class EPDDriver : public UtilI2S
     void vscan_end();
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
-    
-    
 };
 
 #endif

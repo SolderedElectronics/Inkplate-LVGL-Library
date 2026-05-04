@@ -174,7 +174,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Set default rotation
         _inkplate->setRotation(1);
 
-        
+
         _beginDone = 1;
     }
 

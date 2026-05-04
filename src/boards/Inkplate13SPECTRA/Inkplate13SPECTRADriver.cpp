@@ -235,7 +235,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Color whole frame buffer in white color
         memset(DMemory4Bit, INKPLATE_WHITE | (INKPLATE_WHITE << 4), E_INK_WIDTH * E_INK_HEIGHT / 2);
 
-        
+
         _beginDone = true;
     }
 
@@ -253,8 +253,6 @@ void EPDDriver::clearDisplay()
 {
     memset(DMemory4Bit, WHITE << 4 | WHITE, E_INK_WIDTH * E_INK_HEIGHT / 2);
 }
-
-
 
 
 /**

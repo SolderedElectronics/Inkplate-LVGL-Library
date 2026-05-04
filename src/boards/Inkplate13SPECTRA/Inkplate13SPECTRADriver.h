@@ -95,8 +95,6 @@ class EPDDriver
     void setPanelPinsToLow();
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
-    
-    
 
 
     // Color display of the spectra panel

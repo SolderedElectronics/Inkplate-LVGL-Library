@@ -235,7 +235,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 
     dither.begin(_inkplatePtr);
 
-    
+
     _beginDone = 1;
     return 1;
 }
@@ -333,7 +333,6 @@ void EPDDriver::clearDisplay()
 }
 
 
-
 /**
  * @brief       display function update display with new data from buffer
  *
@@ -344,7 +343,7 @@ void EPDDriver::clearDisplay()
  */
 void EPDDriver::display(bool _leaveOn)
 {
-    
+
 
     if (_inkplate->getDisplayMode() == 0)
     {

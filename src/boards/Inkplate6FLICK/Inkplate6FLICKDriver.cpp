@@ -287,7 +287,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 
     // Calculate color LUTs to optimize drawing to the screen
     calculateLUTs();
-    
+
     _beginDone = 1;
     return 1;
 }
@@ -392,7 +392,7 @@ void EPDDriver::clearDisplay()
 
 void EPDDriver::display(bool _leaveOn)
 {
-    
+
 
     if (_displayMode == 0)
     {

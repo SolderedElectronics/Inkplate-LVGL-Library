@@ -137,8 +137,8 @@ class EPDDriver
     void vscan_end();
     uint8_t _panelState = 0;
     Inkplate *_inkplate;
-    
-    
+
+
     bool writeVCOMToPanelEEPROM(double vcom);
     void writeReg(uint8_t reg, float data);
     uint8_t readReg(uint8_t reg);

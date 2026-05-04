@@ -249,7 +249,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // Init the I2S driver. It will setup a I2S driver.
     I2SInit(myI2S);
 
-    
+
     _beginDone = 1;
     return 1;
 }
@@ -354,7 +354,7 @@ void EPDDriver::clearDisplay()
 
 void EPDDriver::display(bool _leaveOn)
 {
-    
+
 
     if (_displayMode == 0)
     {
