@@ -28,7 +28,6 @@
 #include "system/inkplateSemaphore.h"
 
 
-
 void display_flush_callback(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
 
 class Inkplate : public InkplateBoardClass, public NetworkController
@@ -50,12 +49,30 @@ class Inkplate : public InkplateBoardClass, public NetworkController
 
     // Bus mutex helpers — use in user FreeRTOS tasks that share I2C, SPI or display.
     // Always call the matching unlock after the locked section.
-    inline void i2cLock()       { i2cStart();     }
-    inline void i2cUnlock()     { i2cEnd();       }
-    inline void spiLock()       { spiStart();     }
-    inline void spiUnlock()     { spiEnd();       }
-    inline void displayLock()   { displayStart(); }
-    inline void displayUnlock() { displayEnd();   }
+    inline void i2cLock()
+    {
+        i2cStart();
+    }
+    inline void i2cUnlock()
+    {
+        i2cEnd();
+    }
+    inline void spiLock()
+    {
+        spiStart();
+    }
+    inline void spiUnlock()
+    {
+        spiEnd();
+    }
+    inline void displayLock()
+    {
+        displayStart();
+    }
+    inline void displayUnlock()
+    {
+        displayEnd();
+    }
 
 
   protected:
