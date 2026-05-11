@@ -15,8 +15,6 @@
 #include "Inkplate-LVGL.h"
 #include "../../system/inkplateSemaphore.h"
 
-SemaphoreHandle_t mutexI2C;
-SemaphoreHandle_t mutexSPI;
 
 // SPI used for the MicroSd card
 SPIClass spi1(1);
@@ -207,9 +205,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // buffer and clear frame buffer
     if (!_beginDone)
     {
-        mutexI2C = xSemaphoreCreateRecursiveMutex();
-        mutexSPI = xSemaphoreCreateRecursiveMutex();
-
         setPanelPinsToLow();
 
 
@@ -265,6 +260,7 @@ void EPDDriver::clearDisplay()
  */
 void EPDDriver::display(bool _leaveOn)
 {
+    displayStart();
     spiStart();
     // Power up the screen (if is not already powered on).
     setPanelState(true);
@@ -315,6 +311,7 @@ void EPDDriver::display(bool _leaveOn)
     if (!_leaveOn)
         setPanelState(false);
     spiEnd();
+    displayEnd();
 }
 
 /**

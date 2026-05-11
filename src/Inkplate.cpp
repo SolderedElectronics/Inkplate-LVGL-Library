@@ -53,6 +53,8 @@ void Inkplate::begin(lv_display_render_mode_t renderMode)
     if (_beginDone == 1)
         return;
 
+    inkplateMutexInit();
+
     Wire.begin();
 
     _renderMode = renderMode;

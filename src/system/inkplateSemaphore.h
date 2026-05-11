@@ -3,17 +3,16 @@
  *
  * @file        inkplateSemaphore.h
  * @brief       FreeRTOS mutex handles and convenience macros for
- *              thread-safe I2C and SPI access on Inkplate 4TEMPERA.
+ *              thread-safe I2C, SPI and display access on Inkplate boards.
  *
- *              mutexI2C and mutexSPI are defined in the active board
- *              Inkplate*Driver.cpp and created in initDriver(). All driver and feature code
- *              that touches the Wire bus or SPI bus includes this header
- *              and wraps every transaction with i2cStart()/i2cEnd() or
- *              spiStart()/spiEnd().
+ *              All three mutexes are defined in inkplateSemaphore.cpp and
+ *              created via inkplateMutexInit() called from Inkplate::begin().
+ *              All driver and feature code that touches Wire, SPI or the
+ *              display framebuffer includes this header and wraps every
+ *              transaction with the matching start/end macro pair.
  *
- *              Recursive mutexes allow nested i2cStart (e.g. driver + PCAL
- *              expander) without deadlocking. On non-Inkplate builds the macros
- *              expand to ((void)0).
+ *              Recursive mutexes allow nested locks (e.g. driver + PCAL
+ *              expander) without deadlocking.
  *
  * @copyright   GNU General Public License v3.0
  * @authors     Soldered
@@ -26,8 +25,13 @@
 
 extern SemaphoreHandle_t mutexI2C;
 extern SemaphoreHandle_t mutexSPI;
+extern SemaphoreHandle_t mutexDisplay;
 
-#define i2cStart() xSemaphoreTakeRecursive(mutexI2C, portMAX_DELAY)
-#define i2cEnd()   xSemaphoreGiveRecursive(mutexI2C)
-#define spiStart() xSemaphoreTakeRecursive(mutexSPI, portMAX_DELAY)
-#define spiEnd()   xSemaphoreGiveRecursive(mutexSPI)
+void inkplateMutexInit();
+
+#define i2cStart()     xSemaphoreTakeRecursive(mutexI2C, portMAX_DELAY)
+#define i2cEnd()       xSemaphoreGiveRecursive(mutexI2C)
+#define spiStart()     xSemaphoreTakeRecursive(mutexSPI, portMAX_DELAY)
+#define spiEnd()       xSemaphoreGiveRecursive(mutexSPI)
+#define displayStart() xSemaphoreTakeRecursive(mutexDisplay, portMAX_DELAY)
+#define displayEnd()   xSemaphoreGiveRecursive(mutexDisplay)

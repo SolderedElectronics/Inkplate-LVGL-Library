@@ -15,8 +15,6 @@
 #include "Inkplate-LVGL.h"
 #include "../../system/inkplateSemaphore.h"
 
-SemaphoreHandle_t mutexI2C;
-SemaphoreHandle_t mutexSPI;
 
 SPIClass epdSPI(VSPI);
 
@@ -153,9 +151,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 {
     if (!_beginDone)
     {
-        mutexI2C = xSemaphoreCreateRecursiveMutex();
-        mutexSPI = xSemaphoreCreateRecursiveMutex();
-
         // Allocate memory for frame buffer
         DMemory4Bit = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4);
 
@@ -211,6 +206,7 @@ void EPDDriver::clearDisplay()
  */
 void EPDDriver::display(bool _leaveOn)
 {
+    displayStart();
     spiStart();
     // Wake the panel and wait a bit
     // The refresh time is long anyway so this delay doesn't make much impact
@@ -237,6 +233,7 @@ void EPDDriver::display(bool _leaveOn)
     // Go back to sleep
     setPanelDeepSleep(true);
     spiEnd();
+    displayEnd();
 }
 
 

@@ -15,8 +15,6 @@
 #include "Inkplate-LVGL.h"
 #include "../../system/inkplateSemaphore.h"
 
-SemaphoreHandle_t mutexI2C;
-SemaphoreHandle_t mutexSPI;
 
 SPIClass spi2(2);
 SdFat sd;
@@ -231,9 +229,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     // buffer and clear frame buffer
     if (!_beginDone)
     {
-        mutexI2C = xSemaphoreCreateRecursiveMutex();
-        mutexSPI = xSemaphoreCreateRecursiveMutex();
-
         Wire.begin();
 
         // Save the given inkplate pointer for internal use
@@ -288,6 +283,7 @@ void EPDDriver::clearDisplay()
 
 void EPDDriver::display(bool _leaveOn)
 {
+    displayStart();
     spiStart();
     // Wake the panel back up
     setPanelDeepSleep(false);
@@ -320,6 +316,7 @@ void EPDDriver::display(bool _leaveOn)
     // Put the panel to sleep again
     setPanelDeepSleep(true);
     spiEnd();
+    displayEnd();
 }
 
 

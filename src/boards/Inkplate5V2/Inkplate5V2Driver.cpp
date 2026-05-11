@@ -14,8 +14,6 @@
 #include "Inkplate5V2Driver.h"
 #include "Inkplate-LVGL.h"
 
-SemaphoreHandle_t mutexI2C;
-SemaphoreHandle_t mutexSPI;
 
 SPIClass spi2(2);
 SdFat sd;
@@ -213,9 +211,6 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
     if (_beginDone == 1)
         return 0;
 
-    mutexI2C = xSemaphoreCreateRecursiveMutex();
-    mutexSPI = xSemaphoreCreateRecursiveMutex();
-
     // Save the given inkplate pointer for internal use
     _inkplate = _inkplatePtr;
 
@@ -354,8 +349,7 @@ void EPDDriver::clearDisplay()
 
 void EPDDriver::display(bool _leaveOn)
 {
-
-
+    displayStart();
     if (_displayMode == 0)
     {
         display1b(_leaveOn);
@@ -364,6 +358,7 @@ void EPDDriver::display(bool _leaveOn)
     {
         display3b(_leaveOn);
     }
+    displayEnd();
 }
 
 /**
