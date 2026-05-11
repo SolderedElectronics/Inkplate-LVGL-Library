@@ -20,8 +20,7 @@ Inkplate inkplate(INKPLATE_1BIT);
 // Initialize global lvgl rectangle object
 static lv_obj_t *rect = NULL;
 
-// Touch detect flag
-bool isRectangleClicked = false;
+volatile bool isRectangleClicked = false;
 
 // Rectangle coordinates
 int x_position = 50;
@@ -82,7 +81,8 @@ void setup()
     lv_obj_set_style_text_font(label,  &lv_font_montserrat_48, 0);
     lv_obj_center(label);
 
-    // Display text on screen
+    // Render LVGL frame then display
+    lv_timer_handler();
     inkplate.display();
 
     // Wait for 2 seconds
@@ -102,15 +102,19 @@ void setup()
     // Add event callback function
     lv_obj_add_event_cb(rect, btn_event_cb, LV_EVENT_ALL, NULL);
 
-    // Display content from buffer
+    // Render LVGL frame then display
+    lv_timer_handler();
     inkplate.display();
 }
 
 void loop()
 {
+    lv_timer_handler();
     if (isRectangleClicked)
     {
+        lv_timer_handler();
         inkplate.partialUpdate(0, 1);
         isRectangleClicked = false;
     }
+    delay(5);
 }

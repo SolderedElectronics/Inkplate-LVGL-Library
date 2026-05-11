@@ -143,7 +143,6 @@ void setup() {
   update_readings();
 
   // Initial FULL refresh
-  lv_tick_inc(20);
   lv_timer_handler();
   inkplate.display();
 }
@@ -151,7 +150,6 @@ void setup() {
 void loop() {
   update_readings();
 
-  lv_tick_inc(10);
   lv_timer_handler();
   inkplate.display();   // FULL
 

@@ -82,7 +82,6 @@ void clearCubeArea();
 
 void refreshLVGL()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
 }
 
@@ -160,6 +159,7 @@ void setup()
     refreshLVGL();
     clearCubeArea();
     drawCube();
+    lv_timer_handler();
     inkplate.display();
 }
 
@@ -192,11 +192,13 @@ void loop()
 
     if (numRefreshes >= NUM_PARTIAL_UPDATES_BEFORE_FULL_REFRESH)
     {
+        lv_timer_handler();
         inkplate.display();
         numRefreshes = 0;
     }
     else
     {
+        lv_timer_handler();
         inkplate.partialUpdate(false, true);
         numRefreshes++;
     }

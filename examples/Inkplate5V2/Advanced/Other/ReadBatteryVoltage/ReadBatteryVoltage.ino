@@ -61,7 +61,6 @@ void setup()
     lv_label_set_text(lbl_voltage, buf);
 
     // Render + FULL refresh
-    lv_tick_inc(20);
     lv_timer_handler();
     inkplate.display();
 
@@ -79,7 +78,6 @@ void loop()
     lv_obj_center(lbl_voltage);
 
     // Update LVGL layout
-    lv_tick_inc(20);
     lv_timer_handler();
 
     // Fast partial refresh

@@ -97,7 +97,6 @@ float lastAltitude = NAN;
 
 void refreshLVGL()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
 }
 

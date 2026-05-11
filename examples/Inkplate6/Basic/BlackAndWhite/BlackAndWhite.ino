@@ -59,7 +59,6 @@ void setup() {
   drawBlackWhite();
 
   // Update LVGL and display the rendered frame
-  lv_tick_inc(50);
   lv_timer_handler();
   inkplate.display();
 }

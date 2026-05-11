@@ -27,10 +27,12 @@
  */
 void Frontlight::setBrightness(uint8_t _v)
 {
+    i2cStart();
     Wire.beginTransmission(0x5C >> 1);
     Wire.write(0);
     Wire.write(63 - (_v & 0b00111111));
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**

@@ -59,16 +59,15 @@ void onRefreshButton(lv_event_t *e);
 
 void refreshDisplay(bool forceFull)
 {
-    lv_tick_inc(20);
-    lv_timer_handler();
-
     if (forceFull || partialRefreshCount >= NUM_PARTIAL_UPDATES_BEFORE_FULL_REFRESH)
     {
+        lv_timer_handler();
         inkplate.display();
         partialRefreshCount = 0;
     }
     else
     {
+        lv_timer_handler();
         inkplate.partialUpdate(false, true);
         partialRefreshCount++;
     }
@@ -440,7 +439,6 @@ void setup()
 
 void loop()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
     delay(20);
 }

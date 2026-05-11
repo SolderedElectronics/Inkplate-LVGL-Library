@@ -196,7 +196,6 @@ void displayTestImage()
     lv_obj_set_style_radius(rect, 0, 0);        // No round corners
   }
   // Update the display
-  lv_tick_inc(50);
   lv_timer_handler();
   inkplate.display();
 }

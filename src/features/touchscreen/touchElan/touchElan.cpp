@@ -12,6 +12,7 @@
 #if defined(ARDUINO_INKPLATE6PLUS) || defined(ARDUINO_INKPLATE6PLUSV2) || defined(ARDUINO_INKPLATE4TEMPERA)
 #include "touchElan.h"
 #include "Inkplate-LVGL.h"
+#include "../../../system/inkplateSemaphore.h"
 
 uint16_t _tsXResolution;
 uint16_t _tsYResolution;
@@ -89,9 +90,12 @@ void Touch::begin(Inkplate *inkplatePtr)
  */
 uint8_t Touch::tsWriteRegs(uint8_t _addr, const uint8_t *_buff, uint8_t _size)
 {
+    i2cStart();
     Wire.beginTransmission(_addr);
     Wire.write(_buff, _size);
-    return Wire.endTransmission();
+    uint8_t result = Wire.endTransmission();
+    i2cEnd();
+    return result;
 }
 
 /**
@@ -106,8 +110,10 @@ uint8_t Touch::tsWriteRegs(uint8_t _addr, const uint8_t *_buff, uint8_t _size)
  */
 void Touch::tsReadRegs(uint8_t _addr, uint8_t *_buff, uint8_t _size)
 {
+    i2cStart();
     Wire.requestFrom(_addr, _size);
     Wire.readBytes(_buff, _size);
+    i2cEnd();
 }
 
 /**
@@ -147,8 +153,10 @@ bool Touch::tsSoftwareReset()
         }
         if (timeout > 0)
             _tsFlag = true;
+        i2cStart();
         Wire.requestFrom(0x15, 4);
         Wire.readBytes(rb, 4);
+        i2cEnd();
         _tsFlag = false;
         if (!memcmp(rb, hello_packet, 4))
         {
@@ -215,8 +223,10 @@ void Touch::shutdown()
  */
 void Touch::getRawData(uint8_t *b)
 {
+    i2cStart();
     Wire.requestFrom(TOUCHSCREEN_ADDR, 8);
     Wire.readBytes(b, 8);
+    i2cEnd();
 }
 
 /**
@@ -339,12 +349,27 @@ void Touch::tsGetResolution(uint16_t *xRes, uint16_t *yRes)
     const uint8_t cmd_x[] = {0x53, 0x60, 0x00, 0x00}; // Get x resolution
     const uint8_t cmd_y[] = {0x53, 0x63, 0x00, 0x00}; // Get y resolution
     uint8_t rec[4];
-    tsWriteRegs(TOUCHSCREEN_ADDR, cmd_x, 4);
-    tsReadRegs(TOUCHSCREEN_ADDR, rec, 4);
+
+    // Write and read must be atomic — LVGL task can preempt between two separate
+    // locked calls and consume the I2C response before we get to read it.
+    i2cStart();
+    Wire.beginTransmission(TOUCHSCREEN_ADDR);
+    Wire.write(cmd_x, 4);
+    Wire.endTransmission();
+    Wire.requestFrom(TOUCHSCREEN_ADDR, (uint8_t)4);
+    Wire.readBytes(rec, 4);
+    i2cEnd();
     *xRes = ((rec[2])) | ((rec[3] & 0xf0) << 4);
-    tsWriteRegs(TOUCHSCREEN_ADDR, cmd_y, 4);
-    tsReadRegs(TOUCHSCREEN_ADDR, rec, 4);
+
+    i2cStart();
+    Wire.beginTransmission(TOUCHSCREEN_ADDR);
+    Wire.write(cmd_y, 4);
+    Wire.endTransmission();
+    Wire.requestFrom(TOUCHSCREEN_ADDR, (uint8_t)4);
+    Wire.readBytes(rec, 4);
+    i2cEnd();
     *yRes = ((rec[2])) | ((rec[3] & 0xf0) << 4);
+
     _tsFlag = false;
 }
 
@@ -371,9 +396,14 @@ uint8_t Touch::getPowerState()
 {
     const uint8_t powerStateReg[] = {0x53, 0x50, 0x00, 0x01};
     uint8_t buf[4];
-    tsWriteRegs(TOUCHSCREEN_ADDR, powerStateReg, 4);
+    i2cStart();
+    Wire.beginTransmission(TOUCHSCREEN_ADDR);
+    Wire.write(powerStateReg, 4);
+    Wire.endTransmission();
     _tsFlag = false;
-    tsReadRegs(TOUCHSCREEN_ADDR, buf, 4);
+    Wire.requestFrom(TOUCHSCREEN_ADDR, (uint8_t)4);
+    Wire.readBytes(buf, 4);
+    i2cEnd();
     return (buf[1] >> 3) & 1;
 }
 

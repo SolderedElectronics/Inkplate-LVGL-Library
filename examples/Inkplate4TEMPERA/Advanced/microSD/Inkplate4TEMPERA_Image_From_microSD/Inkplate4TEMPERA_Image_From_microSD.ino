@@ -76,6 +76,7 @@ void setup() {
   inkplate.sdCardSleep();
 
   // Update e-paper display
+  lv_timer_handler();
   inkplate.display();
   Serial.println("Display updated");
 }

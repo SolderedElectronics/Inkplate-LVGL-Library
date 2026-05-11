@@ -50,7 +50,6 @@ void setup()
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);                    // Center label on screen
 
     // Draw the initial label into the framebuffer
-    lv_tick_inc(50);       // Advance LVGL tick timer
     lv_timer_handler();    // Process LVGL tasks and render the label
 
     // Begin connecting to WiFi
@@ -67,7 +66,6 @@ void setup()
     // Once connected to WiFi:
     Serial.println("\nConnected to WiFi!");
     lv_label_set_text(label, "Connected!");  // Update label text to show success
-    lv_tick_inc(50);
     lv_timer_handler();   // Render new text
     inkplate.display();   // Full screen refresh for final result
 }

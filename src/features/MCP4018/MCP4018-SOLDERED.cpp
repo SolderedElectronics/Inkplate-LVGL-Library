@@ -11,6 +11,7 @@
 
 
 #include "MCP4018-SOLDERED.h"
+#include "../../system/inkplateSemaphore.h"
 
 /**
  * @brief                   MCP4018 constructor.
@@ -53,7 +54,9 @@ void MCP4018_SOLDERED::setWiperValue(int _byte)
 {
     _value = _byte & 0x7F;
     const uint8_t _reg = _value;
+    i2cStart();
     sendData(&_reg, 1);
+    i2cEnd();
 }
 
 /**
@@ -75,7 +78,9 @@ int MCP4018_SOLDERED::getWiperPercent()
 uint8_t MCP4018_SOLDERED::getWiperValue()
 {
     char _reg;
+    i2cStart();
     readData(&_reg, 1);
+    i2cEnd();
     _value = _reg & 0x7F;
     return _value;
 }

@@ -11,6 +11,7 @@
 
 
 #include "rtc.h"
+#include "../../system/inkplateSemaphore.h"
 
 
 /**
@@ -22,6 +23,7 @@
  */
 void RTC::setTime(uint8_t rtcHour, uint8_t rtcMinute, uint8_t rtcSecond)
 {
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_RAM_by);
     Wire.write(170); // Write in RAM 170 to know that RTC is set
@@ -29,6 +31,7 @@ void RTC::setTime(uint8_t rtcHour, uint8_t rtcMinute, uint8_t rtcSecond)
     Wire.write(decToBcd(rtcMinute));
     Wire.write(decToBcd(rtcHour));
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -43,11 +46,14 @@ void RTC::setDate(uint8_t rtcWeekday, uint8_t rtcDay, uint8_t rtcMonth, uint16_t
 {
     Year = yr - 2000; // convert to RTC rtcYear format 0-99
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_RAM_by);
     Wire.write(170); // Write in RAM 170 to know that RTC is set
     Wire.endTransmission();
+    i2cEnd();
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_DAY_ADDR);
     Wire.write(decToBcd(rtcDay));
@@ -55,6 +61,7 @@ void RTC::setDate(uint8_t rtcWeekday, uint8_t rtcDay, uint8_t rtcMonth, uint16_t
     Wire.write(decToBcd(rtcMonth));
     Wire.write(decToBcd(Year));
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -68,6 +75,7 @@ void RTC::setEpoch(uint32_t _epoch)
     time_t _e = _epoch;
     memcpy(&_t, localtime((const time_t *)&_e), sizeof(_t));
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_RAM_by);
     Wire.write(170);
@@ -79,6 +87,7 @@ void RTC::setEpoch(uint32_t _epoch)
     Wire.write(decToBcd(_t.tm_mon + 1));
     Wire.write(decToBcd(_t.tm_year + 1900 - 2000));
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -90,10 +99,10 @@ uint32_t RTC::getEpoch()
 {
     struct tm _t;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ADDR);
     Wire.endTransmission();
-
     Wire.requestFrom(I2C_ADDR, 7); // ignore bit 7
     _t.tm_sec = bcdToDec(Wire.read() & 0x7F);
     _t.tm_min = bcdToDec(Wire.read() & 0x7F);
@@ -103,6 +112,7 @@ uint32_t RTC::getEpoch()
     _t.tm_mon = bcdToDec(Wire.read() & 0x1F) - 1;
     _t.tm_year = bcdToDec(Wire.read()) + 2000 - 1900;
     Wire.endTransmission();
+    i2cEnd();
 
     return (uint32_t)(mktime(&_t));
 }
@@ -112,12 +122,11 @@ uint32_t RTC::getEpoch()
  */
 void RTC::getRtcData()
 {
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ADDR); // datasheet 8.4.
     Wire.endTransmission();
-
     Wire.requestFrom(I2C_ADDR, 7);
-
     while (Wire.available())
     {
         Second = bcdToDec(Wire.read() & 0x7F); // ignore bit 7
@@ -128,6 +137,7 @@ void RTC::getRtcData()
         Month = bcdToDec(Wire.read() & 0x1F);   // ignore bits 7,6 & 5
         Year = bcdToDec(Wire.read()) + 2000;
     }
+    i2cEnd();
 }
 
 /**
@@ -209,10 +219,12 @@ void RTC::enableAlarm() // datasheet 8.5.6.
     Control2 = RTC_CTRL_2_DEFAULT | RTC_ALARM_AIE; // enable interrupt
     Control2 &= ~RTC_ALARM_AF;                     // clear alarm flag
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.write(Control2);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -288,6 +300,7 @@ void RTC::setAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, 
 
     enableAlarm();
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ALARM);
     Wire.write(AlarmSecond);
@@ -296,6 +309,7 @@ void RTC::setAlarm(uint8_t AlarmSecond, uint8_t AlarmMinute, uint8_t AlarmHour, 
     Wire.write(AlarmDay);
     Wire.write(AlarmWeekday);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -311,6 +325,7 @@ void RTC::setAlarmEpoch(uint32_t _epoch, uint8_t _match)
 
     memcpy(&_t, localtime((const time_t *)&_e), sizeof(_t));
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ALARM);
     Wire.write(decToBcd(_t.tm_sec) & (~((_match & 1) << 7)));
@@ -319,6 +334,7 @@ void RTC::setAlarmEpoch(uint32_t _epoch, uint8_t _match)
     Wire.write(decToBcd(_t.tm_mday) & (~(((_match >> 3) & 1) << 7)));
     Wire.write(decToBcd(_t.tm_wday) & (~(((_match >> 4) & 1) << 7)));
     Wire.endTransmission();
+    i2cEnd();
 
     enableAlarm();
 }
@@ -329,12 +345,11 @@ void RTC::setAlarmEpoch(uint32_t _epoch, uint8_t _match)
  */
 void RTC::readAlarm()
 {
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_SECOND_ALARM); // datasheet 8.4.
     Wire.endTransmission();
-
     Wire.requestFrom(I2C_ADDR, 5);
-
     while (Wire.available())
     {
         AlarmSecond = Wire.read();   // read RTC_SECOND_ALARM register
@@ -387,6 +402,7 @@ void RTC::readAlarm()
             AlarmWeekday = bcdToDec(AlarmWeekday & 0x07); // remove bits 7,6,5,4 & 3
         }
     }
+    i2cEnd();
 }
 
 /**
@@ -466,16 +482,20 @@ void RTC::timerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_en
     uint8_t timer_reg[2] = {0};
 
     // disable the countdown timer
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_TIMER_MODE);
     Wire.write(0x18); // default
     Wire.endTransmission();
+    i2cEnd();
 
     // clear Control_2
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.write(0x00); // default
     Wire.endTransmission();
+    i2cEnd();
 
     // reconfigure timer
     timer_reg[1] |= RTC_TIMER_TE; // enable timer
@@ -489,11 +509,13 @@ void RTC::timerSet(rtcCountdownSrcClock source_clock, uint8_t value, bool int_en
     timer_reg[0] = value;
 
     // write timer value
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_TIMER_VAL);
     Wire.write(timer_reg[0]);
     Wire.write(timer_reg[1]);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -505,11 +527,13 @@ bool RTC::checkTimerFlag()
 {
     uint8_t _crtl_2 = RTC_TIMER_FLAG;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.endTransmission();
     Wire.requestFrom(I2C_ADDR, 1);
     _crtl_2 &= Wire.read();
+    i2cEnd();
 
     return _crtl_2;
 }
@@ -523,11 +547,13 @@ bool RTC::checkAlarmFlag()
 {
     uint8_t _crtl_2 = RTC_ALARM_AF;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.endTransmission();
     Wire.requestFrom(I2C_ADDR, 1);
     _crtl_2 &= Wire.read();
+    i2cEnd();
 
     return _crtl_2;
 }
@@ -539,17 +565,17 @@ void RTC::clearAlarmFlag()
 {
     uint8_t _crtl_2;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.endTransmission();
     Wire.requestFrom(I2C_ADDR, 1);
-
     _crtl_2 = Wire.read() & ~(RTC_ALARM_AF);
-
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.write(_crtl_2);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -559,17 +585,17 @@ void RTC::clearTimerFlag()
 {
     uint8_t _crtl_2;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.endTransmission();
     Wire.requestFrom(I2C_ADDR, 1);
-
     _crtl_2 = Wire.read() & ~(RTC_TIMER_FLAG);
-
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_2);
     Wire.write(_crtl_2);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -579,17 +605,17 @@ void RTC::disableTimer()
 {
     uint8_t _timerMode;
 
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_TIMER_MODE);
     Wire.endTransmission();
     Wire.requestFrom(I2C_ADDR, 1);
-
     _timerMode = Wire.read() & ~(RTC_TIMER_TE);
-
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_TIMER_MODE);
     Wire.write(_timerMode);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -600,12 +626,13 @@ void RTC::disableTimer()
 bool RTC::isSet()
 {
     uint8_t _ramByte;
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_RAM_by);
     Wire.endTransmission();
-
     Wire.requestFrom(I2C_ADDR, 1);
     _ramByte = Wire.read();
+    i2cEnd();
     return ((_ramByte == 170) ? true : false);
 }
 
@@ -614,10 +641,12 @@ bool RTC::isSet()
  */
 void RTC::reset() // datasheet 8.2.1.3.
 {
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_1);
     Wire.write(0x58);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -627,18 +656,17 @@ void RTC::reset() // datasheet 8.2.1.3.
  */
 void RTC::setInternalCapacitor(bool val)
 {
+    uint8_t reg = 0;
+
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_1);
     Wire.endTransmission();
-
-    uint8_t reg;
     Wire.requestFrom(I2C_ADDR, 1);
-
     if (Wire.available())
     {
         reg = Wire.read();
     }
-
     if (val)
     {
         reg |= (1 << 0);
@@ -647,11 +675,11 @@ void RTC::setInternalCapacitor(bool val)
     {
         reg &= ~(1 << 0);
     }
-
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_CTRL_1);
     Wire.write(reg);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**
@@ -697,10 +725,12 @@ void RTC::setClockOffset(bool mode, int offsetValue)
     }
 
     // Send to the register
+    i2cStart();
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(RTC_OFFSET);
     Wire.write(regValue);
     Wire.endTransmission();
+    i2cEnd();
 }
 
 /**

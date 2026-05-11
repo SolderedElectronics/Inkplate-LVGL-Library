@@ -58,6 +58,7 @@ void showInfo(const char *wakeText)
         delay(10);
     }
 
+    lv_timer_handler();
     inkplate.display();
 }
 

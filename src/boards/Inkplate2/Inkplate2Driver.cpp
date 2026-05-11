@@ -13,6 +13,8 @@
 #ifdef ARDUINO_INKPLATE2
 #include "Inkplate2Driver.h"
 #include "Inkplate-LVGL.h"
+#include "../../system/inkplateSemaphore.h"
+
 
 SPIClass epdSPI(VSPI);
 
@@ -167,8 +169,7 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
         // Set default rotation
         _inkplate->setRotation(1);
 
-        lv_display_add_event_cb(_inkplate->disp, _renderReadyCb, LV_EVENT_RENDER_READY, this);
-        lv_display_add_event_cb(_inkplate->disp, _refrReadyCb, LV_EVENT_REFR_READY, this);
+
         _beginDone = 1;
     }
 
@@ -203,45 +204,10 @@ void EPDDriver::clearDisplay()
  *              display update in order to save some time needed for power supply
  *              to save some time at next display update or increase refreshing speed
  */
-/**
- * @brief   Callback fired by LVGL when it has finished rendering to the framebuffer.
- *          Sets the _renderReady flag so display() knows it is safe to refresh the EPD.
- *          Registered once in initDriver() after the LVGL display is created.
- */
-void EPDDriver::_renderReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    self->_renderReady = true;
-}
-
-/**
- * @brief   Callback fired by LVGL after each refresh cycle (even when nothing was rendered).
- *          If RENDER_READY was not set during this cycle, there were no dirty areas —
- *          set _noRender so display() can exit without waiting for the full timeout.
- */
-void EPDDriver::_refrReadyCb(lv_event_t *e)
-{
-    EPDDriver *self = static_cast<EPDDriver *>(lv_event_get_user_data(e));
-    if (!self->_renderReady)
-    {
-        self->_noRender = true;
-    }
-}
-
 void EPDDriver::display(bool _leaveOn)
 {
-    // Reset the flag so we wait for the render that reflects the current UI state,
-    // not a stale render from before the user set up the screen content.
-    _renderReady = false;
-    _noRender = false;
-    uint32_t _renderTimeout = millis();
-    while (!_renderReady && !_noRender && (millis() - _renderTimeout) < 5000)
-    {
-        delay(1);
-    }
-    _renderReady = false;
-    _noRender = false;
-
+    displayStart();
+    spiStart();
     // Wake the panel and wait a bit
     // The refresh time is long anyway so this delay doesn't make much impact
     setPanelDeepSleep(false);
@@ -266,6 +232,8 @@ void EPDDriver::display(bool _leaveOn)
 
     // Go back to sleep
     setPanelDeepSleep(true);
+    spiEnd();
+    displayEnd();
 }
 
 
@@ -358,6 +326,7 @@ void EPDDriver::sendData(uint8_t _data)
  */
 bool EPDDriver::setPanelDeepSleep(bool _state)
 {
+    spiStart();
     if (!_state)
     {
         // _state is false? Wake the panel!
@@ -379,7 +348,10 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
 
         sendCommand(0x04);
         if (!waitForEpd(BUSY_TIMEOUT_MS))
+        {
+            spiEnd();
             return false; // Waiting for the electronic paper IC to release the idle signal
+        }
 
         sendCommand(0x00); // Enter panel setting
         sendData(0x0f);    // LUT from OTP 128x296
@@ -393,6 +365,7 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
         sendCommand(0x50); // VCOM and data interval setting
         sendData(0x77);    // WBmode:VBDF 17|D7 VBDW 97 VBDB 57   WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
 
+        spiEnd();
         return true;
     }
     else
@@ -418,6 +391,7 @@ bool EPDDriver::setPanelDeepSleep(bool _state)
         pinMode(EPAPER_CLK, INPUT);
         pinMode(EPAPER_DIN, INPUT);
 
+        spiEnd();
         return true;
     }
 }

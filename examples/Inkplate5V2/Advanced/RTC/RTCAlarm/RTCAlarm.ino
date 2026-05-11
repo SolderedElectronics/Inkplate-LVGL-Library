@@ -57,7 +57,6 @@ void setup()
 
     // Initial display
     updateTimeLabel(timeLabel, alarmLabel);
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 
@@ -73,7 +72,6 @@ void loop()
         lv_obj_t *alarmLabel = lv_obj_get_child(lv_screen_active(), 1);
         updateTimeLabel(timeLabel, alarmLabel);
 
-        lv_tick_inc(50);
         lv_timer_handler();
         inkplate.display();
 

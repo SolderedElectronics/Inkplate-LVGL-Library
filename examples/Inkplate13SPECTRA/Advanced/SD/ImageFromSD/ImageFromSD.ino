@@ -41,7 +41,6 @@ static void showImage(const char *path)
     lv_image_set_src(img, path);  // 'S:/' is the LVGL drive letter for the SD card
     lv_obj_center(img);
 
-    lv_tick_inc(50);
     lv_timer_handler();
     inkplate.display();
 }

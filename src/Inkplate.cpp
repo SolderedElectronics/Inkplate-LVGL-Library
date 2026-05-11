@@ -34,36 +34,16 @@ Inkplate::Inkplate()
 #endif
 
 /**
- * @brief       FreeRTOS task that drives the LVGL timer system on Core 1.
- *              Increments the LVGL tick counter and calls lv_timer_handler() every
- *              millisecond so animations, input events, and redraws are processed
- *              independently of the main Arduino loop on Core 0.
- *
- * @param       void *arg
- *              Unused task parameter (required by FreeRTOS task signature).
- *
- * @note        Started at the end of Inkplate::begin(), after all EPD framebuffers
- *              have been allocated, to prevent the flush callback from firing against
- *              uninitialised memory.
- */
-void lvgl_task(void *arg)
-{
-    for (;;)
-    {
-        lv_tick_inc(1);
-        lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(1));
-    }
-}
-
-/**
  *
  * @brief       begin function initializes the EPDdriver as well as the lvgl library
  *
  * @param       lv_display_render_mode_t renderMode - sets what render mode will be used to draw inside the framebuffer
  *              options: LV_DISP_RENDER_MODE_FULL (default), LV_DISP_RENDER_MODE_DIRECT, LV_DISP_RENDER_MODE_PARTIAL
  *
- * @note        If the begin function was already called, skip the initialization
+ * @note        LVGL runs single-threaded on Core 0. The user must call
+ *              lv_timer_handler() from their loop() (or setup()) to drive
+ *              rendering and input processing. LVGL time is sourced from
+ *              Arduino millis() via lv_tick_set_cb().
  */
 void Inkplate::begin(lv_display_render_mode_t renderMode)
 {
@@ -72,6 +52,8 @@ void Inkplate::begin(lv_display_render_mode_t renderMode)
     // avoid any memory leaks, multiple initializaton of the peripherals etc.
     if (_beginDone == 1)
         return;
+
+    inkplateMutexInit();
 
     Wire.begin();
 
@@ -89,10 +71,6 @@ void Inkplate::begin(lv_display_render_mode_t renderMode)
 
     // Clean frame buffers.
     clearDisplay();
-
-    // Start the LVGL tick task only after all driver framebuffers are allocated,
-    // so the flush callback never fires against uninitialised memory.
-    xTaskCreatePinnedToCore(lvgl_task, "lvgl_tick", 16000, nullptr, 2, nullptr, 1);
 
     // Block multiple inits.
     _beginDone = 1;
@@ -165,6 +143,9 @@ void Inkplate::initLVGL(lv_display_render_mode_t renderMode)
 {
     // Init the lvgl library itself
     lv_init();
+
+    // Source LVGL time from Arduino millis() — no background tick task needed.
+    lv_tick_set_cb(millis);
 
 // Define display resolution
 #if !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)

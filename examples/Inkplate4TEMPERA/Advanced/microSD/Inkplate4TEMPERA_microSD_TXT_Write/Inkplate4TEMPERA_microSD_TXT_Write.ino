@@ -28,7 +28,6 @@ static lv_obj_t *lbl_detail = nullptr;
 
 void refreshLVGL()
 {
-    lv_tick_inc(20);
     lv_timer_handler();
 }
 
@@ -36,8 +35,7 @@ void showMessage(const char *statusText, const char *detailText = "", bool fullR
 {
     lv_label_set_text(lbl_status, statusText);
     lv_label_set_text(lbl_detail, detailText);
-    refreshLVGL();
-
+    lv_timer_handler();
     if (fullRefresh)
         inkplate.display();
     else

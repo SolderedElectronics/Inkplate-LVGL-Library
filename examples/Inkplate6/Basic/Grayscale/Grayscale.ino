@@ -64,7 +64,6 @@ void setup() {
   drawGrayscaleBars();
 
   // Render the layout and show it on the e-paper display
-  lv_tick_inc(50);
   lv_timer_handler();
   inkplate.display();
 }

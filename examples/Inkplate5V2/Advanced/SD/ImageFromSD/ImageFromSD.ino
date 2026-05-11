@@ -54,6 +54,7 @@ void setup() {
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
 
   // Update e-paper display
+  lv_timer_handler();
   inkplate.display();
   Serial.println("Display updated");
 

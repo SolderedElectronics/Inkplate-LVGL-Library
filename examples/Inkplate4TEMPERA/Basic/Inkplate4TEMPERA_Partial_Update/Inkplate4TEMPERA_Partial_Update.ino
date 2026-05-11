@@ -75,8 +75,6 @@ void loop() {
 
   // Proces LVGV tasks, this will automatically trigger flush callbacks
   lv_timer_handler();
-
-  Serial.println("Time it took to render in fb: " +String(millis()-currentTime)+"ms");
   inkplate.partialUpdate(0,1);
   delay(10); // Small delay to prevent overwhelming the system
 

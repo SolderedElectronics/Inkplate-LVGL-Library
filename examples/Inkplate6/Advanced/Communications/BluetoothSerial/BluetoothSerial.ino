@@ -148,7 +148,6 @@ static void ui_reset_log_full_refresh() {
   usedLines = 0;
   ui_create();
 
-  lv_tick_inc(10);
   lv_timer_handler();
   inkplate.display(); // FULL
 }
@@ -171,7 +170,6 @@ static void log_append_char(char c) {
   lv_label_set_text(label_log, logText.c_str());
 
   // Partial refresh for faster updates; opaque panel removes old pixels
-  lv_tick_inc(5);
   lv_timer_handler();
   inkplate.partialUpdate();
 }
@@ -183,7 +181,6 @@ void setup() {
   ui_create();
 
   // Initial full refresh to clear any boot artifacts
-  lv_tick_inc(20);
   lv_timer_handler();
   inkplate.display();
 
@@ -214,7 +211,6 @@ void loop() {
     log_append_char(c);
   }
 
-  lv_tick_inc(5);
   lv_timer_handler();
   delay(20);
 }
