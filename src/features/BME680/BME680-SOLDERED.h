@@ -33,7 +33,7 @@ class BME680 : public Bme68x
     float calculateAltitude(float pressure);
 
   protected:
-    void initializeNative(){};
+    void initializeNative() {};
 
   private:
     bool readData(bme68xData &data);
