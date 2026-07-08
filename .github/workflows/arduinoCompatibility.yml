@@ -13,3 +13,4 @@ jobs:
           compliance: specification
           project-type: library
           recursive: true
+          library-manager: update
