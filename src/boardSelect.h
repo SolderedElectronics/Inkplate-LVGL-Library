@@ -18,6 +18,9 @@
 #if defined(ARDUINO_INKPLATE13SPECTRA)
 #define USE_COLOR_IMAGE
 #include "boards/Inkplate13SPECTRA/Inkplate13SPECTRABoardFile.h"
+#elif defined(ARDUINO_ESP32S3_DEV)
+#define USE_COLOR_IMAGE
+#include "boards/Inkplate7SPECTRA/Inkplate7SPECTRABoardFile.h"
 #elif defined(ARDUINO_INKPLATE10V2)
 #include "boards/Inkplate10/Inkplate10BoardFile.h"
 #elif defined(ARDUINO_INKPLATE6V2)

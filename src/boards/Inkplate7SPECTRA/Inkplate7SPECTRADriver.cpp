@@ -1,8 +1,8 @@
 /**
  **************************************************
  *
- * @file        Inkplate13Driver.cpp
- * @brief       Low-level EPD driver implementation for Inkplate 13SPECTRA
+ * @file        Inkplate7SPECTRADriver.cpp
+ * @brief       Low-level EPD driver implementation for Inkplate 7SPECTRA
  *
  *
  * @copyright   GNU General Public License v3.0
@@ -10,8 +10,8 @@
  ***************************************************/
 
 // Header guard for the Arduino include
-#ifdef ARDUINO_INKPLATE13SPECTRA
-#include "Inkplate13SPECTRADriver.h"
+#ifdef ARDUINO_ESP32S3_DEV
+#include "Inkplate7SPECTRADriver.h"
 #include "Inkplate-LVGL.h"
 #include "../../system/inkplateSemaphore.h"
 
@@ -22,8 +22,8 @@ SPIClass spi1(1);
 // Instance of the SdFat object
 SdFat sd;
 
-// SPI settings for communicating with the display, 10MHz
-SPISettings epdSpiSettings(10000000, MSBFIRST, SPI_MODE0);
+// SPI settings for communicating with the display, 8MHz
+SPISettings epdSpiSettings(8000000, MSBFIRST, SPI_MODE0);
 
 /**
  *
@@ -47,7 +47,9 @@ void EPDDriver::writePixelInternal(int16_t x, int16_t y, uint16_t color)
         return;
     color = colorPalette[color];
 
-    _swap_int16_t(x0, y0);
+    // The panel is mounted rotated by 180 degrees inside the enclosure, so
+    // both axes are flipped to compensate (no axis swap, unlike the 13SPECTRA).
+    x0 = E_INK_WIDTH - x0 - 1;
     y0 = E_INK_HEIGHT - y0 - 1;
     int _x = x0 / 2;
     int _x_sub = x0 % 2;
@@ -81,7 +83,9 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 
     if (self->ditherEnabled && self->_renderMode == LV_DISP_RENDER_MODE_FULL)
     {
-        self->dither.ditherFramebuffer(px_map, E_INK_HEIGHT, E_INK_WIDTH);
+        // Unlike the 13SPECTRA, the 7SPECTRA's LVGL screen dimensions are NOT swapped
+        // (native landscape panel), so the RGB565 buffer's real row stride is E_INK_WIDTH.
+        self->dither.ditherFramebuffer(px_map, E_INK_WIDTH, E_INK_HEIGHT);
     }
     else
     {
@@ -142,11 +146,11 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                     }
                 }
 
-                // Apply Inkplate 13 framebuffer orientation
+                // Apply Inkplate 7SPECTRA framebuffer orientation (180 degree flip, no axis swap).
                 int32_t sx = area->x1 + x;
                 int32_t sy = area->y1 + y;
-                int32_t fx = sy;
-                int32_t fy = E_INK_HEIGHT - sx - 1;
+                int32_t fx = E_INK_WIDTH - sx - 1;
+                int32_t fy = E_INK_HEIGHT - sy - 1;
 
                 // Write pixel to 3-bit framebuffer (4-bit packed)
                 int x_byte = fx / 2;
@@ -167,11 +171,6 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
 /**
  * @brief       begin function initialize Inkplate object with predefined
  * settings
- *
- * @param       uint8_t lightWaveform
- *              if inkplate doesn't work well or if it is fading after turning off
- *              lightWaveform should be set to 1 in order to fix that, but older boards
- *              may not support it
  *
  * @return      True if initialization is successful, false if failed or already
  * initialized
@@ -196,7 +195,9 @@ int EPDDriver::initDriver(Inkplate *_inkplatePtr)
 
         expander1.begin(IO_INT_ADDR);
 
-        _inkplate->setRotation(1);
+        // Default rotation - the panel is mounted rotated by 180 degrees,
+        // rotation 0 compensates for that (see writePixelInternal).
+        _inkplate->setRotation(0);
 
         // Allocate memory for internal frame buffer
         DMemory4Bit = (uint8_t *)ps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2);
@@ -245,46 +246,29 @@ void EPDDriver::display(bool _leaveOn)
     // Power up the screen (if is not already powered on).
     setPanelState(true);
 
-    // Framebuffer must be send to two seperate display driver.
-    // The screen is splitted in half - left and right side.
-    // Send data in rows - first on master (left side of the screen).
-    digitalWrite(SPECTRA133_CS_M_PIN, LOW);
-    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-
-    // Start SPI transaction and send the command to fill the EPD framebuffer with data.
+    // Send the whole framebuffer to the panel over SPI. Unlike the 13SPECTRA, the
+    // 7SPECTRA panel is driven by a single EPD controller chip, so there is no
+    // master/slave split - the entire buffer goes out over one chip select pin.
+    digitalWrite(SPECTRA73_DC_PIN, LOW);
+    digitalWrite(SPECTRA73_CS_PIN, LOW);
     SPI.beginTransaction(epdSpiSettings);
-    SPI.write(SPECTRA133_REGISTER_DTM);
+    SPI.write(SPECTRA73_REGISTER_DTM);
+    digitalWrite(SPECTRA73_CS_PIN, HIGH);
+    digitalWrite(SPECTRA73_DC_PIN, HIGH);
 
-    // Send the data to the first driver (left side)
+    // Send the data row by row.
+    digitalWrite(SPECTRA73_CS_PIN, LOW);
     for (int i = 0; i < E_INK_HEIGHT; i++)
     {
-        SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2), (E_INK_WIDTH / 4));
+        SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2), (E_INK_WIDTH / 2));
     }
+    digitalWrite(SPECTRA73_CS_PIN, HIGH);
     SPI.endTransaction();
 
-    // Send data in rows - now on slave (right side of the screen).
-    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
-    digitalWrite(SPECTRA133_CS_S_PIN, LOW);
-    waitForBusy();
-
-    // Start SPI transaction and send the command to fill the EPD framebuffer with data.
-    SPI.beginTransaction(epdSpiSettings);
-    SPI.write(SPECTRA133_REGISTER_DTM);
-
-    // Send the data to the second driver (right side).
-    for (int i = 0; i < E_INK_HEIGHT; i++)
-    {
-        SPI.writeBytes(DMemory4Bit + (i * E_INK_WIDTH / 2) + (E_INK_WIDTH / 4), (E_INK_WIDTH / 4));
-    }
-    SPI.endTransaction();
-
-    // Disable both drivers.
-    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
     waitForBusy();
 
     // Force display command.
-    sendCommand(SPECTRA133_REGISTER_DRF, SPECTRA133_REGISTER_DRF_V, sizeof(SPECTRA133_REGISTER_DRF_V), eChipIdBoth);
+    sendCommand(SPECTRA73_REGISTER_DRF, SPECTRA73_REGISTER_DRF_V, sizeof(SPECTRA73_REGISTER_DRF_V));
     waitForBusy();
 
     // Disable power to the display (if needed).
@@ -327,7 +311,7 @@ void EPDDriver::setPanelState(uint8_t state)
             setIO();
 
             // Enable power to the screen.
-            digitalWrite(SPECTRA133_PWR_EN, HIGH);
+            digitalWrite(SPECTRA73_PWR_EN, HIGH);
 
             // Wait a little bit.
             delay(100ULL);
@@ -335,33 +319,31 @@ void EPDDriver::setPanelState(uint8_t state)
             // First, do a hardware reset!
             resetPanel();
 
-            // Wait for the reset to finish.
-            delay(100ULL);
+            // Wait for the panel to be ready after the reset.
+            waitForBusy();
 
             // Initialze the screen by sending the magic values to the registers provided by the manufacturer.
             screenInit();
 
             // Power up a screen.
-            sendCommand(SPECTRA133_REGISTER_PON, nullptr, 0, eChipIdBoth);
+            sendCommand(SPECTRA73_REGISTER_PON, nullptr, 0);
             waitForBusy();
         }
         else
         {
             // Power off the screen.
-            sendCommand(SPECTRA133_REGISTER_POF, SPECTRA133_REGISTER_POF_V, sizeof(SPECTRA133_REGISTER_POF_V),
-                        eChipIdBoth);
+            sendCommand(SPECTRA73_REGISTER_POF, SPECTRA73_REGISTER_POF_V, sizeof(SPECTRA73_REGISTER_POF_V));
             waitForBusy();
 
             // Disable GPIOs.
-            pinMode(SPECTRA133_DC_PIN, INPUT);
-            pinMode(SPECTRA133_CS_M_PIN, INPUT);
-            pinMode(SPECTRA133_CS_S_PIN, INPUT);
-            pinMode(SPECTRA133_RST_PIN, INPUT);
-            pinMode(SPECTRA133_BUSYN_PIN, INPUT);
-            pinMode(SPECTRA133_PWR_EN, INPUT);
+            pinMode(SPECTRA73_DC_PIN, INPUT);
+            pinMode(SPECTRA73_CS_PIN, INPUT);
+            pinMode(SPECTRA73_RST_PIN, INPUT);
+            pinMode(SPECTRA73_BUSYN_PIN, INPUT);
+            pinMode(SPECTRA73_PWR_EN, INPUT);
 
             // Disable power to the screen.
-            digitalWrite(SPECTRA133_PWR_EN, LOW);
+            digitalWrite(SPECTRA73_PWR_EN, LOW);
         }
 
         // Update the status variable.
@@ -370,80 +352,78 @@ void EPDDriver::setPanelState(uint8_t state)
 }
 
 /**
- * @brief       setIO initializes the communication pins as well as SPI communication with the Inkplate 13 panel
+ * @brief       setIO initializes the communication pins as well as SPI communication with the Inkplate 7 panel
  */
 void EPDDriver::setIO()
 {
     // Config the GPIOs.
-    pinMode(SPECTRA133_DC_PIN, OUTPUT);
-    pinMode(SPECTRA133_CS_M_PIN, OUTPUT);
-    pinMode(SPECTRA133_CS_S_PIN, OUTPUT);
-    pinMode(SPECTRA133_RST_PIN, OUTPUT);
-    pinMode(SPECTRA133_BUSYN_PIN, INPUT_PULLUP);
-    pinMode(SPECTRA133_PWR_EN, OUTPUT);
-    pinMode(SPECTRA133_BS0, OUTPUT);
-    pinMode(SPECTRA133_BS1, OUTPUT);
+    pinMode(SPECTRA73_DC_PIN, OUTPUT);
+    pinMode(SPECTRA73_CS_PIN, OUTPUT);
+    pinMode(SPECTRA73_RST_PIN, OUTPUT);
+    pinMode(SPECTRA73_BUSYN_PIN, INPUT_PULLUP);
+    pinMode(SPECTRA73_PWR_EN, OUTPUT);
+    pinMode(SPECTRA73_BS0, OUTPUT);
+    pinMode(SPECTRA73_BS1, OUTPUT);
 
     // Set their default states.
-    digitalWrite(SPECTRA133_DC_PIN, HIGH);
-    digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
-    digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-    digitalWrite(SPECTRA133_RST_PIN, LOW);
-    digitalWrite(SPECTRA133_PWR_EN, LOW);
-    digitalWrite(SPECTRA133_BS0, LOW);
-    digitalWrite(SPECTRA133_BS1, HIGH);
+    // BS0 and BS1 low select the 4-wire SPI interface mode on the panel.
+    digitalWrite(SPECTRA73_DC_PIN, HIGH);
+    digitalWrite(SPECTRA73_CS_PIN, HIGH);
+    digitalWrite(SPECTRA73_RST_PIN, LOW);
+    digitalWrite(SPECTRA73_PWR_EN, LOW);
+    digitalWrite(SPECTRA73_BS0, LOW);
+    digitalWrite(SPECTRA73_BS1, LOW);
 
-    // Config SPI.
-    if (!SPI.begin(SPECTRA133_SPI_SCK, SPECTRA133_SPI_MISO, SPECTRA133_SPI_MOSI))
+    // Config SPI. MISO is not used by the panel.
+    if (!SPI.begin(SPECTRA73_SPI_SCK, -1, SPECTRA73_SPI_MOSI))
     {
         Serial.println("Failed to init SPI");
     }
 }
 
 /**
- * @brief       resetPanel resets Inkplate 13 screen
+ * @brief       resetPanel resets Inkplate 7 screen
  */
 void EPDDriver::resetPanel()
 {
     // Toggle the reset pin to initialte HW reset.
-    digitalWrite(SPECTRA133_RST_PIN, LOW);
-    delay(100ULL);
-    digitalWrite(SPECTRA133_RST_PIN, HIGH);
-    delay(100ULL);
+    digitalWrite(SPECTRA73_RST_PIN, LOW);
+    delay(10ULL);
+    digitalWrite(SPECTRA73_RST_PIN, HIGH);
+    delay(20ULL);
 }
 
 /**
- * @brief       sendCommand sends SPI command to Inkplate 13
+ * @brief       sendCommand sends SPI command to Inkplate 7
  *
- * @param       uint8_t _command
+ * @param       uint8_t _cmd
  *              predefined command for epaper control
+ * @param       const uint8_t *_parameters
+ *              command parameters (data bytes), can be nullptr
+ * @param       uint32_t _n
+ *              number of parameter bytes
  */
-void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t *_parameters, uint32_t _n, enum eSpectraChipID _chipId)
+void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t *_parameters, uint32_t _n)
 {
     // Config the SPI.
     SPI.beginTransaction(epdSpiSettings);
 
-    // Set the chip select pin to low as well.
-    if (_chipId & eChipIdSlave)
-        digitalWrite(SPECTRA133_CS_S_PIN, LOW);
-    if (_chipId & eChipIdMaster)
-        digitalWrite(SPECTRA133_CS_M_PIN, LOW);
-
-    // Send the command.
+    // Send the command byte with the DC pin set to low.
+    digitalWrite(SPECTRA73_DC_PIN, LOW);
+    digitalWrite(SPECTRA73_CS_PIN, LOW);
     SPI.write(_cmd);
+    digitalWrite(SPECTRA73_CS_PIN, HIGH);
 
+    // Send the command parameters with the DC pin set to high.
+    digitalWrite(SPECTRA73_DC_PIN, HIGH);
     if (_n != 0)
     {
+        digitalWrite(SPECTRA73_CS_PIN, LOW);
         SPI.writeBytes(_parameters, _n);
+        digitalWrite(SPECTRA73_CS_PIN, HIGH);
     }
 
     SPI.endTransaction();
-
-    // Release the chip select.
-    if (_chipId & eChipIdSlave)
-        digitalWrite(SPECTRA133_CS_S_PIN, HIGH);
-    if (_chipId & eChipIdMaster)
-        digitalWrite(SPECTRA133_CS_M_PIN, HIGH);
 }
 
 /**
@@ -452,32 +432,25 @@ void EPDDriver::sendCommand(uint8_t _cmd, const uint8_t *_parameters, uint32_t _
 void EPDDriver::screenInit()
 {
     // Send magic values to the registers. These values are provided from the manufacturer.
-    sendCommand(SPECTRA133_REGISTER_AN_TM, SPECTRA133_REGISTER_AN_TM_V, sizeof(SPECTRA133_REGISTER_AN_TM_V),
-                eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_CMD66, SPECTRA133_REGISTER_CMD66_V, sizeof(SPECTRA133_REGISTER_CMD66_V),
-                eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_PSR, SPECTRA133_REGISTER_PSR_V, sizeof(SPECTRA133_REGISTER_PSR_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_PLL, SPECTRA133_REGISTER_PLL_V, sizeof(SPECTRA133_REGISTER_PLL_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_CDI, SPECTRA133_REGISTER_CDI_V, sizeof(SPECTRA133_REGISTER_CDI_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_TCON, SPECTRA133_REGISTER_TCON_V, sizeof(SPECTRA133_REGISTER_TCON_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_AGID, SPECTRA133_REGISTER_AGID_V, sizeof(SPECTRA133_REGISTER_AGID_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_PWS, SPECTRA133_REGISTER_PWS_V, sizeof(SPECTRA133_REGISTER_PWS_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_CCSET, SPECTRA133_REGISTER_CCSET_V, sizeof(SPECTRA133_REGISTER_CCSET_V),
-                eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_TRES, SPECTRA133_REGISTER_TRES_V, sizeof(SPECTRA133_REGISTER_TRES_V), eChipIdBoth);
-    sendCommand(SPECTRA133_REGISTER_PWR, SPECTRA133_REGISTER_PWR_V, sizeof(SPECTRA133_REGISTER_PWR_V), eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_EN_BUF, SPECTRA133_REGISTER_EN_BUF_V, sizeof(SPECTRA133_REGISTER_EN_BUF_V),
-                eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_BTST_P, SPECTRA133_REGISTER_BTST_P_V, sizeof(SPECTRA133_REGISTER_BTST_P_V),
-                eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_BOOST_VDDP_EN, SPECTRA133_REGISTER_BOOST_VDDP_EN_V,
-                sizeof(SPECTRA133_REGISTER_BOOST_VDDP_EN_V), eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_BTST_N, SPECTRA133_REGISTER_BTST_N_V, sizeof(SPECTRA133_REGISTER_BTST_N_V),
-                eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_BUCK_BOOST_VDDN, SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V,
-                sizeof(SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V), eChipIdMaster);
-    sendCommand(SPECTRA133_REGISTER_TFT_VCOM_POWER, SPECTRA133_REGISTER_TFT_VCOM_POWER_V,
-                sizeof(SPECTRA133_REGISTER_TFT_VCOM_POWER_V), eChipIdMaster);
+    sendCommand(SPECTRA73_REGISTER_CMDH, SPECTRA73_REGISTER_CMDH_V, sizeof(SPECTRA73_REGISTER_CMDH_V));
+    sendCommand(SPECTRA73_REGISTER_PWR, SPECTRA73_REGISTER_PWR_V, sizeof(SPECTRA73_REGISTER_PWR_V));
+    sendCommand(SPECTRA73_REGISTER_PSR, SPECTRA73_REGISTER_PSR_V, sizeof(SPECTRA73_REGISTER_PSR_V));
+    sendCommand(SPECTRA73_REGISTER_PFS, SPECTRA73_REGISTER_PFS_V, sizeof(SPECTRA73_REGISTER_PFS_V));
+    sendCommand(SPECTRA73_REGISTER_BTST1, SPECTRA73_REGISTER_BTST1_V, sizeof(SPECTRA73_REGISTER_BTST1_V));
+    sendCommand(SPECTRA73_REGISTER_BTST2, SPECTRA73_REGISTER_BTST2_V, sizeof(SPECTRA73_REGISTER_BTST2_V));
+    sendCommand(SPECTRA73_REGISTER_BTST3, SPECTRA73_REGISTER_BTST3_V, sizeof(SPECTRA73_REGISTER_BTST3_V));
+    sendCommand(SPECTRA73_REGISTER_IPC, SPECTRA73_REGISTER_IPC_V, sizeof(SPECTRA73_REGISTER_IPC_V));
+    sendCommand(SPECTRA73_REGISTER_PLL, SPECTRA73_REGISTER_PLL_V, sizeof(SPECTRA73_REGISTER_PLL_V));
+    sendCommand(SPECTRA73_REGISTER_TSE, SPECTRA73_REGISTER_TSE_V, sizeof(SPECTRA73_REGISTER_TSE_V));
+    sendCommand(SPECTRA73_REGISTER_CDI, SPECTRA73_REGISTER_CDI_V, sizeof(SPECTRA73_REGISTER_CDI_V));
+    sendCommand(SPECTRA73_REGISTER_TCON, SPECTRA73_REGISTER_TCON_V, sizeof(SPECTRA73_REGISTER_TCON_V));
+    sendCommand(SPECTRA73_REGISTER_TRES, SPECTRA73_REGISTER_TRES_V, sizeof(SPECTRA73_REGISTER_TRES_V));
+    sendCommand(SPECTRA73_REGISTER_VDCS, SPECTRA73_REGISTER_VDCS_V, sizeof(SPECTRA73_REGISTER_VDCS_V));
+    sendCommand(SPECTRA73_REGISTER_T_VDCS, SPECTRA73_REGISTER_T_VDCS_V, sizeof(SPECTRA73_REGISTER_T_VDCS_V));
+    sendCommand(SPECTRA73_REGISTER_AGID, SPECTRA73_REGISTER_AGID_V, sizeof(SPECTRA73_REGISTER_AGID_V));
+    sendCommand(SPECTRA73_REGISTER_PWS, SPECTRA73_REGISTER_PWS_V, sizeof(SPECTRA73_REGISTER_PWS_V));
+    sendCommand(SPECTRA73_REGISTER_CCSET, SPECTRA73_REGISTER_CCSET_V, sizeof(SPECTRA73_REGISTER_CCSET_V));
+    sendCommand(SPECTRA73_REGISTER_TSSET, SPECTRA73_REGISTER_TSSET_V, sizeof(SPECTRA73_REGISTER_TSSET_V));
 }
 
 
@@ -492,8 +465,8 @@ int16_t EPDDriver::sdCardInit()
     expander1.digitalWrite(SD_PMOS_PIN, LOW);
     delay(200);
     spiStart();
-    spi1.begin(12, 13, 11, 10);
-    setSdCardOk(sd.begin(SdSpiConfig(10, SHARED_SPI, SD_SCK_MHZ(25), &spi1)));
+    spi1.begin(SPECTRA73_SD_SPI_CLK, SPECTRA73_SD_SPI_MISO, SPECTRA73_SD_SPI_MOSI, SPECTRA73_SD_SPI_CS);
+    setSdCardOk(sd.begin(SdSpiConfig(SPECTRA73_SD_SPI_CS, SHARED_SPI, SD_SCK_MHZ(25), &spi1)));
     spiEnd();
     // Small delay to init the SD card
     delay(100);
@@ -508,10 +481,10 @@ void EPDDriver::sdCardSleep()
     spiStart();
     spiEnd();
     // Set SPI pins to input to reduce power consumption in deep sleep
-    pinMode(10, INPUT);
-    pinMode(11, INPUT);
-    pinMode(12, INPUT);
-    pinMode(13, INPUT);
+    pinMode(SPECTRA73_SD_SPI_CS, INPUT);
+    pinMode(SPECTRA73_SD_SPI_MOSI, INPUT);
+    pinMode(SPECTRA73_SD_SPI_CLK, INPUT);
+    pinMode(SPECTRA73_SD_SPI_MISO, INPUT);
 
     // And also disable uSD card supply
     expander1.pinMode(SD_PMOS_PIN, INPUT);
@@ -569,19 +542,19 @@ double EPDDriver::readBattery()
 {
     // Read the pin on the battery MOSFET. If is high, that means is older version of the board
     // that uses PMOS only. If it's low, newer board with both PMOS and NMOS.
-    expander1.pinMode(9, INPUT);
-    int state = expander1.digitalRead(9);
-    expander1.pinMode(9, OUTPUT);
+    expander1.pinMode(SPECTRA73_BATT_MOSFET_PIN, INPUT);
+    int state = expander1.digitalRead(SPECTRA73_BATT_MOSFET_PIN);
+    expander1.pinMode(SPECTRA73_BATT_MOSFET_PIN, OUTPUT);
 
     // If the input is pulled high, it's PMOS only.
     // If it's pulled low, it's PMOS and NMOS.
     if (state)
     {
-        expander1.digitalWrite(9, LOW);
+        expander1.digitalWrite(SPECTRA73_BATT_MOSFET_PIN, LOW);
     }
     else
     {
-        expander1.digitalWrite(9, HIGH);
+        expander1.digitalWrite(SPECTRA73_BATT_MOSFET_PIN, HIGH);
     }
 
     // Wait a little bit after a MOSFET enable.
@@ -589,16 +562,16 @@ double EPDDriver::readBattery()
 
     // Set to the highest resolution and read the voltage.
     analogReadResolution(12);
-    int adc = analogReadMilliVolts(1);
+    int adc = analogReadMilliVolts(SPECTRA73_BATT_ADC_PIN);
 
     // Turn off the MOSFET (and voltage divider).
     if (state)
     {
-        expander1.digitalWrite(9, HIGH);
+        expander1.digitalWrite(SPECTRA73_BATT_MOSFET_PIN, HIGH);
     }
     else
     {
-        expander1.digitalWrite(9, LOW);
+        expander1.digitalWrite(SPECTRA73_BATT_MOSFET_PIN, LOW);
     }
 
     // Calculate the voltage at the battery terminal (voltage is divided in half by voltage divider).
@@ -612,8 +585,7 @@ void EPDDriver::waitForBusy()
 {
     // Wait until the screen is ready to accept new commands.
     // This will be indicated by pulling the BUSYN pin to high.
-    // A 30-second timeout prevents an infinite hang if the panel does not respond.
-    while (!digitalRead(SPECTRA133_BUSYN_PIN))
+    while (!digitalRead(SPECTRA73_BUSYN_PIN))
     {
         // Let the RTOS breathe.
         delay(1);
@@ -626,23 +598,21 @@ void EPDDriver::waitForBusy()
  */
 void EPDDriver::setPanelPinsToLow()
 {
-    pinMode(SPECTRA133_DC_PIN, OUTPUT);
-    pinMode(SPECTRA133_CS_M_PIN, OUTPUT);
-    pinMode(SPECTRA133_RST_PIN, OUTPUT);
-    pinMode(SPECTRA133_BUSYN_PIN, OUTPUT);
-    pinMode(SPECTRA133_CS_S_PIN, OUTPUT);
-    pinMode(SPECTRA133_PWR_EN, OUTPUT);
-    pinMode(SPECTRA133_BS0, OUTPUT);
-    pinMode(SPECTRA133_BS1, OUTPUT);
+    pinMode(SPECTRA73_DC_PIN, OUTPUT);
+    pinMode(SPECTRA73_CS_PIN, OUTPUT);
+    pinMode(SPECTRA73_RST_PIN, OUTPUT);
+    pinMode(SPECTRA73_BUSYN_PIN, OUTPUT);
+    pinMode(SPECTRA73_PWR_EN, OUTPUT);
+    pinMode(SPECTRA73_BS0, OUTPUT);
+    pinMode(SPECTRA73_BS1, OUTPUT);
 
-    digitalWrite(SPECTRA133_DC_PIN, LOW);
-    digitalWrite(SPECTRA133_CS_M_PIN, LOW);
-    digitalWrite(SPECTRA133_RST_PIN, LOW);
-    digitalWrite(SPECTRA133_BUSYN_PIN, LOW);
-    digitalWrite(SPECTRA133_CS_S_PIN, LOW);
-    digitalWrite(SPECTRA133_PWR_EN, LOW);
-    digitalWrite(SPECTRA133_BS0, LOW);
-    digitalWrite(SPECTRA133_BS1, LOW);
+    digitalWrite(SPECTRA73_DC_PIN, LOW);
+    digitalWrite(SPECTRA73_CS_PIN, LOW);
+    digitalWrite(SPECTRA73_RST_PIN, LOW);
+    digitalWrite(SPECTRA73_BUSYN_PIN, LOW);
+    digitalWrite(SPECTRA73_PWR_EN, LOW);
+    digitalWrite(SPECTRA73_BS0, LOW);
+    digitalWrite(SPECTRA73_BS1, LOW);
 }
 
 

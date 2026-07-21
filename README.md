@@ -20,6 +20,7 @@ Below are the color formats used by each Inkplate model:
 | Inkplate 6         | L8           |
 | Inkplate 6FLICK    | L8           |
 | Inkplate 6COLOR    | RGB565       |
+| Inkplate 7SPECTRA  | RGB565       |
 | Inkplate 10        | L8           |
 | Inkplate 13SPECTRA | RGB565       |
 
@@ -75,6 +76,12 @@ Inkplate-LVGL-Library/
    |      |      |      +--- Inkplate6FLICKDriver.h
    |      |      |      +--- pins.h
    |      |      |      `--- waveforms.h
+   |      |      |
+   |      |      +--- Inkplate7SPECTRA/
+   |      |      |      +--- Inkplate7SPECTRABoardFile.h
+   |      |      |      +--- Inkplate7SPECTRADriver.cpp
+   |      |      |      +--- Inkplate7SPECTRADriver.h
+   |      |      |      `--- pins.h
    |      |      |
    |      |      +--- Inkplate10/
    |      |      |      +--- Inkplate10BoardFile.h

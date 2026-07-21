@@ -25,7 +25,7 @@ Inkplate::Inkplate(uint8_t mode)
 }
 #else
 /**
- * @brief       Inkplate constructor for colour boards (e.g. Inkplate 13SPECTRA).
+ * @brief       Inkplate constructor for colour boards (e.g. Inkplate 13SPECTRA, Inkplate 7SPECTRA).
  *              No mode argument is needed; the colour format is fixed for these panels.
  */
 Inkplate::Inkplate()

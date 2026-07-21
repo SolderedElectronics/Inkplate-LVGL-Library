@@ -17,7 +17,8 @@
 #include "ditherAlgorithm.h"
 #include "Inkplate-LVGL.h"
 
-#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA)
+#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA) ||             \
+    defined(ARDUINO_ESP32S3_DEV)
 
 /**
  * @brief   Unpack an RGB565 word into R (0–31), G (0–63), B (0–31) channel values.
