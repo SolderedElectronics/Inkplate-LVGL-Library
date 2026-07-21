@@ -20,7 +20,7 @@
 
 #pragma once
 
-#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA) ||             \
+#if defined(ARDUINO_INKPLATECOLOR) || defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE13SPECTRA) ||              \
     defined(ARDUINO_ESP32S3_DEV)
 
 #include <stdio.h>

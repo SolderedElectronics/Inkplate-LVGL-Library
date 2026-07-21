@@ -53,7 +53,7 @@
 #define INKPLATE_GREEN  6
 
 static uint16_t colorPalette[6] = {INKPLATE_BLACK, INKPLATE_WHITE, INKPLATE_YELLOW,
-                                    INKPLATE_RED,   INKPLATE_BLUE,  INKPLATE_GREEN};
+                                   INKPLATE_RED,   INKPLATE_BLUE,  INKPLATE_GREEN};
 
 // Screen resolution.
 #define E_INK_WIDTH  800

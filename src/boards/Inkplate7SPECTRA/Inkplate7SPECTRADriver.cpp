@@ -127,8 +127,8 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
                 {
                     uint8_t r, g, b, code;
                 } paletteRGB[6] = {
-                    {0, 0, 0, INKPLATE_BLACK},     {255, 255, 255, INKPLATE_WHITE}, {255, 255, 0, INKPLATE_YELLOW},
-                    {255, 0, 0, INKPLATE_RED},     {0, 0, 255, INKPLATE_BLUE},      {0, 255, 0, INKPLATE_GREEN},
+                    {0, 0, 0, INKPLATE_BLACK}, {255, 255, 255, INKPLATE_WHITE}, {255, 255, 0, INKPLATE_YELLOW},
+                    {255, 0, 0, INKPLATE_RED}, {0, 0, 255, INKPLATE_BLUE},      {0, 255, 0, INKPLATE_GREEN},
                 };
 
                 uint8_t color = INKPLATE_BLACK;
