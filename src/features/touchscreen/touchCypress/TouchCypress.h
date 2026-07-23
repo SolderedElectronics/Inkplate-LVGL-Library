@@ -1,14 +1,19 @@
 /**
  **************************************************
- *
  * @file        TouchCypress.h
- * @brief       Cypress touchscreen controller interface
+ * @brief       Touch screen functionality for panels that support touch
  *
+ *              https://github.com/SolderedElectronics/Inkplate-Arduino-library
+ *              For more info about the product, please check: https://docs.soldered.com/inkplate/
  *
- * @copyright   GNU General Public License v3.0
- * @authors     Borna Biro @ Soldered
+ *              This code is released under the GNU Lesser General Public
+ *License v3.0: https://www.gnu.org/licenses/lgpl-3.0.en.html Please review the
+ *LICENSE file included with this example. If you have any questions about
+ *licensing, please contact assistance@soldered.com Distributed as-is; no
+ *warranty is given.
+ *
+ * @authors     Borna Biro for Soldered
  ***************************************************/
-
 
 #ifndef __TOUCH_CYPRESS_H__
 #define __TOUCH_CYPRESS_H__
@@ -34,8 +39,8 @@
 #define CYPRESS_TOUCH_I2C_ADDR 0x24
 
 // GPIOs for touchscreen controller.
-// #define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
-// #define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
+//#define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
+//#define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
 
 // Cypress touchscreen controller I2C regs.
 #define CYPRESS_TOUCH_BASE_ADDR       0x00
