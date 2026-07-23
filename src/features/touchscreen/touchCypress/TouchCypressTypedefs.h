@@ -1,14 +1,3 @@
-/**
- **************************************************
- *
- * @file        TouchCypressTypedefs.h
- * @brief       Type definitions for the Cypress touchscreen controller
- *
- *
- * @copyright   GNU General Public License v3.0
- * @authors     Soldered
- ***************************************************/
-
 #ifndef __TOUCHCYPRESSTYPEDEFS_H__
 #define __TOUCHCYPRESSTYPEDEFS_H__
 

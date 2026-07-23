@@ -207,20 +207,36 @@ void IRAM_ATTR display_flush_callback(lv_display_t *disp, const lv_area_t *area,
  */
 void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
+    // The touch controller only interrupts when a new scan result is ready, not continuously
+    // while a finger is held. If an LVGL read tick lands between two scans, available() is
+    // false even though the finger never left the screen, so the last known state/position is
+    // kept and only overwritten once an explicit report (press or release) arrives.
+    static lv_indev_state_t lastState = LV_INDEV_STATE_RELEASED;
+    static uint16_t lastX = 0;
+    static uint16_t lastY = 0;
+
     lv_display_t *disp = (lv_display_t *)lv_indev_get_display(indev);
     Inkplate *self = static_cast<Inkplate *>(lv_display_get_user_data(disp));
     if (self->touchscreen.available())
     {
         uint16_t x[2], y[2];
-        self->touchscreen.getData(x, y);
-        data->state = LV_INDEV_STATE_PRESSED;
-        data->point.x = x[0];
-        data->point.y = y[0];
+        uint8_t fingers = self->touchscreen.getData(x, y);
+
+        if (fingers > 0)
+        {
+            lastState = LV_INDEV_STATE_PRESSED;
+            lastX = x[0];
+            lastY = y[0];
+        }
+        else
+        {
+            lastState = LV_INDEV_STATE_RELEASED;
+        }
     }
-    else
-    {
-        data->state = LV_INDEV_STATE_RELEASED;
-    }
+
+    data->state = lastState;
+    data->point.x = lastX;
+    data->point.y = lastY;
 }
 
 
