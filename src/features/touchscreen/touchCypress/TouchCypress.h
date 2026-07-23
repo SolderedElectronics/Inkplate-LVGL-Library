@@ -39,8 +39,8 @@
 #define CYPRESS_TOUCH_I2C_ADDR 0x24
 
 // GPIOs for touchscreen controller.
-//#define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
-//#define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
+// #define CYPRESS_TOUCH_PWR_MOS_PIN   IO_PIN_B4
+// #define CYPRESS_TOUCH_RST_PIN       IO_PIN_B2
 
 // Cypress touchscreen controller I2C regs.
 #define CYPRESS_TOUCH_BASE_ADDR       0x00
